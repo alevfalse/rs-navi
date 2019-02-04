@@ -13,6 +13,7 @@ A we application that helps students find a place to live near their school.
 
 4. Start coding and don't forget to commit and push your changes.
 > git commit -m "commit message"
+
 > git push origin
 
 To pull any changes others have made use the comand:
@@ -22,6 +23,6 @@ To pull any changes others have made use the comand:
 You can run the application on a local server using the command:
 > npm start
 
-Note: This command above will start the nodemon module, which means that you do not have 
+Note: The command above will start the nodemon module, which means that you do not have 
 to restart the server whenever any changes saved.
 
