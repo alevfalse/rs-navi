@@ -24,5 +24,5 @@ You can run the application on a local server using the command:
 > npm start
 
 Note: The command above will start the nodemon module, which means that you do not have 
-to restart the server whenever any changes saved.
+to restart the server whenever any changes are saved.
 
