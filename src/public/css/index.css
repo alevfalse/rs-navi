@@ -48,6 +48,10 @@ header nav a {
 section.search {
     margin: 60px;
     text-align: center;
+    background-image: url("/images/background_image.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 500px;
 }
 
 section.search img {
@@ -64,9 +68,12 @@ section.search form {
 
 /* Footer */
 footer {
-    background-color: cornflowerblue;
-    border-top: 10px solid dimgray;
+    background-color: dimgray;
+    border-top: 10px solid cornflowerblue;
     text-align: center;
-    height: 60px;
-    padding: 20px;
+    height: 40px;
+}
+
+footer span {
+    color: beige;
 }
