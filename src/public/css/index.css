@@ -1,79 +1,103 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto+Condensed');
 
-/* Global */
 body {
     font-family: 'Roboto Condensed', sans-serif;
+    padding: 0;
     margin: 0;
-    min-height: 100%;
+    background-color: #f4f4f4;
 }
 
+/* Global */
 .container {
     width: 90%;
     margin: auto;
     overflow: hidden;
 }
 
-/* Header */
-header {
-    background-color: dimgray;
-    margin: 0;
-    padding: 0;
-    border-bottom: 10px solid cornflowerblue;
+.button_1 {
+    height: 20px;
+    background: cornflowerblue;
+    border: none;
+    padding-right: 20px;
+    padding-left: 20px;
+    color: #ffffff;
 }
 
-header h1 {
+ul {
+    margin: 0;
+    padding: 0;
+}
+
+/* Header */
+header {
+    background-color: #35424a;
+    border-bottom: 10px solid cornflowerblue;
+    min-height: 70px;
+    color: #ffffff;
+}
+
+header #branding {
     float: left;
 }
 
-header span {
+header #branding h1 {
+    margin: 0;
+    padding-top: 15px;
+}
+
+header span.highlight {
     font-weight: bold;
     color: cornflowerblue;
 }
 
-header nav ul {
-    list-style-type: none;
-}
-
-header nav li {
+header nav {
     float: right;
-    padding: 25px;
+    margin-top: 25px;
 }
 
-header nav a {
+header li {
+    display: inline;
+    padding: 0px 20px 0px 20px;
+}
+
+header a {
+    color: #ffffff;
     text-decoration: none;
-    color: cornflowerblue;
+    text-transform: uppercase;
+    font-size: 16px;
 }
 
-/* Search Bar */
-section.search {
-    margin: 60px;
+/* Main - Search */
+
+main {
+    background-image: url("https://source.unsplash.com/1600x900/?architecture, apartments");
     text-align: center;
-    background-image: url("/images/background_image.jpg");
     background-repeat: no-repeat;
     background-size: cover;
-    height: 500px;
+    min-height: 720px;
 }
 
-section.search img {
-    width: 10%;
+main img {
+    width: 15%;
+    margin: 30px;
 }
 
-section.search form {
-    padding: 20px;
+main form {
+    padding: 50px;
 }
 
-.button_1 {
-    background: dimgray;
+main form input[type="text"] {
+    width: 30%;
 }
 
 /* Footer */
 footer {
-    background-color: dimgray;
+    background-color: #35424a;
     border-top: 10px solid cornflowerblue;
     text-align: center;
     height: 40px;
 }
 
-footer span {
-    color: beige;
+footer span#copyright {
+    color: cornflowerblue;
 }

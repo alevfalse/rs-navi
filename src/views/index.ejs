@@ -10,29 +10,33 @@
 <body>
     <header>
         <div class="container">
-            <h1><span>RS</span> Navi</h1>
+            <div id="branding">
+                <h1><span class="highlight">Room Stay In</span> Navigation</h1>
+            </div>
             <nav>
                 <ul>
-                    <li><a href="/add">Add A Place</a></li>
                     <li><a href="/login">Login/Signup</a></li>
+                    <li><a href="/add">Add A Place</a></li>
                 </ul>
             </nav>
         </div>
     </header>
 
-    <section class="search">
-        <img src="/images/rs_navi_logo.png">
+    <main>
+        <div class="container">
+            <img src="/images/rs_navi_logo.png">
+        </div>
         <div class="container">
             <form method="GET" action="/search">
                 <input type="text" class="searchBox" name="school_name" placeholder="Enter school name...">
                 <button type="submit" class="button_1">Search</button>
             </form>
         </div>
-    </section>
+    </main>
 
     <footer>
         <div class="container">
-            <span>Bathtub Coding &copy; Copyright 2019</span>
+            <span id="copyright">Bathtub Coding &copy; Copyright 2019</span>
         </div>
     </footer>
 </body>
