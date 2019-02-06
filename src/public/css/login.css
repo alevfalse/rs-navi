@@ -1,0 +1,9 @@
+.container {
+    width: 90%;
+    margin: auto;
+    overflow: hidden;
+}
+
+main form {
+    text-align: center;
+}

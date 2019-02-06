@@ -70,11 +70,9 @@ header a {
 /* Main - Search */
 
 main {
-    background-image: url("https://source.unsplash.com/1600x900/?architecture, apartments");
-    text-align: center;
-    background-repeat: no-repeat;
-    background-size: cover;
     min-height: 720px;
+    background: url("https://source.unsplash.com/1600x900/?architecture, apartments") no-repeat;
+    text-align: center;
 }
 
 main img {
