@@ -9,4 +9,5 @@ const firebaseApp = firebaseAdmin.initializeApp({
     databaseURL: "https://rs-navi.firebaseio.com"
 })
 
-module.exports = firebaseApp;
+exports.database = firebaseApp.firestore();
+exports.auth = firebaseApp.auth();

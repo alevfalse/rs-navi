@@ -1,16 +1,12 @@
 const { Router } = require('express');
 const argon2 = require('argon2');
-const database = require('../config/database');
+const database = require('../config/firebase').database;
 /**
  * @param { Router } openRouter
  */
 module.exports = function(openRouter) {
     openRouter.get('/', (req, res) => {
-        database.collection('views').add({
-            'visitDate': new Date()
-        }).then(docRef => {
-            res.render('index');
-        }).catch(err => console.error(err));
+        res.render('index');
     })
 
     openRouter.get('/login', (req, res) => {
@@ -50,14 +46,23 @@ module.exports = function(openRouter) {
     })
 
     openRouter.post('/signup', (req, res) => {
-        argon2.hash(req.body.password).then(hashedPassword => {
-            database.collection('students').add({
-                'username': req.body.username,
-                'password': hashedPassword,
-                'createdAt': new Date()
-            }).then(studentDoc => {
-                res.redirect('/');
+
+        database.collection('students').where('username', '==', req.body.username).get()
+            .then(querySnapshot => {
+                if (!querySnapshot.empty) {
+                    console.log('Username already exists.');
+                    return res.redirect('/signup');
+                }
+
+                argon2.hash(req.body.password).then(hashedPassword => {
+                    database.collection('students').add({
+                        'username': req.body.username,
+                        'password': hashedPassword,
+                        'createdAt': new Date()
+                    }).then(studentDoc => {
+                        res.redirect('/');
+                    }).catch(err => console.error(err));
+                }).catch(err => console.error(err));
             }).catch(err => console.error(err));
-        }).catch(err => console.error(err));
     })
 }

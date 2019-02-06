@@ -4,6 +4,30 @@
     overflow: hidden;
 }
 
-main form {
+body {
+    font-family: 'Roboto Condensed', sans-serif;
+    padding: 0;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+
+header {
     text-align: center;
+    background-color: #35424a;
+    padding: 15px;
+    margin: 0;
+}
+
+header a {
+    text-decoration: none;
+    color: #ffffff;
+}
+
+main form {
+    margin: 15px;
+    text-align: center;
+}
+
+main form button {
+    margin: 5px;
 }
