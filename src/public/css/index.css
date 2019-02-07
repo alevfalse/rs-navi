@@ -1,10 +1,15 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto+Condensed');
 
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
 body {
     font-family: 'Roboto Condensed', sans-serif;
-    padding: 0;
-    margin: 0;
     background-color: #f4f4f4;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Global */
@@ -15,7 +20,7 @@ body {
 }
 
 .button_1 {
-    height: 20px;
+    height: 25px;
     background: cornflowerblue;
     border: none;
     padding-right: 20px;
@@ -23,30 +28,24 @@ body {
     color: #ffffff;
 }
 
-ul {
-    margin: 0;
-    padding: 0;
-}
-
 /* Header */
 header {
-    background-color: #35424a;
-    border-bottom: 10px solid cornflowerblue;
-    min-height: 70px;
+    background: #35424a;
     color: #ffffff;
+    min-height: 50px;
+    border-bottom: cornflowerblue solid 5px;
 }
 
 header #branding {
     float: left;
+    margin-top: 10px;
 }
 
-header #branding h1 {
+header h1 {
     margin: 0;
-    padding-top: 15px;
 }
 
 header span.highlight {
-    font-weight: bold;
     color: cornflowerblue;
 }
 
@@ -55,47 +54,70 @@ header nav {
     margin-top: 25px;
 }
 
+header ul {
+    margin: 0;
+    padding: 0;
+}
+
 header li {
     display: inline;
-    padding: 0px 20px 0px 20px;
+    padding: 0 20px 0 20px;
 }
 
 header a {
-    color: #ffffff;
     text-decoration: none;
-    text-transform: uppercase;
+    text-transform: capitalize;
+    color: #f4f4f4;
     font-size: 16px;
 }
 
-/* Main - Search */
-
+/* Main */
 main {
-    min-height: 720px;
-    background: url("https://source.unsplash.com/1600x900/?architecture, apartments") no-repeat;
+    background: url("https://source.unsplash.com/1600x900/?apartments");
     text-align: center;
+    flex: 1 1 auto;
 }
 
 main img {
-    width: 15%;
-    margin: 30px;
+    width: 20%;
+    margin-top: 50px;
 }
 
 main form {
-    padding: 50px;
+    margin-top: 30px;
 }
 
-main form input[type="text"] {
-    width: 30%;
+main input[type="text"] {
+    width: 50%;
+    height: 25px;
+    border: cornflowerblue solid 3px;
+    margin: 10px;
 }
 
 /* Footer */
 footer {
     background-color: #35424a;
-    border-top: 10px solid cornflowerblue;
     text-align: center;
-    height: 40px;
+    color: #ffffff;
+    flex: 0 1 30px;
+    border-top: cornflowerblue solid 5px;
 }
 
+footer p {
+    margin: 0;
+    padding: 5px 0 5px 0;
+}
 footer span#copyright {
     color: cornflowerblue;
+}
+
+/* Media Queries */
+@media(max-width: 720px) {
+    header #branding,
+    header nav,
+    header nav li {
+        float: none;
+        text-align: center;
+        width: 100%;
+    }
 }

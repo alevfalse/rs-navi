@@ -11,7 +11,7 @@
     <header>
         <div class="container">
             <div id="branding">
-                <h1><span class="highlight">Room Stay In</span> Navigation</h1>
+                <a href="/"><h1><span class="highlight">Room Stay In</span> Navigation</h1></a>
             </div>
             <nav>
                 <ul>
@@ -22,14 +22,11 @@
             </nav>
         </div>
     </header>
-
     <main>
         <div class="container">
             <img src="/images/rs_navi_logo.png">
-        </div>
-        <div class="container">
             <form method="GET" action="/search">
-                <input type="text" class="searchBox" name="school_name" placeholder="Enter school name...">
+                <input type="text" class="searchBox" name="school_name" placeholder="Enter school name..." required="required"><br>
                 <button type="submit" class="button_1">Search</button>
             </form>
         </div>
@@ -37,7 +34,9 @@
 
     <footer>
         <div class="container">
-            <span id="copyright">Bathtub Coding &copy; Copyright 2019</span>
+            <p>
+                <span id="copyright">Bathtub Coding </span>&copy; 2019
+            </p>
         </div>
     </footer>
 </body>
