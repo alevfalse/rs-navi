@@ -41,7 +41,7 @@ header #branding {
     margin-top: 10px;
 }
 
-header h1 {
+header h2 {
     margin: 0;
 }
 
@@ -68,19 +68,24 @@ header a {
     text-decoration: none;
     text-transform: capitalize;
     color: #f4f4f4;
-    font-size: 16px;
+    font-size: 20px;
+}
+
+header a:hover {
+    color: cornflowerblue;
 }
 
 /* Main */
 main {
-    background: url("https://source.unsplash.com/1600x900/?apartments");
+    background: url("https://source.unsplash.com/1600x900/?apartments") center center no-repeat fixed;
+    background-size: cover;
     text-align: center;
     flex: 1 1 auto;
 }
 
 main img {
     width: 20%;
-    margin-top: 50px;
+    margin-top: 30px;
 }
 
 main form {
