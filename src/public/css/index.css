@@ -21,7 +21,7 @@ body {
 
 .button_1 {
     height: 25px;
-    background: #35424a;
+    background: cornflowerblue;
     border: none;
     padding-right: 20px;
     padding-left: 20px;
@@ -32,17 +32,19 @@ body {
 header {
     background: #35424a;
     color: #ffffff;
-    min-height: 50px;
+    min-height: 40px;
     border-bottom: cornflowerblue solid 5px;
 }
 
 header #branding {
     float: left;
-    margin-top: 10px;
+    
 }
 
 header h2 {
     margin: 0;
+    font-size: 24px;
+    margin-top: 10px;
 }
 
 header span.highlight {
@@ -51,7 +53,7 @@ header span.highlight {
 
 header nav {
     float: right;
-    margin-top: 25px;
+    margin-top: 20px;
 }
 
 header ul {
@@ -68,7 +70,7 @@ header a {
     text-decoration: none;
     text-transform: capitalize;
     color: #f4f4f4;
-    font-size: 20px;
+    font-size: 16px;
 }
 
 header a:hover {
@@ -85,7 +87,7 @@ main {
 
 main img {
     width: 20%;
-    margin-top: 30px;
+    margin-top: 100px;
 }
 
 main form {
@@ -95,7 +97,8 @@ main form {
 main input[type="text"] {
     width: 50%;
     height: 25px;
-    border: cornflowerblue solid 3px;
+    padding: 3px;
+    border: #35424a solid 3px;
     margin: 10px;
 }
 
@@ -124,5 +127,6 @@ footer span#copyright {
         float: none;
         text-align: center;
         width: 100%;
+        margin: 0;
     }
 }
