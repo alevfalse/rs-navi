@@ -17,7 +17,6 @@
   },
   "homepage": "https://github.com/alevfalse/rs-navi#readme",
   "dependencies": {
-    "argon2": "^0.20.1",
     "body-parser": "^1.18.3",
     "dotenv": "^6.2.0",
     "ejs": "^2.6.1",

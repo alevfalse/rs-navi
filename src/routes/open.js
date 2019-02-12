@@ -6,6 +6,7 @@ const database = require('../config/firebase').database;
  */
 module.exports = function(openRouter) {
     openRouter.get('/', (req, res) => {
+        res.status(200);
         res.render('index');
     })
 
