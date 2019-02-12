@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const argon2 = require('argon2');
+// const argon2 = require('argon2');
 const database = require('../config/firebase').database;
 /**
  * @param { Router } openRouter
@@ -25,7 +25,21 @@ module.exports = function(openRouter) {
 
                 querySnapshot.forEach(docSnapshot => {
                     let data = docSnapshot.data();
-                    argon2.verify(data.password, req.body.password).then(matched => {
+
+                    if (data.password == req.body.password) {
+                        console.log('Successfully logged in.');
+
+                        docSnapshot.ref.update({
+                            'lastLoggedIn': new Date()
+                        }).catch(err => console.error(err));
+
+                        return res.redirect('/');
+                    } else {
+                        console.log('Invalid password.');
+                        return res.redirect('/login');
+                    }
+
+                    /*argon2.verify(data.password, req.body.password).then(matched => {
                         if (matched) {
                             console.log('Successfully logged in.');
                             docSnapshot.ref.update({
@@ -36,7 +50,7 @@ module.exports = function(openRouter) {
                             console.log('Invalid password.');
                             return res.redirect('/login');
                         }
-                    }).catch(err => console.error(err));
+                    }).catch(err => console.error(err));*/
                 })
             })
             .catch(err => console.error(err));
@@ -55,7 +69,15 @@ module.exports = function(openRouter) {
                     return res.redirect('/signup');
                 }
 
-                argon2.hash(req.body.password).then(hashedPassword => {
+                database.collection('students').add({
+                    'username': req.body.username,
+                    'password': req.body.password,
+                    'createdAt': new Date()
+                }).then(studentDoc => {
+                    res.redirect('/');
+                }).catch(err => console.error(err));
+
+                /*argon2.hash(req.body.password).then(hashedPassword => {
                     database.collection('students').add({
                         'username': req.body.username,
                         'password': hashedPassword,
@@ -63,7 +85,8 @@ module.exports = function(openRouter) {
                     }).then(studentDoc => {
                         res.redirect('/');
                     }).catch(err => console.error(err));
-                }).catch(err => console.error(err));
+                }).catch(err => console.error(err));*/
+
             }).catch(err => console.error(err));
     })
 }
