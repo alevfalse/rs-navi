@@ -1,6 +1,8 @@
 const { Router } = require('express');
+const request = require('request-promise');
 // const argon2 = require('argon2');
 const database = require('../config/firebase').database;
+
 /**
  * @param { Router } openRouter
  */
@@ -39,7 +41,10 @@ module.exports = function(openRouter) {
                         return res.redirect('/login');
                     }
 
-                    /*argon2.verify(data.password, req.body.password).then(matched => {
+                    /*
+                     * Temporarility removed
+                     *
+                    argon2.verify(data.password, req.body.password).then(matched => {
                         if (matched) {
                             console.log('Successfully logged in.');
                             docSnapshot.ref.update({
@@ -50,7 +55,8 @@ module.exports = function(openRouter) {
                             console.log('Invalid password.');
                             return res.redirect('/login');
                         }
-                    }).catch(err => console.error(err));*/
+                    }).catch(err => console.error(err));
+                    */
                 })
             })
             .catch(err => console.error(err));
@@ -77,7 +83,10 @@ module.exports = function(openRouter) {
                     res.redirect('/');
                 }).catch(err => console.error(err));
 
-                /*argon2.hash(req.body.password).then(hashedPassword => {
+                /*
+                 * Temporarility removed
+                 *
+                argon2.hash(req.body.password).then(hashedPassword => {
                     database.collection('students').add({
                         'username': req.body.username,
                         'password': hashedPassword,
@@ -88,5 +97,36 @@ module.exports = function(openRouter) {
                 }).catch(err => console.error(err));*/
 
             }).catch(err => console.error(err));
+    })
+
+    openRouter.get('/search', (req, res) => {
+        console.log(req.query);
+        const query = req.query.school_name;
+
+        database.collection('queries').add({
+            'query': query,
+            'date': new Date()
+        }).then(docRef => {
+            console.log(`Saved to queries collection: ${query}`);
+        }).catch(err => {
+            console.error(err);
+        })
+
+        if (process.env.MAPBOX_ACCESS_TOKEN) {
+            const uri = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json`
+            + `?access_token=${process.env.MAPBOX_ACCESS_TOKEN}&autocomplete=true&country=ph`;
+
+            console.log(uri);
+
+            request(uri).then(response => {
+                const data = JSON.parse(response);
+                console.log(data.features);
+                res.redirect('/');
+            }).catch(err => console.error(err));
+
+        } else {
+            console.error('No MAPBOX ACCESS TOKEN in your .env file.');
+            res.redirect('/');
+        }
     })
 }
