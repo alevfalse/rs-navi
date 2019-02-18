@@ -50,7 +50,7 @@ header #branding {
 header h2 {
     margin: 0;
     font-size: 24px;
-    margin-top: 10px;
+    margin-top: 14px;
 }
 
 header span.highlight {
@@ -76,7 +76,7 @@ header a {
     text-decoration: none;
     text-transform: capitalize;
     color: #f4f4f4;
-    font-size: 16px;
+    font-size: 18px;
 }
 
 header nav a:hover {
