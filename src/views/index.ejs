@@ -4,40 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/main.css">
     <link rel="shortcut icon" href="/images/favicon.ico">
     <title>RS Navigation</title>
 </head>
-<body>
-    <header>
-        <div class="container">
-            <div id="branding">
-                <a href="/"><h2><span class="highlight">Room Stay In</span> Navigation</h1></a>
-            </div>
-            <nav>
+<body class="landing">
+
+    <!-- Header -->
+        <header id="header" class="alt">
+            <h1><strong><a href="">Room StayIn</a></strong> Navigation</h1>
+            <nav id="nav">
                 <ul>
-                    <li><a href="/login">Login</a></li>
+                    <li><a href="/login">Login/Signup</a></li>
                     <li><a href="/add">Add A Place</a></li>
                 </ul>
             </nav>
-        </div>
-    </header>
-    <main>
-        <div class="container">
-            <img src="/images/rs_navi_logo.png">
-            <form method="GET" action="/search">
-                <input type="text" class="searchBox" name="school_name" placeholder="Enter school name..." required="required"><br>
-                <button type="submit" class="button_1">Search</button>
-            </form>
-        </div>
-    </main>
+        </header>
 
-    <footer>
-        <div class="container">
-            <p>
-                <span id="copyright">Bathtub Coding </span>&copy; 2019
-            </p>
-        </div>
-    </footer>
+        <a href="#menu" class="navPanelToggle"><span class="fa fa-bars"></span></a>
+
+    <!-- Banner -->
+        <section id="banner">
+            <h2><img src="images/rs_navi_logo.png"></h2>
+            <ul>
+                <li>
+                <form class = "searchBar" method="GET" action="/search" style="margin:auto;max-width:800px"">
+                <input type="text" name="school_name" placeholder="Enter school name..." required="required">
+                <button type="submit">Search</button>
+                </form>
+                </li>
+            </ul>
+        </section>
+        
+    <!-- One -->
+            <section id="one" class="wrapper style2">
+                <div class="container 75%">
+                    <div class="row 200%">
+                        <div class="6u 12u$(medium)">
+                            <header class="major">
+                                <h2 style="color: #ecf0f1"> RS - NAVI </h2>
+                                <p style="color: #ecf0f1">(Room StayIn - Navigation)</p>
+                            </header>
+                        </div>
+                        <div class="6u$ 12u$(medium)">
+                            <p style="color:#ecf0f1">To help students who come long distances almost everyday to go to school, 
+                                by providing an alternative solution which is living or staying in a place near their respective schools, 
+                                such that the system helps find a way to locate places near their school in which by providing them with a 
+                                list of available places for them to either rent or buy which is convenient.</p>
+                            
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+    <!-- Footer -->
+        <footer id="footer">
+            <div class="container">
+                <ul class="icons">
+                    <li><a href="#" class="icon fa-facebook"></a></li>
+                    <li><a href="#" class="icon fa-twitter"></a></li>
+                    <li><a href="#" class="icon fa-instagram"></a></li>
+                </ul>
+                <ul class="copyright">
+                    <li>&copy; Bathtub Coding 2019</li>
+                </ul>
+            </div>
+        </footer>
+
+    <!-- Scripts -->
+        <script src="/js-design/jquery.min.js"></script>
+        <script src="/js-design/skel.min.js"></script>
+        <script src="/js-design/util.js"></script>
+        <script src="/js-design/main.js"></script>
+
 </body>
 </html>
