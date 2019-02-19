@@ -1,4 +1,4 @@
-@import url(font-awesome.min.css);
+@import url(/css/font-awesome-min.css);
 @import url(https://fonts.googleapis.com/css?family=Raleway:400,700);
 
 
@@ -58,7 +58,8 @@ form.signupForm button {
 form.signupForm button:hover {
   background: #77b4e5;
 }	
-	
+
+
 /* Style login form*/
 form.loginForm button {
 
@@ -89,12 +90,6 @@ form.searchBar input[type=text] {
   background: #ecf0f1;
 }
 
-
-.signupInput {
- display:grid;
-    grid-template-columns: max-content max-content;
-    grid-gap:5px;
-}
 
 /* Style the submit button */
 form.searchBar button {
@@ -2076,7 +2071,6 @@ form.searchBar::after {
 
 		.feature-grid .feature {
 			display: inline-block;
-			/*float: left;*/
 			margin-bottom: 3em;
 			width: 50%;
 		}
@@ -3122,7 +3116,6 @@ form.searchBar::after {
 			right: 0;
 			text-align: right;
 			top: 0;
-			/*vertical-align: middle;*/
 			width: 5em;
 		}
 
