@@ -122,7 +122,7 @@ module.exports = function(openRouter) {
             request(uri).then(response => {
                 const data = JSON.parse(response);
                 console.log(data.features);
-                res.redirect('/');
+                res.send(data.features);
             }).catch(err => console.error(err));
 
         } else {
