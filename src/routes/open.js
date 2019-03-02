@@ -8,6 +8,7 @@ const database = require('../config/firebase').database;
  */
 module.exports = function(openRouter) {
     openRouter.get('/', (req, res) => {
+        console.log(`Client I.P. Address: ${req.ip}`);
         res.status(200);
         res.render('index');
     })
