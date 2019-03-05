@@ -1,5 +1,10 @@
 require('dotenv').config();
 
+if (!process.env.PRIVATE_KEY) {
+    console.error('No PRIVATE KEY found. Check your .env file.')
+    process.exit(1);
+}
+
 // REQUIRED MODULES ======================================================================
 const express    = require('express');
 const morgan     = require('morgan');
