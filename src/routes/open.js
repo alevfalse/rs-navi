@@ -13,13 +13,13 @@ module.exports = function(openRouter) {
         res.render('index');
     })
 
-    openRouter.get('/login', (req, res) => {
+    openRouter.get('/login/student', (req, res) => {
         res.render('login');
     })
 
-    openRouter.post('/login', (req, res) => {
+    openRouter.post('/login/student', (req, res) => {
 
-        database.collection('students').where('username', '==', req.body.username).get()
+        database.collection('students').where('email', '==', req.body.username).get()
             .then(querySnapshot => {
                 if (querySnapshot.empty) {
                     console.log('Invalid username.');
@@ -63,25 +63,42 @@ module.exports = function(openRouter) {
             .catch(err => console.error(err));
     })
 
-    openRouter.get('/signup', (req, res) => {
+    openRouter.get('/signup/student', (req, res) => {
         res.render('signup');
     })
 
-    openRouter.post('/signup', (req, res) => {
+    openRouter.post('/signup/student', (req, res) => {
 
-        database.collection('students').where('username', '==', req.body.username).get()
+        if (req.body.password !== req.body.confirmPassword) {
+            console.log('Confirm password does not match.');
+            return res.redirect('/signup/student');
+        }
+
+        database.collection('students').where('email', '==', req.body.email).get()
             .then(querySnapshot => {
                 if (!querySnapshot.empty) {
-                    console.log('Username already exists.');
-                    return res.redirect('/signup');
+                    console.log(`${req.body.email} already exists.`);
+                    return res.redirect('/signup/student');
                 }
 
+                const now = new Date();
+
                 database.collection('students').add({
-                    'username': req.body.username,
+
+                    'email': req.body.email,
+                    'firstname': req.body.firstname,
+                    'lastname': req.body.lastname,
                     'password': req.body.password,
-                    'createdAt': new Date()
+                    'school': req.body.school,
+                    'lastLoggedIn': null,
+                    'createdAt': new Date(),
+                    'verified': false,
+
                 }).then(studentDoc => {
                     res.redirect('/');
+                    studentDoc.get().then(snapshot => {
+                        console.log(`${snapshot.data().email} successfully signed up.`);
+                    })
                 }).catch(err => console.error(err));
 
                 /*
@@ -100,9 +117,21 @@ module.exports = function(openRouter) {
             }).catch(err => console.error(err));
     })
 
+    openRouter.get('/login/placeowner', (req, res) => {
+        res.render('loginPO');
+    })
+
+    openRouter.post('/login/placeowner', (req, res) => {
+        res.render('loginPO');
+    })
+
+    openRouter.get('/signup/placeowner', (req, res) => {
+        res.render('signupPO');
+    })
+
     openRouter.get('/search', (req, res) => {
         console.log(req.query);
-        const query = req.query.school_name;
+        const query = req.query.schoolname;
 
         database.collection('queries').add({
             'query': query,
