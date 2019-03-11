@@ -1,8 +1,7 @@
 require('dotenv').config();
 
 if (!process.env.PRIVATE_KEY) {
-    console.error('No PRIVATE KEY found. Check your .env file.')
-    process.exit(1);
+    return console.error('No PRIVATE KEY found. Check your .env file.');
 }
 
 // REQUIRED MODULES ======================================================================
@@ -12,8 +11,8 @@ const bodyParser = require('body-parser');
 const multer     = require('multer');
 
 // ROUTERS ===============================================================================
-const openRouter     = express.Router();
-require('./routes/open')(openRouter);
+const openRouter = require('./app/routes/open');
+const authRouter = require('./app/routes/auth');
 
 // APPLICATION ===========================================================================
 const app = express();
@@ -27,8 +26,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/', openRouter);
+app.use('/auth', authRouter);
 
-app.listen(process.env.PORT, () => {
+app.listen(process.env.PORT || 8080, () => {
     console.log(`Application is now listening to http://localhost:${process.env.PORT}`);
 });
-
