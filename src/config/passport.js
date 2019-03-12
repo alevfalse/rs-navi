@@ -34,6 +34,7 @@ passport.use('local-student-signup', new LocalStrategy({
                 })
             }
         })
-
     })
 }))
+
+module.exports = passport;
