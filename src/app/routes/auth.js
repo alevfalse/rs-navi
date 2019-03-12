@@ -1,22 +1,31 @@
 const authRouter = require('express').Router();
 const mailer = require('../../config/mailer');
+
+const passport = require('../../config/passport');
+const mongoose = require('mongoose');
+const Account = require('../models/account');
+
 // student login
 authRouter.get('/login/student', (req, res) => {
     res.render('login');
 })
 
-authRouter.post('/login/student', (req, res) => {
-    res.render('/');
-})
+authRouter.post('/login/student', passport.authenticate('local-student-login', {
+    successRedirect: '/',
+    failureRedirect: '/auth/login/student',
+    failureFlash: true
+}))
 
 // student signup
 authRouter.get('/signup/student', (req, res) => {
     res.render('signup');
 })
 
-authRouter.post('/signup/student', (req, res) => {
-    res.redirect('');
-})
+authRouter.post('/signup/student', passport.authenticate('local-student-signup', {
+    successRedirect: '/',
+    failureRedirect: '/auth/signup/student',
+    failureFlash: true
+}));
 
 // place owner login
 authRouter.get('/login/placeowner', (req, res) => {
@@ -45,30 +54,71 @@ authRouter.post('/forgot', (req, res) => {
     const inputEmail = req.body.inputEmail;
     console.log(`Email: ${inputEmail}`);
 
-    const unhashedString = inputEmail + 'SALT'  + new Date().toUTCString();
-    console.log(unhashedString);
-    
-    const hashCode = Math.abs(getHashCode(unhashedString));
-    console.log(hashCode);
+    Account.findOne({ 'email': inputEmail }, (err, acc) => {
+        if (err) {
+            console.error(err);
+            return res.redirect('/auth/forgot');
+        }
 
-    const mailOptions = {
-        from: "roomstayin.navigation@gmail.com",
-        to: inputEmail,
-        subject: "Reset Password",
-        text: `Click this link to reset your password:\nlocalhost:8080/auth/reset/${hashCode}`
-    };
-    
-    mailer.sendMail(mailOptions, (err, info) => {
-        if (err) console.error(err);
-        else console.log(`Email sent: ${info.response}`);
-        res.redirect('/');
-    });
+        if (!acc) {
+            return res.send('Email does not exist.');
+        }
+
+        const unhashedString = inputEmail + 'SALT'  + new Date().toUTCString();
+        console.log(unhashedString);
+        
+        const hashCode = Math.abs(getHashCode(unhashedString));
+        console.log(hashCode);
+
+        acc.hashCode = hashCode;
+
+        acc.save((err) => {
+            if (err) {
+                console.error(err);
+                return res.redirect('/auth/forgot');
+            }
+
+            Account.find({}, (err, results) => {
+                results.forEach(res => {
+                    console.log(res);
+                })
+            })
+
+            const mailOptions = {
+                from: "roomstayin.navigation@gmail.com",
+                to: inputEmail,
+                subject: "Reset Password",
+                text: `Click this link to reset your password:\nlocalhost:8080/auth/reset/${hashCode}`
+            };
+            
+            mailer.sendMail(mailOptions, (err, info) => {
+                if (err) console.error(err);
+                else console.log(`Email sent: ${info.response}`);
+                res.send('Password reset link has been sent to your email.');
+            });
+        })
+        
+    })
 })
 
 // forgot password
 authRouter.get('/reset/:code', (req, res) => {
     console.log(`Reset Code: ${req.params.code}`)
-    res.redirect('/');
+
+    Account.findOne({ 'hashCode': req.params.code }, (err, acc) => {
+        if (err || !acc) {
+            console.error(err);
+            res.status(404);
+            return res.send('<h2>404 Page Not Found</h2>');
+        }
+
+        console.log(acc);
+        acc.hashCode = null;
+        acc.save((err) => {
+            if (err) console.error(err);
+            res.send('<h4>Enter new password: </h4>');
+        })
+    })
 })
 
 function getHashCode(str) {
