@@ -72,7 +72,6 @@ $("#switchToSignupButton").click(function() {
         }
         switchRoleNav.collapse("toggle")
 
-        $("#forgot").removeClass("show");
         setTimeout(() => {
             switchToLoginButton.removeAttr('disabled');
             forgotPasswordButton.removeAttr('disabled');
