@@ -1,3 +1,5 @@
+$("main").animate({ opacity: 1 }, 1000)
+
 $("#switchRoleButton").click(function() {
 
     const switchRoleButton = $("#switchRoleButton");
@@ -14,10 +16,12 @@ $("#switchRoleButton").click(function() {
 
     const switchToLoginButton = $("#switchToLoginButton");
     const switchToSignupButton = $("#switchToSignupButton");
+    const forgotPasswordButton = $("#forgotPasswordButton");
 
     switchToLoginButton.attr('disabled', 'disabled');
     switchToSignupButton.attr('disabled', 'disabled');
-
+    forgotPasswordButton.attr('disabled', 'disabled');
+    
     loginAsStudentTitle.collapse("toggle");
     loginAsPlaceownerTitle.collapse("toggle");
 
@@ -38,8 +42,9 @@ $("#switchRoleButton").click(function() {
         setTimeout(() => {
             switchToLoginButton.removeAttr('disabled');
             switchToSignupButton.removeAttr('disabled');
-        }, 250)
-    }, 400)
+            forgotPasswordButton.removeAttr('disabled');
+        }, 300)
+    }, 500)
 });
 
 $("#switchToSignupButton").click(function() {
@@ -47,9 +52,12 @@ $("#switchToSignupButton").click(function() {
     const switchRoleButton = $("#switchRoleButton");
     const switchRoleNav = $("#switchRoleNav");
     const loginRole = $("#loginRole");
+
     const switchToLoginButton = $("#switchToLoginButton");
+    const forgotPasswordButton = $("#forgotPasswordButton");
 
     switchToLoginButton.attr('disabled', 'disabled');
+    forgotPasswordButton.attr('disabled', 'disabled');
 
     swap();
 
@@ -64,8 +72,12 @@ $("#switchToSignupButton").click(function() {
         }
         switchRoleNav.collapse("toggle")
 
-        setTimeout(() => switchToLoginButton.removeAttr('disabled'), 250);
-    }, 400)
+        $("#forgot").removeClass("show");
+        setTimeout(() => {
+            switchToLoginButton.removeAttr('disabled');
+            forgotPasswordButton.removeAttr('disabled');
+        }, 300);
+    }, 500)
 });
 
 $("#switchToLoginButton").click(function() {
@@ -73,9 +85,12 @@ $("#switchToLoginButton").click(function() {
     const switchRoleButton = $("#switchRoleButton");
     const switchRoleNav = $("#switchRoleNav");
     const loginRole = $("#loginRole");
+    
     const switchToSignupButton = $("#switchToSignupButton");
-
+    const forgotPasswordButton = $("#forgotPasswordButton");
+    
     switchToSignupButton.attr('disabled', 'disabled');
+    forgotPasswordButton.attr('disabled', 'disabled');
 
     swap();
 
@@ -89,11 +104,87 @@ $("#switchToLoginButton").click(function() {
             switchRoleButton.text('Login as Student');
         }
         switchRoleNav.collapse("toggle")
-        setTimeout(() => switchToSignupButton.removeAttr('disabled'), 250);
-    }, 400)
+        setTimeout(() => {
+            switchToSignupButton.removeAttr('disabled');
+            forgotPasswordButton.removeAttr('disabled');
+        }, 300);
+    }, 500)
 });
 
 function swap() {
     $("#login").collapse("toggle");
     $("#signup").collapse("toggle");
 }
+
+
+$("#forgotPasswordButton").click(function() {
+    if ($("#forgot").hasClass("show")) {
+        $(this).animate({ 'font-size': '1rem' }, 300);
+    } else {
+        $(this).animate({ 'font-size': '2rem' }, 300);
+    }
+    
+    $("#forgot").collapse("toggle");
+    $("#loginInner").collapse("toggle");
+    $("#switchRoleNav").collapse("toggle");
+})
+
+$("#signupEmail1").change(function() {
+
+    const email = $(this).val();
+
+    if (email.length == 0 || !email.includes('@')) {
+        $("#validitySpan1").addClass('d-none');
+        return;
+    }
+
+    const span = $("#validitySpan1");
+    const icon = $("#validityIcon1");
+
+    span.removeClass('d-none');
+
+    $.ajax({
+        url: '/validate/email',
+        data: { email: $(this).val() },
+        success: function(valid) {
+            if (valid) {
+                span.removeClass('bg-danger').addClass('bg-primary');
+                icon.removeClass('fa-times').addClass('fa-check');
+
+            } else {
+                span.removeClass('bg-primary').addClass('bg-danger');
+                icon.removeClass('fa-check').addClass('fa-times');
+            }
+        }
+    })
+})
+
+$("#signupEmail2").change(function() {
+
+    const email = $(this).val();
+
+    if (email.length == 0 || !email.includes('@')) {
+        $("#validitySpan2").addClass('d-none');
+        return;
+    }
+
+    const span = $("#validitySpan2");
+    const icon = $("#validityIcon2");
+
+    span.removeClass('d-none');
+
+    $.ajax({
+        url: '/validate/email',
+        data: { email: $(this).val() },
+        success: function(valid) {
+            if (valid) {
+                span.removeClass('bg-danger').addClass('bg-primary');
+                icon.removeClass('fa-times').addClass('fa-check');
+
+            } else {
+                span.removeClass('bg-primary').addClass('bg-danger');
+                icon.removeClass('fa-check').addClass('fa-times');
+            }
+        }
+    })
+})

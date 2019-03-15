@@ -46,16 +46,18 @@ hr {
     color: #328CC1;
 }
 
-#switchRoleButton:focus, #switchToSignupButton:focus  {
+#switchRoleButton:focus, #switchToSignupButton:focus, #forgotPasswordButton:focus {
     box-shadow: none;
 }
 
 main {
     min-height: 100%;
+    opacity: 0;
 }
 
 #logo {
     margin-top: 120px;
+    margin-bottom: 30px;
 }
 
 .formFields input, .formFields input:focus {

@@ -28,7 +28,6 @@ openRouter.get('/validate/email', (req, res) => {
         if (err) throw err;
 
         if (account) {
-            console.log(account);
             return res.send(false);
         } else {
             res.send(true);

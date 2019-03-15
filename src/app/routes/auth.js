@@ -5,11 +5,6 @@ const passport = require('../../config/passport');
 const mongoose = require('mongoose');
 const Account = require('../models/account');
 
-// forgot password
-authRouter.get('/forgot', (req, res) => {
-    res.render('forgot');
-})
-
 authRouter.post('/forgot', (req, res) => {
     const inputEmail = req.body.inputEmail;
     console.log(`Email: ${inputEmail}`);
