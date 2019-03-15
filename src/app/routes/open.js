@@ -2,15 +2,70 @@ const openRouter = require('express').Router();
 const request = require('request-promise');
 // const argon2 = require('argon2');
 
+const passport = require('../../config/passport');
 const mongoose = require('mongoose');
 const Query = require('../models/query');
+const Account = require('../models/account');
 
-openRouter.get('/', (req, res) => {
-    res.render('index');
+function isAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) next();
+    else {
+        console.log(`Unauthorized access for ${req.url}`)
+        res.redirect('/');
+    }
+}
+
+function isPostAuthenticated(req, res, next) {
+    if (req.isAuthenticated) res.redirect('/profile')
+    else next();
+}
+
+openRouter.get('/validate/email', (req, res) => {
+
+    const email = req.query.email;
+
+    Account.findOne({ 'email': email }, function(err, account) {
+        if (err) throw err;
+
+        if (account) {
+            console.log(account);
+            return res.send(false);
+        } else {
+            res.send(true);
+        }
+    })
 })
 
-openRouter.get('/add', (req, res) => {
-    res.redirect('/auth/login/placeowner');
+openRouter.get('/', (req, res) => {
+    if (req.isAuthenticated()) {
+        res.render('index', { user: req.user });
+    } else {
+        res.render('index');
+    }
+})
+
+openRouter.get('/auth', (req, res) => {
+    if (req.isAuthenticated()) {
+        res.redirect('/profile');
+    } else {
+        res.render('auth');
+    }
+})
+
+openRouter.post('/login', passport.authenticate('local-login', {
+    successRedirect: '/profile',
+    failureRedirect: '/auth',
+    failureFlash: true
+}))
+
+openRouter.post('/signup', passport.authenticate('local-signup', {
+    successRedirect: '/profile',
+    failureRedirect: '/auth',
+    failureFlash: true
+}))
+
+openRouter.get('/profile', isAuthenticated, (req, res) => {
+    res.render('profile', { user: req.user });
 })
 
 openRouter.get('/search', (req, res) => {

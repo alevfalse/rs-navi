@@ -5,46 +5,6 @@ const passport = require('../../config/passport');
 const mongoose = require('mongoose');
 const Account = require('../models/account');
 
-// student login
-authRouter.get('/login/student', (req, res) => {
-    res.render('login');
-})
-
-authRouter.post('/login/student', passport.authenticate('local-student-login', {
-    successRedirect: '/',
-    failureRedirect: '/auth/login/student',
-    failureFlash: true
-}))
-
-// student signup
-authRouter.get('/signup/student', (req, res) => {
-    res.render('signup');
-})
-
-authRouter.post('/signup/student', passport.authenticate('local-student-signup', {
-    successRedirect: '/',
-    failureRedirect: '/auth/signup/student',
-    failureFlash: true
-}));
-
-// place owner login
-authRouter.get('/login/placeowner', (req, res) => {
-    res.render('loginPO');
-})
-
-authRouter.post('/login/placeowner', (req, res) => {
-    res.render('/');
-})
-
-// place owner signup
-authRouter.get('/signup/placeowner', (req, res) => {
-    res.render('signupPO');
-})
-
-authRouter.post('/signup/placeowner', (req, res) => {
-    res.render('signupPO');
-})
-
 // forgot password
 authRouter.get('/forgot', (req, res) => {
     res.render('forgot');

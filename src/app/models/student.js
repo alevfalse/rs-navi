@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const UserSchema = new mongoose.Schema({
+const StudentSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     firstName: String,
     lastName: String,
@@ -8,4 +8,4 @@ const UserSchema = new mongoose.Schema({
     account: { type: mongoose.Schema.Types.ObjectId, ref: 'Account' }
 })
 
-module.exports = mongoose.model('User', UserSchema);
+module.exports = mongoose.model('Student', StudentSchema);

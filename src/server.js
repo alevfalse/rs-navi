@@ -31,11 +31,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use(session({
-    secret: 'anystringoftext',
-    saveUninitialized: true,
-    resave: true,
-    store: new MongoStore({ mongooseConnection: mongoose.connection,
-                            ttl: 3 * 24 * 60 * 60 }) // (1 hour) max session timeout in seconds
+    secret: 'cookie cutter',
+    saveUninitialized: false,   // don't create session until something stored
+    resave: false,              // don't save session if unmodified
+    store: new MongoStore({ 
+        mongooseConnection: mongoose.connection,
+        ttl: 1 * 24 * 60 * 60,  // max age of 1 day
+        touchAfter: 1 * 60 * 60 // session will be updated every hour except when session data is changed
+    }),
 }))
 
 app.use(passport.initialize());
