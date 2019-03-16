@@ -5,6 +5,26 @@ const passport = require('../../config/passport');
 const mongoose = require('mongoose');
 const Account = require('../models/account');
 
+authRouter.get('/', (req, res) => {
+    if (req.isAuthenticated()) {
+        res.redirect('/profile');
+    } else {
+        res.render('auth');
+    }
+})
+
+authRouter.post('/login', passport.authenticate('local-login', {
+    successRedirect: '/profile',
+    failureRedirect: '/auth',
+    failureFlash: true
+}))
+
+authRouter.post('/signup', passport.authenticate('local-signup', {
+    successRedirect: '/profile',
+    failureRedirect: '/auth',
+    failureFlash: true
+}))
+
 authRouter.post('/forgot', (req, res) => {
     const inputEmail = req.body.inputEmail;
     console.log(`Email: ${inputEmail}`);

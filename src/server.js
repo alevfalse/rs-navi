@@ -16,8 +16,11 @@ const passport   = require('./config/passport');
 const database   = require('./config/database');
 
 // ROUTERS ===============================================================================
-const openRouter = require('./app/routes/open');
+const rootRouter = require('./app/routes/root');
 const authRouter = require('./app/routes/auth');
+const validateRouter = require('./app/routes/validate');
+const autocompleteRouter = require('./app/routes/autocomplete');
+const adminRouter = require('./app/routes/admin');
 
 // APPLICATION ===========================================================================
 const app = express();
@@ -25,8 +28,8 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
-app.use(express.static(__dirname + '/public'));
-app.use(morgan('dev'));
+app.use(express.static(__dirname + '/public')); // serving static files
+app.use(morgan('dev')); // logging
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -42,12 +45,15 @@ app.use(session({
 }))
 
 app.use(passport.initialize());
-app.use(passport.session());    // uses the session above
+app.use(passport.session());
 app.use(flash()); 
 
 // bind the routes to the application
-app.use('/', openRouter);
+app.use('/', rootRouter);
 app.use('/auth', authRouter);
+app.use('/validate', validateRouter);
+app.use('/autocomplete', autocompleteRouter);
+app.use('/admin', adminRouter);
 
 console.log('Application configured.');
 

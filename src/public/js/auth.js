@@ -128,62 +128,20 @@ $("#forgotPasswordButton").click(function() {
     $("#switchRoleNav").collapse("toggle");
 })
 
-$("#signupEmail1").change(function() {
+function isNameValid(str) {
+    if (str.length == 0) return false;
 
-    const email = $(this).val();
+    const names = str.split(' ');
 
-    if (email.length == 0 || !email.includes('@')) {
-        $("#validitySpan1").addClass('d-none');
-        return;
+    for (let i=0; i<names.length; i++) {
+        console.log(names[i]);
+        if (!names[i].match(/^[A-Z][a-z]/gm)) return false
     }
 
-    const span = $("#validitySpan1");
-    const icon = $("#validityIcon1");
+    return true;
+}
 
-    span.removeClass('d-none');
+function isEmailValid(str) {
+    if (str.length == 0) return false;
 
-    $.ajax({
-        url: '/validate/email',
-        data: { email: $(this).val() },
-        success: function(valid) {
-            if (valid) {
-                span.removeClass('bg-danger').addClass('bg-primary');
-                icon.removeClass('fa-times').addClass('fa-check');
-
-            } else {
-                span.removeClass('bg-primary').addClass('bg-danger');
-                icon.removeClass('fa-check').addClass('fa-times');
-            }
-        }
-    })
-})
-
-$("#signupEmail2").change(function() {
-
-    const email = $(this).val();
-
-    if (email.length == 0 || !email.includes('@')) {
-        $("#validitySpan2").addClass('d-none');
-        return;
-    }
-
-    const span = $("#validitySpan2");
-    const icon = $("#validityIcon2");
-
-    span.removeClass('d-none');
-
-    $.ajax({
-        url: '/validate/email',
-        data: { email: $(this).val() },
-        success: function(valid) {
-            if (valid) {
-                span.removeClass('bg-danger').addClass('bg-primary');
-                icon.removeClass('fa-times').addClass('fa-check');
-
-            } else {
-                span.removeClass('bg-primary').addClass('bg-danger');
-                icon.removeClass('fa-check').addClass('fa-times');
-            }
-        }
-    })
-})
+}
