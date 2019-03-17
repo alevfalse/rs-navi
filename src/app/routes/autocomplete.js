@@ -1,6 +1,10 @@
 const autocompleteRouter = require('express').Router();
 const School = require('../models/school');
 
+function regexEscape(str) {
+    return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
 autocompleteRouter.get('/schools', (req, res) => {
     const query = regexEscape(req.query.query);
     const regex = new RegExp(query, 'i');
@@ -23,8 +27,8 @@ autocompleteRouter.get('/schools', (req, res) => {
     })
 })
 
-function regexEscape(str) {
-    return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-}
+autocompleteRouter.get('/*', (req, res) => {
+    res.status(404).render('404');
+})
 
 module.exports = autocompleteRouter;

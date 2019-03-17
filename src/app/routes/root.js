@@ -62,4 +62,8 @@ openRouter.get('/search', (req, res) => {
     }
 })
 
+openRouter.get('/*', (req, res) => {
+    res.status(404).render('404');
+})
+
 module.exports = openRouter;

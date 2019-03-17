@@ -1,18 +1,31 @@
 const passport = require('passport')
 const LocalStrategy  = require('passport-local').Strategy;
-const mongoose = require('mongoose');
 
 const Student = require('../app/models/student');
-const Placeowner = require('../app/models/place-owner');
-const Account = require('../app/models/account');
+const Placeowner = require('../app/models/placeowner');
 
 passport.serializeUser(function(user, done) {
+    console.log(`Serializing User:`);
+    console.log(user);
     done(null, user.id);  // stores the user's id in session
 });
 
+// getting all the data of the user using its id
 passport.deserializeUser(function(id, done) {
+    console.log(`Deserializing User: ${id}`);
+    console.time('Deserialized')
     Student.findById(id, function(err, user) {
-        done(err, user);  // getting all the data of the user using its id
+        console.timeEnd('Deserialized')
+        if (err) return done(err);
+        if (user) {
+            return done(null, user) // bind user to request
+        } else {
+            Placeowner.findById(id, function(err, user) {
+                if (err) return done(err);
+                if (user) return done(null, user);
+                else return done(null, null); // bind user to request
+            })
+        }
     });
 });
 
@@ -22,10 +35,12 @@ passport.use('local-login', new LocalStrategy({
     passReqToCallback: true
 
 }, function(req, email, password, done) {
-
+    console.log('Local Login Strategy Invoked');
     console.log(req.body);
 
-    return done(null, false);
+    const role = req.body.role;
+
+    done(null, null);
 }))
 
 passport.use('local-signup', new LocalStrategy({

@@ -49,11 +49,11 @@ app.use(passport.session());
 app.use(flash()); 
 
 // bind the routes to the application
-app.use('/', rootRouter);
 app.use('/auth', authRouter);
 app.use('/validate', validateRouter);
 app.use('/autocomplete', autocompleteRouter);
 app.use('/admin', adminRouter);
+app.use('/', rootRouter);
 
 console.log('Application configured.');
 

@@ -1,30 +1,31 @@
 const authRouter = require('express').Router();
 const mailer = require('../../config/mailer');
-
 const passport = require('../../config/passport');
-const mongoose = require('mongoose');
-const Account = require('../models/account');
 
+// rsnavigation.com/auth/
 authRouter.get('/', (req, res) => {
     if (req.isAuthenticated()) {
         res.redirect('/profile');
     } else {
-        res.render('auth');
+        res.render('auth'); // login/signup/forgot password forms
     }
 })
 
+// rsnavigation.com/auth/login
 authRouter.post('/login', passport.authenticate('local-login', {
     successRedirect: '/profile',
     failureRedirect: '/auth',
     failureFlash: true
 }))
 
+// rsnavigation.com/auth/signup
 authRouter.post('/signup', passport.authenticate('local-signup', {
     successRedirect: '/profile',
     failureRedirect: '/auth',
     failureFlash: true
 }))
 
+// rsnavigation.com/auth/forgot
 authRouter.post('/forgot', (req, res) => {
     const inputEmail = req.body.inputEmail;
     console.log(`Email: ${inputEmail}`);
@@ -77,23 +78,8 @@ authRouter.post('/forgot', (req, res) => {
 })
 
 // forgot password
-authRouter.get('/reset/:code', (req, res) => {
-    console.log(`Reset Code: ${req.params.code}`)
-
-    Account.findOne({ 'hashCode': req.params.code }, (err, acc) => {
-        if (err || !acc) {
-            console.error(err);
-            res.status(404);
-            return res.send('<h2>404 Page Not Found</h2>');
-        }
-
-        console.log(acc);
-        acc.hashCode = null;
-        acc.save((err) => {
-            if (err) console.error(err);
-            res.send('<h4>Enter new password: </h4>');
-        })
-    })
+authRouter.get('/reset', (req, res) => {
+    res.status(404).render('404');
 })
 
 function getHashCode(str) {
@@ -108,5 +94,9 @@ function getHashCode(str) {
     }
     return hash;
 }
+
+authRouter.get('/*', (req, res) => {
+    res.status(404).render('404');
+})
 
 module.exports = authRouter;
