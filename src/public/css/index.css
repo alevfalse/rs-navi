@@ -1,10 +1,12 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito|Roboto+Condensed');
+
 html, body {
     height: 100%;
     width: 100%;
 }
 
 body {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Roboto Condensed', sans-serif;
     background: 
         linear-gradient(
           rgba(0, 0, 0, 0.7), 
@@ -24,8 +26,8 @@ hr {
 
 #mainNavbar .navbar-brand {
     color: white;
-    font-weight: 600;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
+    font-weight: 100;
     font-size: 1.25rem;
 }
 
@@ -35,10 +37,9 @@ hr {
 
 #mainNavbar .nav-link {
     color: white;
-    letter-spacing: 2px;
     font-size: 1.25rem;
-    font-weight: 300;
     margin-left: 30px;
+    text-transform: uppercase;
 }
 
 #mainNavbar .nav-link:hover {
