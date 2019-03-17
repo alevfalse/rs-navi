@@ -1,9 +1,8 @@
 const mongoose = require('mongoose');
 
-const StudentSchema = new mongoose.Schema({
+const PlaceownerSchema = new mongoose.Schema({
     firstName: String,
     lastName: String,
-    schoolName: String,
     account: { 
         username: String,
         password: String,
@@ -22,4 +21,4 @@ const StudentSchema = new mongoose.Schema({
 5 - deleted
 */
 
-module.exports = mongoose.model('Student', StudentSchema);
+module.exports = mongoose.model('Placeowner', PlaceownerSchema);
