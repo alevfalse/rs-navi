@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const SchoolSchema = new mongoose.Schema({
-    _id: mongoose.Schema.Types.ObjectId,
     name: String,
     acronym: String,
     address: {
@@ -9,7 +8,14 @@ const SchoolSchema = new mongoose.Schema({
         city: String,
         province: String,
         zip: Number
-    }
+    },
+    status: { type: Number, default: 0 } 
 })
+
+/* status:
+0 - unverified
+1 - verified
+2 - deleted
+*/
 
 module.exports = mongoose.model('School', SchoolSchema);

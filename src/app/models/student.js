@@ -5,21 +5,26 @@ const StudentSchema = new mongoose.Schema({
     lastName: String,
     schoolName: String,
     account: { 
-        username: String,
+        email: String,
         password: String,
-        hashCode: String,
-        status: Number,
-        role: { type: Number, default: 0 },
-        created: { type: Date, default: new Date() },
-        lastLoggedIn: Date
+        hashCode: { type: String, default: null },
+        status:   { type: Number, default: 0 },
+        role:     { type: Number, default: 0 },
+        created:  { type: Date, default: new Date() },
+        lastLoggedIn: { type: Date, default: null }
     }
 })
-/* account status:
-0 - unverified
-1 - verified
-3 - suspended
+/* account status:    account roles
+0 - unverified        0 - Student
+1 - verified          1 - Placeowner
+3 - suspended         7 - Admin
 4 - banned
 5 - deleted
 */
+
+StudentSchema.methods.updatePassword = function(req, res) {
+
+}
+
 
 module.exports = mongoose.model('Student', StudentSchema);
