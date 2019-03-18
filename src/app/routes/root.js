@@ -6,42 +6,50 @@ const mongoose = require('mongoose');
 const Query = require('../models/query');
 
 function isAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) next();
-    else {
+    if (req.isAuthenticated()) {
+        next();
+    } else {
         console.log(`Unauthorized access for ${req.url}`)
         res.redirect('/');
     }
 }
 
 openRouter.get('/', (req, res) => {
-    if (req.isAuthenticated()) {
-        res.render('index', { user: req.user });
-    } else {
-        res.render('index');
-    }
+    res.render('index', { user: req.user, message: req.flash('message') }, (err, html) => {
+        if (err) {
+            console.error(`Something went wrong while rendering the [index] page:\n${err}`);
+            res.sendStatus(500);
+        }
+        res.status(200).send(html);
+    });
 })
 
 openRouter.get('/profile', isAuthenticated, (req, res) => {
-    res.render('profile', { user: req.user });
+    res.render('profile', { user: req.user, message: req.flash('message') }, (err, html) => {
+        if (err) {
+            console.error(`Something went wrong while rendering the [profile] page:\n${err}`);
+            res.sendStatus(500);
+        }
+        res.status(200).send(html); 
+    });
 })
 
 openRouter.get('/search', (req, res) => {
     const query = req.query.schoolName;
+
+    if (!query) {
+        req.flash({ 'message': 'Please provide a school name.'});
+        res.redirect('/');
+    }
     console.log(`Search Query: ${query}`);
 
-    const newQuery = new Query({
-        _id: new mongoose.Types.ObjectId(),
-        keyword: query,
-        date: new Date()
-    });
-
+    const newQuery = new Query({ keyword: query });
     newQuery.save((err, savedQuery) => {
-        console.log(`Search query "${savedQuery.keyword}" has been saved to the database.`)
-        Query.find({}, (err, result) => {
-            result.forEach((res) => {
-                console.log(res);
-            })
-        })
+        if (err) {
+            console.error(`An error occurred while saving query [${query}] to database:\n${err}`);
+        } else {
+            console.log(`Search query "${savedQuery.keyword}" has been saved to the database.`);
+        }
     })
 
     if (process.env.MAPBOX_ACCESS_TOKEN) {
@@ -58,12 +66,13 @@ openRouter.get('/search', (req, res) => {
 
     } else {
         console.error('No MAPBOX ACCESS TOKEN in your .env file.');
-        res.redirect('/');
+        req.flash({ 'message': 'Search is temporarily unavailable at the moment. Please try again later.'});
+        res.status(503).redirect('/');
     }
 })
 
 openRouter.get('/*', (req, res) => {
-    res.status(404).render('404');
+    res.sendStatus(404);
 })
 
 module.exports = openRouter;
