@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="../css/bootstrap.min.css" type="text/css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="../css/all.min.css" type="text/css">
+    <!-- Favicon-->
+    <link rel="shortcut icon" type="image/x-icon" href="../images/favicon.ico"/>
+
+    <!-- My CSS -->
+    <link rel="stylesheet" href="../css/auth.css" type="text/css">
+
+    <title>Admin - Login</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
+        <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
+    </nav>
+    
+    <% if (locals.message.length > 0) { %>
+        <!-- Alert Message From Server -->
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="alert alert-primary alert-dismissible fade show mt-5" role="alert">
+                    <%= locals.message %>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+    <!-- Main Section -->
+    <main class="container">
+
+        <!-- Logo -->
+        <div class="row justify-content-center">
+            <div class="col-4 col-md-3 col-lg-2">
+                <a href="/"><img class="img-fluid" src="../images/logo_no_title.png" id="logo"></a>
+            </div>
+        </div>
+        
+        <!-- Login Form -->
+        <div>
+            <div class="row justify-content-center text-center mb-3">
+                <div class="col-8">
+                    <h2 class="display-6 text-white collapse show" id="loginRoleTitle">Admin</h2>
+                </div>
+            </div>
+
+            <form method="POST" action="/admin/login">
+                <div class="row justify-content-center text-center">
+                    <div class="col-8 col-md-6 col-lg-5 col-xl-4 formFields">
+                        <input type="email" class="form-control mb-3" placeholder="Email" name="email" required>
+                        <input type="password" class="form-control mb-3" placeholder="Password" name="password" required>
+                        <button type="submit" class="btn btn-sm btn-primary px-4">Login</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    <!-- jQuery -->
+    <script src="../js/jquery-3.3.1.min.js"></script>
+    <!-- Boostrap JS + Popper.js -->
+    <script src="../js/bootstrap.bundle.min.js"></script>
+    <!-- Underscore JS-->
+    <script src="../js/underscore-min.js"></script>
+
+    <script>
+        $('form').attr('autocomplete', 'off');  // disable default autocomplete
+        $("main").animate({ opacity: 1 }, 1000) // fade-in
+    </script>
+</body>
+</html>

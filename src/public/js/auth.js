@@ -1,5 +1,7 @@
-$('form').attr('autocomplete', 'off');  // disable default autocomplete
-$("main").animate({ opacity: 1 }, 1000) // fade-in
+$(document).ready(() => {
+    $('form').attr('autocomplete', 'off');  // disable default autocomplete
+    $("main").animate({ opacity: 1 }, 1000) // fade-in
+})
 
 // ==============================================================================
 // Realtime Form Validations ====================================================
@@ -60,10 +62,13 @@ $("input[type='text']").keyup(function() {
     $(this).next().removeClass('valid-feedback').addClass('invalid-feedback')
 })
 
-const validateEmailFunction = function(email, input, res) {
+const validateEmailFunction = function(email, role, input, res) {
     $.ajax({
         url: '/validate/email',
-        data: { email: email },
+        data: { 
+            email: email,
+            role: role
+         },
         success: function(valid) {
             console.log(valid);
             valid = valid;
@@ -91,11 +96,12 @@ const validateEmailFunction = function(email, input, res) {
 // client-side rate-limiting
 const throttledValidateEmailFunction = _.throttle(validateEmailFunction, 1000);
 
-$("input[type='email']").keyup(function() {
+$("input[type='email']:not('#loginEmail')").keyup(function() {
 
     const input = $(this);
     const email = input.val();
     const res = input.next();
+    const role = $("#signupRoleInput").val();
     
     let valid = false;
 
@@ -111,7 +117,7 @@ $("input[type='email']").keyup(function() {
         res.text('Invalid email address')
     } else {
         valid = true;
-        throttledValidateEmailFunction(email, input, res);
+        throttledValidateEmailFunction(email, role, input, res);
     }
     
     if (!valid) {

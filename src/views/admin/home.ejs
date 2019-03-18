@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="../css/bootstrap.min.css" type="text/css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="../css/all.min.css" type="text/css">
+    <!-- Favicon-->
+    <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico"/>
+
+    <!-- My CSS -->
+    <link rel="stylesheet" href="../css/admin-home.css" type="text/css">
+    
+    <title>Admin</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
+        <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
+        <button class="navbar-toggler" data-toggle="collapse" data-target="#navLinks" aria-label="Toggle navigation links">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navLinks">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a href="/admin/logout" class="nav-link"><%= user.firstName %> <%= user.lastName %></a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <% if (locals.message.length > 0) { %>
+        <!-- Alert Message From Server -->
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="alert alert-primary alert-dismissible fade show mt-5" role="alert">
+                    <%= locals.message %>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    <% } %>
+    <!-- Search -->
+    <main class="container">
+        <div class="row justify-content-center">
+            <% if (locals.message) { %>
+                <div class="col-6 alert alert-info alert-dismissible fade show" role="alert">
+                    <%= locals.message %>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <% } %>
+            <div class="col-5 col-md-4 col-lg-3">
+                <a href="/"><img class="img-fluid" src="images/logo_no_title.png" id="logo"></a>
+            </div>
+        </div>
+        <div class="row justify-content-center mt-5">
+            <div class="col-10 col-md-8 col-lg-6">
+                <h2 class="display-4">Admin Control Center</h2>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Component -->
+    <% include ../public/components/footer.ejs %>
+
+    <!-- jQuery -->
+    <script src="../js/jquery-3.3.1.min.js"></script>
+    <!-- Boostrap JS + Popper.js -->
+    <script src="../js/bootstrap.bundle.min.js"></script>
+    <!-- Underscore JS-->
+    <script src="../js/underscore-min.js"></script> 
+
+    <!-- Custom Script -->
+    <script>
+        $(document).ready(() => {
+            if (locals.message) {
+                alert(locals.message);
+            }
+        })
+    </script>
+</body>
+</html>

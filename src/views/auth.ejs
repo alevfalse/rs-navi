@@ -32,12 +32,27 @@
             </ul>
         </div>
     </nav>
+
+    <% if (locals.message.length > 0) { %>
+        <!-- Alert Message From Server -->
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="alert alert-primary alert-dismissible fade show mt-5" role="alert">
+                    <%= locals.message %>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    <% } %>
     
     <!-- Main Section -->
     <main class="container">
-        
+
         <!-- Logo -->
         <div class="row justify-content-center">
+            
             <div class="col-4 col-md-3 col-lg-2">
                 <a href="/"><img class="img-fluid" src="images/logo_no_title.png" id="logo"></a>
             </div>
@@ -56,10 +71,10 @@
                 <form method="POST" action="/auth/login">
                     <div class="row justify-content-center text-center">
                         <div class="col-8 col-md-6 col-lg-5 col-xl-4 formFields">
-                            <input type="email" class="form-control" placeholder="Email" name="email" required>
+                            <input type="email" class="form-control" placeholder="Email" name="email" id="loginEmail" required>
                             <div class="mb-3"></div>
                             <input type="password" class="form-control mb-3" placeholder="Password" name="password" required>
-                            <input type="text" name="role" value="student" id="loginRoleInput" name="role" hidden>
+                            <input type="text" value="student" id="loginRoleInput" name="role" hidden>
                             <button type="submit" class="btn btn-sm btn-primary px-4">Login</button>
                         </div>
                     </div>
