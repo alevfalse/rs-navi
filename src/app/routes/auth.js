@@ -224,7 +224,7 @@ authRouter.get('/reset/:role/:hashCode', (req, res) => {
     case 'placeowner':
         Placeowner.findOne({ 'account.hashCode': hashCode }, (err, placeowner) => {
             if (err) {
-                console.error(`An error occurred while querying for hash code of Placeowner [${account.email}]:\n${err}`);
+                console.error(`An error occurred while querying for hash code of Placeowner [${placeowner.account.email}]:\n${err}`);
                 req.flash('message', 'An error occurred. Please try again later.');
                 return res.redirect('/auth');
             }
@@ -233,7 +233,7 @@ authRouter.get('/reset/:role/:hashCode', (req, res) => {
                 return res.sendStatus(404);
             }
 
-            console.log(account);
+            console.log(placeowner);
             res.render('reset', { message: req.flash('message'), email: placeowner.account.email, role: role, hashCode: hashCode });
         })
         break;
