@@ -15,18 +15,15 @@ const passport   = require('./config/passport');
 // DATABASE ==============================================================================
 const database   = require('./config/database');
 
-// ROUTERS ===============================================================================
-const rootRouter = require('./app/routes/root');
-const authRouter = require('./app/routes/auth');
-const validateRouter = require('./app/routes/validate');
-const autocompleteRouter = require('./app/routes/autocomplete');
-const adminRouter = require('./app/routes/admin');
+
 
 // APPLICATION ===========================================================================
 const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
+
+app.disable('etag');
 
 app.use(express.static(__dirname + '/public')); // serving static files
 app.use(morgan('dev')); // logging
@@ -47,6 +44,13 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash()); 
+
+// ROUTERS ===============================================================================
+const rootRouter = require('./app/routes/root');
+const authRouter = require('./app/routes/auth');
+const validateRouter = require('./app/routes/validate');
+const autocompleteRouter = require('./app/routes/autocomplete');
+const adminRouter = require('./app/routes/admin');
 
 // bind the routes to the application
 app.use('/auth', authRouter);

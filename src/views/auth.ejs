@@ -33,7 +33,8 @@
         </div>
     </nav>
 
-    <% if (locals.message.length > 0) { %>
+    <% if (locals.message) { 
+        if (message.length > 0) { %>
         <!-- Alert Message From Server -->
         <div class="container">
             <div class="row justify-content-center">
@@ -45,7 +46,8 @@
                 </div>
             </div>
         </div>
-    <% } %>
+     <% } %>
+ <% } %>
     
     <!-- Main Section -->
     <main class="container">

@@ -7,16 +7,16 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="../../../css/bootstrap.min.css" type="text/css">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="css/all.min.css" type="text/css">
+    <link rel="stylesheet" href="../../../css/all.min.css" type="text/css">
     <!-- Favicon-->
-    <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico"/>
+    <link rel="shortcut icon" type="image/x-icon" href="../../../images/favicon.ico"/>
 
     <!-- My CSS -->
-    <link rel="stylesheet" href="css/index.css" type="text/css">
+    <link rel="stylesheet" href="../../../css/index.css" type="text/css">
     
-    <title>RS Navi - Home</title>
+    <title>RS Navi - Reset Password</title>
 </head>
 <body>
     <!-- Navbar -->
@@ -28,22 +28,15 @@
 
         <div class="collapse navbar-collapse" id="navLinks">
             <ul class="navbar-nav ml-auto">
-                <% if (locals.user) { %>
-                    <li class="nav-item"><a href="/auth" class="nav-link"><%= user.firstName %> <%= user.lastName %> <i class="fas fa-user"></i></a></li>
-                    <li class="nav-item"><a href="/auth/logout" class="nav-link">Logout</a></li>
-                    <% if (user.account.role == 1) { %>
-                        <li class="nav-item"><a href="/places/add" class="nav-link">Add A Place <i class="fas fa-home"></i> </a></li>
-                    <% } %>
-                <% }  else { %>
                     <li class="nav-item"><a href="/auth" class="nav-link">Login <i class="fas fa-user"></i></a></li>
                     <li class="nav-item"><a href="/auth" class="nav-link">Add A Place <i class="fas fa-home"></i> </a></li>
-                <% } %>
             </ul>
         </div>
     </nav>
     
     <% if (locals.message) { 
         if (message.length > 0) { %>
+        console.log(message);
         <!-- Alert Message From Server -->
         <div class="container">
             <div class="row justify-content-center">
@@ -58,39 +51,50 @@
      <% } %>
  <% } %>
 
-    <!-- Search -->
     <main class="container">
 
+        <!-- Logo -->
         <div class="row justify-content-center">
-            <div class="col-5 col-md-4 col-lg-3">
-                <a href="/"><img class="img-fluid" src="images/logo_no_title.png" id="logo"></a>
+            <div class="col-4 col-md-3 col-lg-2">
+                <a href="/"><img class="img-fluid" src="../../../images/logo_no_title.png" id="logo"></a>
             </div>
         </div>
-        <form method="GET" action="/search">
-            <div class="row justify-content-center mt-5">
-                <div class="col-10 col-md-8 col-lg-6">
-                    <div class="input-group mb-3">
-                      <input type="text" class="form-control" placeholder="Enter school name..." name="schoolName"  id="searchField" required>
-                      <div class="input-group-append">
-                        <button class="btn btn-primary" type="submit"> <i class="fas fa-search"></i> </button>
-                      </div>
-                    </div>
+    
+        <!-- Reset Password Form -->
+        <div id="resetPassword">
+            <div class="row justify-content-center text-center mb-3">
+                <div class="col-8">
+                    <h2 class="display-6 text-white">Reset Password</h2>
                 </div>
             </div>
-        </form>
+
+            <form method="POST" action="/auth/reset">
+                <div class="row justify-content-center text-center">
+                    <div class="col-8 col-md-6 col-lg-5 col-xl-4 formFields">
+                        <input type="email" class="form-control mb-3" placeholder="Email" name="email" value="<%= locals.email %>"required>
+                        <input type="password" class="form-control mb-3" placeholder="New Password" name="newPassword" required>
+                        <input type="password" class="form-control mb-3" placeholder="Confirm New Password" name="confirmNewPassword" required>
+                        <input type="text" name="role" value="<%= locals.role %>" required>
+                        <input type="text" name="hashCode" value="<%= locals.hashCode %>" required>
+                        <button type="submit" class="btn btn-sm btn-primary px-4">Update Password</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
     </main>
 
     <!-- Footer Component -->
     <% include ../public/components/footer.ejs %>
 
     <!-- jQuery -->
-    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="../../../js/jquery-3.3.1.min.js"></script>
     <!-- Boostrap JS + Popper.js -->
-    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="../../../js/bootstrap.bundle.min.js"></script>
     <!-- Underscore JS-->
-    <script src="js/jquery.autocomplete.min.js"></script> 
+    <script src="../../../js/jquery.autocomplete.min.js"></script> 
 
     <!-- Custom Script -->
-    <script src="js/index.js"></script>
+    <script src="../../../js/index.js"></script>
 </body>
 </html>

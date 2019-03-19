@@ -25,10 +25,14 @@ function getHashCode(str) {
 // rsnavigation.com/auth/
 authRouter.get('/', (req, res) => {
     if (req.isAuthenticated()) {
+        req.flash('message', 'You are already logged in.');
         return res.redirect('/');
     }
 
-    res.render('auth', { user: req.user, message: req.flash('message') }, (err, html) => {
+    const flashMessage = req.flash('message');
+    console.log(`Flash Message: ${flashMessage}`);
+
+    res.render('auth', { user: req.user, message: flashMessage }, (err, html) => {
         if (err) {
             console.error(`An error occurred while rendering Authentication page:\n${err}`);
             return res.sendStatus(500);
@@ -40,10 +44,15 @@ authRouter.get('/', (req, res) => {
 
 authRouter.get('/logout', (req, res) => {
     if (req.isAuthenticated()) {
+        console.log(`${req.user.firstName} logged out.`);
         req.logout();
+        req.flash('message', 'Successfully logged out.');
+        return res.redirect('/');
+    } else {
+        console.log('Already logged out.');
+        req.flash('message', 'You are already logged out.');
+        return res.redirect('/');
     }
-    
-    return res.redirect('/');
 })
 
 // ========================================================================================
@@ -71,22 +80,31 @@ function generateHashCode(email) {
     return Math.abs(getHashCode(unhashedString));
 }
 
-function sendResetCodeEmail(recepientEmail, hashCode) {
+function sendResetCodeEmail(recepientEmail, hashCode, user, role, req, res) {
 
     const mailOptions = {
         from: "roomstayin.navigation@gmail.com",
         to: recepientEmail,
         subject: "RS Navigation - Reset Password",
-        text: `Click this link to reset your password:\nhttp://www.:8080/auth/reset/${hashCode}`
+        text: `Click this link to reset your password:\nlocalhost:8080/auth/reset/${role}/${hashCode}`
     };
     
-    mailer.sendMail(mailOptions, (err, info) => {
+    mailer.sendMail(mailOptions, function (err, info) {
+
         if (err) {
+            req.flash('message', 'Failed to send password reset link to your email. Please try again later.');
             console.error(`An error occurred while sending password reset email to ${recepientEmail}:\n${err}`);
-            return false;
+            user.account.hashCode = null;
+            user.save((err) => {
+                if (err) {
+                    console.error(`An error occurred while deleting hashCode of ${user.account.email}:\n${err}`);
+                }
+                return res.redirect('/auth');
+            });
         } else {
+            req.flash('message', 'Successfully sent password reset link to your email.');
             console.log(`Email sent: ${info.response}`);
-            return true;
+            return res.redirect('/auth');
         }
     });
 }
@@ -99,7 +117,7 @@ authRouter.post('/forgot', (req, res) => {
     if (!inputEmail) {
         const err = new Error(`No email provided.`);
         console.error(err.message);
-        req.flash({ 'message': err.message });
+        req.flash( 'message', err.message );
         return res.redirect('/auth');
     }
 
@@ -107,11 +125,12 @@ authRouter.post('/forgot', (req, res) => {
 
         if (err) {
             console.error(`An error occurred while querying student email [${inputEmail}]`);
-            req.flash({ 'message': 'An error occurred. Please try again later.'});
+            req.flash( 'message', 'An error occurred. Please try again later.');
             return res.redirect('/auth');
         }
 
         if (student) {
+
             const hashCode = generateHashCode(student.account.email);
             console.log(`Generated Hash Code: ${hashCode}`);
 
@@ -120,31 +139,25 @@ authRouter.post('/forgot', (req, res) => {
             student.save((err) => {
                 if (err) {
                     console.error(`An error occurred while saving student ${inputEmail}:\n${err}`);
-                    req.flash({ 'message': 'An error occurred. Please try again later.'});
+                    req.flash('message', 'An error occurred. Please try again later.');
                     return res.redirect('/auth');
                 }
 
-                if (sendResetCodeEmail(student.account.email)) {
-                    req.flash({ 'message': 'Successfully sent password reset link to your email.' });
-                } else {
-                    req.flash({ 'message': 'Failed to send password reset link to your email. Please try again later.' });
-                    student.account.hashCode = hashCode;
-                    student.save();
-                }
-
-                res.redirect('/');
+                sendResetCodeEmail(student.account.email, hashCode, student, 'student', req, res);
             })
 
         } else {
+
             Placeowner.findOne({ 'account.email': inputEmail }, (err, placeowner) => {
+
                 if (err) {
                     console.error(`An error occurred while querying placeowner email [${inputEmail}]`);
-                    req.flash({ 'message': 'An error occurred. Please try again later.'});
+                    req.flash('message', 'An error occurred. Please try again later.');
                     return res.redirect('/auth');
                 }
 
                 if (!placeowner) {
-                    req.flash({ 'message': 'Placeowner email does not exist.'});
+                    req.flash('message', 'Placeowner email does not exist.');
                     return res.redirect('/auth');
                 }
 
@@ -157,19 +170,11 @@ authRouter.post('/forgot', (req, res) => {
                 placeowner.save((err) => {
                     if (err) {
                         console.error(`An error occurred while saving placeowner ${inputEmail}:\n${err}`);
-                        req.flash({ 'message': 'An error occurred. Please try again later.'});
+                        req.flash('message', 'An error occurred. Please try again later.');
                         return res.redirect('/auth');
                     }
-    
-                    if (sendResetCodeEmail(student.account.email)) {
-                        req.flash({ 'message': 'Successfully sent password reset link to your email.' });
-                    } else {
-                        req.flash({ 'message': 'Failed to send password reset link to your email. Please try again later.' });
-                        placeowner.account.hashCode = hashCode;
-                        placeowner.save();
-                    }
-    
-                    res.redirect('/');
+
+                    sendResetCodeEmail(student.account.email, hashCode, placeowner, 'placeowner', req, res);
                 })
             })
         }
@@ -178,8 +183,141 @@ authRouter.post('/forgot', (req, res) => {
 })
 
 // forgot password
-authRouter.get('/reset', (req, res) => {
-    res.sendStatus(404);
+authRouter.get('/reset/:role/:hashCode', (req, res) => {
+
+    if (req.isAuthenticated()) {
+        req.flash('You must log out first before resetting forgotten password.');
+        return res.redirect('/');
+    }
+
+    const role = req.params.role;
+    const hashCode = req.params.hashCode;
+
+    if (!role || !hashCode) {
+        console.error('Missing required queries.');
+        return res.redirect('/auth');
+    }
+
+    switch (role)
+    {
+    case 'student':
+        Student.findOne({ 'account.hashCode': hashCode }, (err, student) => {
+            console.log(student);
+
+            if (err) {
+                console.error(`An error occurred while querying for hash code of student:\n${err}`);
+                req.flash('message', 'An error occurred. Please try again later.');
+                return res.redirect('/auth');
+            }
+
+            if (!student) {
+                return res.sendStatus(404);
+            }
+
+            res.render('reset', { message: req.flash('message'), email: student.account.email, role: role, hashCode: hashCode });
+        })
+        break;
+
+    case 'placeowner':
+        Placeowner.findOne({ 'account.hashCode': hashCode }, 'account.email', (err, account) => {
+            if (err) {
+                console.error(`An error occurred while querying for hash code of student [${account.email}]:\n${err}`);
+                req.flash('message', 'An error occurred. Please try again later.');
+                return res.redirect('/auth');
+            }
+
+            if (!account) {
+                return res.sendStatus(404);
+            }
+
+            console.log(account);
+            res.render('reset', { message: req.flash('message'), email: account.email, role: role, hashCode: hashCode });
+        })
+        break;
+
+    default: res.sendStatus(404);
+    }
+})
+
+// forgot password
+authRouter.post('/reset', (req, res) => {
+
+    if (req.isAuthenticated()) {
+        req.flash('message', 'You must log out first before resetting forgotten password.');
+        return res.redirect('/');
+    }
+
+    const email = req.body.email;
+    const newPassword = req.body.newPassword;
+    const confirmNewPassword = req.body.confirmNewPassword;
+    const role = req.body.role;
+    const hashCode = req.query.hashCode;
+
+    if (confirmNewPassword !== newPassword) {
+        const err = new Error('Passwords do not match.');
+        console.error(err);
+        req.flash('message', err.message);
+        return res.redirect('/auth');
+    }
+
+    switch (role)
+    {
+    case 'student':
+        Student.findOne({ 'account.email': email, 'account.hashcode': hashCode }, (err, student) => {
+            if (err) {
+                console.error(`An error occurred while querying for hash code of student email [${email}]:\n${err}`);
+                req.flash('message', 'An error occurred. Please try again later.');
+                return res.redirect('/auth');
+            }
+
+            if (!student) {
+                console.error(`Invalid POST request for placeowner password reset.`);
+                return res.sendStatus(404);
+            }
+
+            student.account.password = newPassword;
+            student.save((err) => {
+                if (err) {
+                    console.error(`An error occurred while saving Student ${student.account.email}'s new password.`);
+                    req.flash('message', 'An error occurred. Failed to update you password.');
+                    return res.redirect('/auth');
+                } else {
+                    req.flash('message', 'Password update successful.');
+                    return res.redirect('/auth');
+                }
+            })
+        })
+        break;
+
+    case 'placeowner':
+        Placeowner.findOne({ 'account.email': email, 'account.hashcode': hashCode }, (err, placeowner) => {
+            if (err) {
+                console.error(`An error occurred while querying for hash code of placeowner email [${email}]:\n${err}`);
+                req.flash('message', 'An error occurred. Please try again later.');
+                return res.redirect('/auth');
+            }
+
+            if (!placeowner) {
+                console.error(`Invalid POST request for placeowner password reset.`);
+                return res.sendStatus(404);
+            }
+
+            placeowner.account.password = newPassword;
+            placeowner.save((err) => {
+                if (err) {
+                    console.error(`An error occurred while saving Placeowner ${student.account.email}'s new password.`);
+                    req.flash('message', 'An error occurred. Failed to update you password.');
+                    return res.redirect('/auth');
+                } else {
+                    req.flash('message', 'Password update successful.');
+                    return res.redirect('/auth');
+                }
+            })
+        })
+        break;
+
+    default: res.sendStatus(404);
+    }
 })
 
 authRouter.get('/*', (req, res) => {

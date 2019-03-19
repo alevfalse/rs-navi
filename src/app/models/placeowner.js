@@ -32,51 +32,6 @@ const PlaceownerSchema = new mongoose.Schema({
                           1 - unverified
                           2 - verified
                           3 - revoked
-*/                        
-
-PlaceownerSchema.methods.generateHashCode = function(req, res) {
-    console.log(`Generating Hash Code for: ${req.user.firstName}`);
-
-    const unhashedString = inputEmail + 'SALT'  + Date();
-    console.log(`Unhashed String: ${unhashedString}`);
-    
-    const hashCode = Math.abs(getHashCode(unhashedString));
-    console.log(`Hash Code: ${hashCode}`);
-
-    req.user.set({ 'account.hashCode ': hashCode });
-    req.user.save((err, updatedUser) => {
-        if (err) {
-            console.error(`An error occurred while saving user ${req.user.firstName} ${req.user.lastName}:\n ${err}`);
-            req.flash({'forgotPasswordMessage': 'Failed to send reset email' })
-            return res.redirect();
-        }
-    })
-
-    acc.save((err) => {
-        if (err) {
-            console.error(err);
-            return res.redirect('/auth/forgot');
-        }
-
-        Account.find({}, (err, results) => {
-            results.forEach(res => {
-                console.log(res);
-            })
-        })
-
-        const mailOptions = {
-            from: "roomstayin.navigation@gmail.com",
-            to: inputEmail,
-            subject: "Reset Password",
-            text: `Click this link to reset your password:\nlocalhost:8080/auth/reset/${hashCode}`
-        };
-        
-        mailer.sendMail(mailOptions, (err, info) => {
-            if (err) console.error(err);
-            else console.log(`Email sent: ${info.response}`);
-            res.send('Password reset link has been sent to your email.');
-        });
-    })
-}
+*/
 
 module.exports = mongoose.model('Placeowner', PlaceownerSchema);

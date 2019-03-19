@@ -33,7 +33,7 @@ validateRouter.get('/email', (req, res) => {
         break;
 
     case 'placeowner':
-        Placeowner.findOne({ 'account.email': email }, { 'email': 1}, (err, foundEmail) => {
+        Placeowner.findOne({ 'account.email': inputEmail }, { 'email': 1}, (err, foundEmail) => {
             if (err) {
                 console.error(`An error occurred while validating placeowner email [${inputEmail}]:\n${err}`);
                 return res.send(false);

@@ -15,7 +15,12 @@ function isAuthenticated(req, res, next) {
 }
 
 openRouter.get('/', (req, res) => {
-    res.render('index', { user: req.user, message: req.flash('message') }, (err, html) => {
+    console.log(`Authenticated: ${req.isAuthenticated()}`);
+
+    const flashMessage = req.flash('message');
+    console.log(`Flash Message: ${flashMessage}`);
+
+    res.render('index', { user: req.user, message: flashMessage }, (err, html) => {
         if (err) {
             console.error(`Something went wrong while rendering the [index] page:\n${err}`);
             res.sendStatus(500);
@@ -38,7 +43,7 @@ openRouter.get('/search', (req, res) => {
     const query = req.query.schoolName;
 
     if (!query) {
-        req.flash({ 'message': 'Please provide a school name.'});
+        req.flash('message', 'Please provide a school name.');
         res.redirect('/');
     }
     console.log(`Search Query: ${query}`);
@@ -66,7 +71,7 @@ openRouter.get('/search', (req, res) => {
 
     } else {
         console.error('No MAPBOX ACCESS TOKEN in your .env file.');
-        req.flash({ 'message': 'Search is temporarily unavailable at the moment. Please try again later.'});
+        req.flash('message', 'Search is temporarily unavailable at the moment. Please try again later.');
         res.status(503).redirect('/');
     }
 })
