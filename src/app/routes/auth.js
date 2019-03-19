@@ -165,7 +165,7 @@ authRouter.post('/forgot', (req, res) => {
                 }
 
 
-                const hashCode = generateHashCode(student.account.email);
+                const hashCode = generateHashCode(placeowner.account.email);
                 console.log(`Generated Hash Code: ${hashCode}`);
 
                 placeowner.account.hashCode = hashCode;
@@ -177,7 +177,7 @@ authRouter.post('/forgot', (req, res) => {
                         return res.redirect('/auth');
                     }
 
-                    sendResetCodeEmail(student.account.email, hashCode, placeowner, 'placeowner', req, res);
+                    sendResetCodeEmail(placeowner.account.email, hashCode, placeowner, 'placeowner', req, res);
                 })
             })
         }
@@ -222,19 +222,19 @@ authRouter.get('/reset/:role/:hashCode', (req, res) => {
         break;
 
     case 'placeowner':
-        Placeowner.findOne({ 'account.hashCode': hashCode }, 'account.email', (err, account) => {
+        Placeowner.findOne({ 'account.hashCode': hashCode }, (err, placeowner) => {
             if (err) {
-                console.error(`An error occurred while querying for hash code of student [${account.email}]:\n${err}`);
+                console.error(`An error occurred while querying for hash code of Placeowner [${account.email}]:\n${err}`);
                 req.flash('message', 'An error occurred. Please try again later.');
                 return res.redirect('/auth');
             }
 
-            if (!account) {
+            if (!placeowner) {
                 return res.sendStatus(404);
             }
 
             console.log(account);
-            res.render('reset', { message: req.flash('message'), email: account.email, role: role, hashCode: hashCode });
+            res.render('reset', { message: req.flash('message'), email: placeowner.account.email, role: role, hashCode: hashCode });
         })
         break;
 
@@ -310,7 +310,7 @@ authRouter.post('/reset', (req, res) => {
             placeowner.account.hashCode = null;
             placeowner.save((err) => {
                 if (err) {
-                    console.error(`An error occurred while saving Placeowner ${student.account.email}'s new password.`);
+                    console.error(`An error occurred while saving Placeowner ${placeowner.account.email}'s new password.`);
                     req.flash('message', 'An error occurred. Failed to update you password.');
                     return res.redirect('/auth');
                 } else {
