@@ -240,7 +240,7 @@ passport.use('local-signup', new LocalStrategy({
 
             
 
-            const newPlaceowner = new Student({
+            const newPlaceowner = new Placeowner({
                 firstName: firstName,
                 lastName: lastName,
                 account: { 
@@ -258,7 +258,7 @@ passport.use('local-signup', new LocalStrategy({
 
                 console.log(`Placeowner Successfully Signed Up:\n${newPlaceowner}`);
                 req.flash('message', 'Sign up successful!');
-                return done(null, newStudent);
+                return done(null, newPlaceowner);
             })
         })
         break;
