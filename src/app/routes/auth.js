@@ -82,11 +82,14 @@ function generateHashCode(email) {
 
 function sendResetCodeEmail(recepientEmail, hashCode, user, role, req, res) {
 
+    const text = `Good day! We have received a password reset request from your account.\n\n`
+        + `You can click this link to reset your password:\nhttp://rsnavigation.com/auth/reset/${role}/${hashCode}`;
+
     const mailOptions = {
         from: "roomstayin.navigation@gmail.com",
         to: recepientEmail,
         subject: "RS Navigation - Reset Password",
-        text: `Click this link to reset your password:\nlocalhost:8080/auth/reset/${role}/${hashCode}`
+        text: text
     };
     
     mailer.sendMail(mailOptions, function (err, info) {
@@ -276,6 +279,7 @@ authRouter.post('/reset', (req, res) => {
             }
 
             student.account.password = newPassword;
+            student.account.haschCode = null;
             student.save((err) => {
                 if (err) {
                     console.error(`An error occurred while saving Student ${student.account.email}'s new password.`);
@@ -303,6 +307,7 @@ authRouter.post('/reset', (req, res) => {
             }
 
             placeowner.account.password = newPassword;
+            placeowner.account.hashCode = null;
             placeowner.save((err) => {
                 if (err) {
                     console.error(`An error occurred while saving Placeowner ${student.account.email}'s new password.`);
