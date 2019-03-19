@@ -29,7 +29,7 @@
         <div class="collapse navbar-collapse" id="navLinks">
             <ul class="navbar-nav ml-auto">
                 <% if (locals.user) { %>
-                    <li class="nav-item"><a href="/auth" class="nav-link"><%= user.firstName %> <%= user.lastName %> <i class="fas fa-user"></i></a></li>
+                    <li class="nav-item"><a href="/profile" class="nav-link"><%= user.firstName %> <%= user.lastName %> <i class="fas fa-user"></i></a></li>
                     <li class="nav-item"><a href="/auth/logout" class="nav-link">Logout</a></li>
                     <% if (user.account.role == 1) { %>
                         <li class="nav-item"><a href="/places/add" class="nav-link">Add A Place <i class="fas fa-home"></i> </a></li>
