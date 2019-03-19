@@ -14,7 +14,7 @@
     <link rel="shortcut icon" type="image/x-icon" href="../../../images/favicon.ico"/>
 
     <!-- My CSS -->
-    <link rel="stylesheet" href="../../../css/index.css" type="text/css">
+    <link rel="stylesheet" href="../../../css/auth.css" type="text/css">
     
     <title>RS Navi - Reset Password</title>
 </head>
@@ -71,11 +71,11 @@
             <form method="POST" action="/auth/reset">
                 <div class="row justify-content-center text-center">
                     <div class="col-8 col-md-6 col-lg-5 col-xl-4 formFields">
-                        <input type="email" class="form-control mb-3" placeholder="Email" name="email" value="<%= locals.email %>"required>
+                        <input type="email" class="form-control mb-3" placeholder="Email" name="email" value="<%= locals.email %>" required>
                         <input type="password" class="form-control mb-3" placeholder="New Password" name="newPassword" required>
                         <input type="password" class="form-control mb-3" placeholder="Confirm New Password" name="confirmNewPassword" required>
-                        <input type="text" name="role" value="<%= locals.role %>" required>
-                        <input type="text" name="hashCode" value="<%= locals.hashCode %>" required>
+                        <input type="text" name="role" value="<%= locals.role %>" required hidden>
+                        <input type="text" name="hashCode" value="<%= locals.hashCode %>" required hidden>
                         <button type="submit" class="btn btn-sm btn-primary px-4">Update Password</button>
                     </div>
                 </div>
