@@ -65,23 +65,24 @@ $("input[type='text']").keyup(function() {
         res.text('Too long');
     }  else {
         $(this).removeClass('is-invalid').addClass('is-valid');
-        $(this).next().removeClass('invalid-feedback').addClass('valid-feedback').text('');
+        $(this).next().removeClass('invalid-feedback').text('');
         return; // return as a valid name
     }
     
     // will only execute if at least one of the invalid conditions above are met
     $(this).removeClass('is-valid').addClass('is-invalid');
-    $(this).next().removeClass('valid-feedback').addClass('invalid-feedback')
+    $(this).next().addClass('invalid-feedback')
 })
 
 
 const validateEmailFunction = function(email, role, input, res) {
+    console.log('EXECUTED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
     $.ajax({
         url: '/validate/email',
         data: { 
             email: email,
             role: role
-         },
+        },
         success: function(valid) {
             console.log(valid);
             valid = valid;
@@ -89,17 +90,17 @@ const validateEmailFunction = function(email, role, input, res) {
             if (valid) {
                 if (input.attr('id') == "forgotPasswordEmail") {
                     input.removeClass('is-valid').addClass('is-invalid');
-                    res.removeClass('valid-feedback').addClass('invalid-feedback').text('Email does not exist')
+                    res.addClass('invalid-feedback').text('Email does not exist')
                 } else {
                     input.removeClass('is-invalid').addClass('is-valid');
-                    res.removeClass('invalid-feedback').addClass('valid-feedback').text('');
+                    res.removeClass('invalid-feedback').text('');
                 }
             } else {
                 if (input.attr('id') == "forgotPasswordEmail") {
                     input.removeClass('is-invalid').addClass('is-valid');
                 } else {
                     input.removeClass('is-valid').addClass('is-invalid');
-                    res.removeClass('valid-feedback').addClass('invalid-feedback').text('Email address is already taken');
+                    res.addClass('invalid-feedback').text('Email address is already taken');
                 }
             }
         }
@@ -109,7 +110,7 @@ const validateEmailFunction = function(email, role, input, res) {
 // client-side rate-limiting
 const throttledValidateEmailFunction = _.throttle(validateEmailFunction, 1000);
 
-$("input[type='email']:not('#loginEmail')").keyup(function() {
+$("#signupEmail").change(function() {
 
     const input = $(this);
     const email = input.val();
@@ -136,7 +137,7 @@ $("input[type='email']:not('#loginEmail')").keyup(function() {
     if (!valid) {
         // will only execute if at least one of the invalid conditions above are met
         $(this).removeClass('is-valid').addClass('is-invalid');
-        $(this).next().removeClass('valid-feedback').addClass('invalid-feedback')
+        $(this).next().addClass('invalid-feedback')
     }
 })
 
@@ -149,6 +150,12 @@ function swapForms() {
 }
 
 $("#switchRoleButton").click(function() {
+
+    const signupEmail = $("#signupEmail");
+    signupEmail.removeClass('is-valid is-invalid');
+    signupEmail.next().removeClass('invalid-feedback').text('');
+    signupEmail.val('');
+
 
     const switchRoleButton = $(this);
     const switchRoleNav = $("#switchRoleNav");
@@ -240,6 +247,12 @@ $("#switchToSignupButton, #switchToLoginButton").click(function() {
 });
 
 $("#forgotPasswordButton").click(function() {
+
+    const loginRole = $("#loginRoleInput");
+
+    $("#forgotPasswordRoleButton").text(loginRole.val());
+    $("#forgotPasswordRoleInput").val(loginRole.val());
+
     if ($("#forgotPasswordForm").hasClass("show")) {
         $(this).animate({ 'font-size': '1rem' }, 300);
     } else {
@@ -247,6 +260,25 @@ $("#forgotPasswordButton").click(function() {
     }
     
     $("#forgotPasswordForm").collapse("toggle");
-    $("#loginForm").collapse("toggle");
+    $("#upperLogin").collapse("toggle");
     $("#switchRoleNav").collapse("toggle");
+})
+
+$("#forgotPasswordRoleButton").click(function() {
+
+    const forgotPasswordEmail = $("#forgotPasswordEmail");
+    forgotPasswordEmail.val('');
+    forgotPasswordEmail.removeClass('is-valid is-invalid');
+    forgotPasswordEmail.next().removeClass('invalid-feedback').text('');
+
+    const button = $(this);
+    const role = $("#forgotPasswordRoleInput");
+
+    if (button.text().toLowerCase() === 'student') {
+        button.text('Placeowner');
+        role.val('placeowner');
+    } else {
+        button.text('Student');
+        role.val('student');
+    }
 })
