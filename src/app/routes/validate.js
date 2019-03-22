@@ -17,35 +17,39 @@ validateRouter.get('/email', (req, res) => {
     switch (role)
     {
     case 'student':
-        Student.findOne({ 'account.email': inputEmail }, { 'email': 1}, (err, foundEmail) => {
-            if (err) {
-                console.error(`An error occurred while validating student email [${inputEmail}]:\n${err}`);
-                return res.send(false);
-            }
-
-            if (foundEmail) {
-                console.log(`Found Student Email: ${foundEmail}`);
-                res.send(false);
-            } else {
-                res.send(true);
-            }
-        })
+        process.nextTick(() => {
+            Student.findOne({ 'account.email': inputEmail }, { 'email': 1}, (err, foundEmail) => {
+                if (err) {
+                    console.error(`An error occurred while validating student email [${inputEmail}]:\n${err}`);
+                    return res.send(false);
+                }
+    
+                if (foundEmail) {
+                    console.log(`Found Student Email: ${foundEmail}`);
+                    res.send(false);
+                } else {
+                    res.send(true);
+                }
+            });
+        });
         break;
 
     case 'placeowner':
-        Placeowner.findOne({ 'account.email': inputEmail }, { 'email': 1}, (err, foundEmail) => {
-            if (err) {
-                console.error(`An error occurred while validating placeowner email [${inputEmail}]:\n${err}`);
-                return res.send(false);
-            }
-
-            if (foundEmail) {
-                console.log(`Found Placeowner Email: ${foundEmail}`);
-                res.send(false);
-            } else {
-                res.send(true);
-            }
-        })
+        process.nextTick(() => {
+            Placeowner.findOne({ 'account.email': inputEmail }, { 'email': 1}, (err, foundEmail) => {
+                if (err) {
+                    console.error(`An error occurred while validating placeowner email [${inputEmail}]:\n${err}`);
+                    return res.send(false);
+                }
+    
+                if (foundEmail) {
+                    console.log(`Found Placeowner Email: ${foundEmail}`);
+                    res.send(false);
+                } else {
+                    res.send(true);
+                }
+            });
+        });
         break;
 
     default:
