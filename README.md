@@ -16,13 +16,17 @@ www.rsnavigation.com
 4. Start coding and don't forget to commit and push your changes.
 > git commit -m "commit message"
 
-> git push origin
+> git push
 
 To pull any changes others have made use the comand:
-> git pull origin
+> git pull
 
-## Running the server
+## Running the server during development
 You can run the application on a local server using the command:
+> npm run dev
+
+## Running the server during production
+For official release, set your MODE environment variable to "prod" then run:
 > npm start
 
 Note: The command above will start the nodemon module, which means that you do not have 
