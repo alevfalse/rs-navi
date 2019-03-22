@@ -7,7 +7,7 @@ const Placeowner = require('../app/models/placeowner');
 const Admin = require('../app/models/admin');
 
 // stores the user's id in session to be used during deserialization
-passport.serializeUser(function(user, done) {
+passport.serializeUser((user, done) => {
     console.log(`Serializing User: ${user.id}`);
     console.log(user);
     done(null, user.id);  
@@ -15,37 +15,59 @@ passport.serializeUser(function(user, done) {
 
 // fetches user's data from the database in every request
 // using their id that is stored in session
-passport.deserializeUser(function(id, done) {
+passport.deserializeUser((id, done) => {
 
     console.log(`Deserializing User: ${id}`);
 
-    Student.findById(id, function(err, student) {
+    process.nextTick(() => {
+        Student.findById(id, (err, student) => {
+            if (err) {
+                console.error(`An error occurred while querying for student ID [${id}] in Deserialize User:\n${err}`)
+                return done(err, false);
+            }
+    
+            if (student) {
+                console.log(`Deserialized Student: ${id}`);
+                return done(null, student) // bind user to request
+    
+            } else {
+                process.nextTick(() => {
+                    Placeowner.findById(id, (err, placeowner) => {
+                        if (err) {
+                            console.error(`An error occurred while querying for placeowner ID [${id}] in Deserialize User:\n${err}`)
+                            return done(err, false);
+                        }
+        
+                        if (placeowner) {
+                            console.log(`Deserialized Placeowner: ${id}`);
+                            return done(null, placeowner);
+                            
+                        } else {
+                            process.nextTick(() => {
+                                Admin.findById(id, (err, admin) => {
+                                    if (err) {
+                                        console.error(`An error occurred while querying for Admin ID [${id}] in Deserialize User:\n${err}`)
+                                        return done(err, false);
+                                    }
 
-        if (err) {
-            console.error(`An error occurred while querying for student ID [${id}] in Deserialize User:\n${err}`)
-            return done(err, null);
-        }
+                                    if (!admin) {
+                                        return done(null, false)
+                                    }
 
-        if (student) {
-            return done(null, student) // bind user to request
-
-        } else {
-            Placeowner.findById(id, function(err, placeowner) {
-                if (err) {
-                    console.error(`An error occurred while querying for placeowner ID [${id}] in Deserialize User:\n${err}`)
-                    return done(err, null);
-                }
-
-                if (!placeowner) {
-                    return done(null, null);
-                }
-
-                console.timeEnd('Deserialized')
-                return done(null, placeowner); // bind user to request
-            })
-        }
+                                    console.log(`Deserialized Admin: ${id}`);
+                                    return done(null, admin);
+                                });
+                            });
+                        }
+                    });
+                });
+            }
+        });
     });
 });
+
+// NOTE: No need to call for req.session.save() after every req.flash() in the following code.
+// It will be called on the passport.authenticate()'s callback function.
 
 // =====================================================================================================
 // STUDENT & PLACEOWNER LOGIN ==========================================================================
@@ -63,7 +85,8 @@ passport.use('local-login', new LocalStrategy({
     if (!email || !password || !role) {
         const err = new Error(`Missing required field(s) for Local Login.`);
         console.error(err.message);
-        return done(err, null, req.flash('message', `Missing required field(s)`));
+        req.flash('message', `Missing required field(s)`)
+        return done(err, null);
     }
 
     switch (role)
@@ -73,29 +96,29 @@ passport.use('local-login', new LocalStrategy({
             if (err) {
                 console.error(`An error occurred while querying for student email [${email}] in Local Login:\n${err}`);
                 req.flash('message', 'An error ocurred.');
-                return done(err, null);
+                return done(err, false);
             }
 
             if (!student) {
-                console.log('Email does not exist.');
+                console.log(`Email does not exist: ${email}`);
                 req.flash('message', 'Invalid email or password.');
-                return done(null, student);
+                return done(null, false);
             }
 
             if (password !== student.account.password) {
-                console.log('Invalid student password.');
-                req.flash('message', 'Invalid email or password.');
-                return done(null, null);
+                console.log(`Invalid student password for ${email}`);
+                req.flash('message', 'Invalid email or password.')
+                return done(null, false);
             }
 
             student.account.lastLoggedIn = new Date();
             student.save((err) => {
                 if (err) {
-                    console.error(`An error occurred while updating ${student.account.email}'s Last Logged In date.`);
+                    console.error(`An error occurred while updating ${student.account.email}'s Last Logged In date:\n${err}`);
                     req.flash('message', 'An error ocurred.');
-                    return done(err, null);
+                    return done(err, false);
                 }
-                console.log(`Student ${student.firstName} ${student.lastName} logged in.`);
+                console.log(`Student [${student.firstName} ${student.lastName}] logged in.`);
                 return done(null, student);
             })
             
@@ -107,27 +130,27 @@ passport.use('local-login', new LocalStrategy({
             if (err) {
                 console.error(`An error occurred while querying for placeowner email [${email}] in Local Login:\n${err}`);
                 req.flash('message', 'An error ocurred.');
-                return done(err, null, );
+                return done(err, false);
             }
 
             if (!placeowner) {
-                console.log('Placeowner email does not exist.');
+                console.log(`Placeowner email does not exist: ${email}`);
                 req.flash('message', 'Invalid email or password.');
-                return done(null, null);
+                return done(null, false);
             }
 
             if (password !== placeowner.account.password) {
-                console.log('Invalid placeowner password.');
+                console.log(`Invalid placeowner password for ${email}`);
                 req.flash('message', 'Invalid email or password.');
-                return done(null, null);
+                return done(null, false);
             }
 
             placeowner.account.lastLoggedIn = new Date();
             placeowner.save((err) => {
                 if (err) {
-                    console.error(`An error occurred while updating ${placeowner.account.email}'s Last Logged In date.`);
+                    console.error(`An error occurred while updating ${placeowner.account.email}'s Last Logged In date:\n${err}`);
                     req.flash('message', 'An error ocurred.');
-                    return done(err, null);
+                    return done(err, false);
                 }
                 console.log(`Placeowner ${placeowner.firstName} ${placeowner.lastName} logged in.`);
                 return done(null, placeowner);
@@ -139,9 +162,87 @@ passport.use('local-login', new LocalStrategy({
         const err = new Error(`Invalid role provided for Local Login.`);
         console.error(err.message);
         req.flash('message', `Invalid role provided.`);
-        return done(err, null);
+        return done(err, false);
     }
 }))
+
+// additional validation on top of the client-side validation
+function validateForm(firstName, lastName, email, password, confirmPassword) {
+    
+    let errorMessage = '';
+
+    // first name
+    if (firstName.startsWith(' ')) {
+        errorMessage += 'First name must not start with a space.\n';
+    }
+    
+    if (firstName.match(/[^a-zA-Zñ\s]|\s{2,}/) || firstName.match(/[^a-zA-Zñ\s]|\s{2,}/)) {
+        errorMessage += 'First name contains an invalid character.\n';
+    }
+
+    if (firstName.length == 0) {
+        errorMessage += 'First name cannot be empty.\n';
+    }
+    
+    if (firstName.length > 50) {
+        errorMessage += 'First name must not be more than 50 characters.\n';
+    }
+
+    // last name
+    if (lastName.startsWith(' ')) {
+        errorMessage += 'Last name must not start with a space.\n';
+    }
+    
+    if (lastName.match(/[^a-zA-Zñ\s]|\s{2,}/) || lastName.match(/[^a-zA-Zñ\s]|\s{2,}/)) {
+        errorMessage += 'Last name contains an invalid character.\n';
+    }
+
+    if (lastName.length == 0) {
+        errorMessage += 'Last name cannot be empty.\n';
+    }
+    
+    if (lastName.length > 50) {
+        errorMessage += 'Last name must not be more than 50 characters.\n';
+    }
+    
+    // email
+    if (email.startsWith(' ')) {
+        errorMessage += 'Email address must not start with space.\n';
+    } 
+    
+    if (email.match(/[^a-zA-Z0-9.@_]/)) {
+        errorMessage += 'Email address contains an invalid character.\n';
+    } 
+    
+    if (email.length == 0) {
+        errorMessage += 'Email address cannot be empty.\n';
+    } 
+    
+    if (email.length > 50) {
+        errorMessage += 'Email address must not be more than 50 characters.\n';
+    } 
+    
+    // regex: if email starts/ends with @ or period || 2 or more @ || an @ is preceded by a period
+    if (!email.includes('@') || email.match(/[@.]$|^[@.]|@[^@]*@|\.@/)) {
+        errorMessage += 'Invalid email address.\n';
+    }
+
+    // password
+    if (password.length <= 8) {
+        errorMessage += 'Password must be at least 8 characters.\n';
+    } else if (password !== confirmPassword) {
+        errorMessage += 'Passwords do not match.\n';
+    }
+
+    console.log(`Form Error Message:\n${errorMessage}`);
+
+    // check if an error occurred
+    if (errorMessage.length > 0) {
+        return new Error(errorMessage);
+    } else {
+        return null;
+    }
+}
 
 // =====================================================================================================
 // STUDENT & PLACEOWNER SIGNUP =========================================================================
@@ -158,19 +259,18 @@ passport.use('local-signup', new LocalStrategy({
     const lastName = req.body.lastName;
     const confirmPassword = req.body.confirmPassword;
     const role = req.body.role;
-
-    if (!firstName || !lastName || !confirmPassword || !role) {
+    
+    if (!email || !firstName || !lastName || !confirmPassword || !role) {
         const err = new Error(`Missing required field(s) for Local Login.`)
         console.error(err.message);
-        req.flash('message', `Missing required login field(s).`);
-        return done(err, null);
+        req.flash('message', `Missing required signup field(s).`);
+        return done(err, false);
     }
 
-    if (confirmPassword !== password) {
-        const err = new Error(`Passwords do not match.`)
-        console.error(err.message);
-        req.flash('message', err.message);
-        return done(err, null);
+    const formError = validateForm(firstName, last, email);
+    if (formError) {
+        req.flash('message', formError.message);
+        return done(formError, false);
     }
 
     switch (role)
@@ -182,21 +282,21 @@ passport.use('local-signup', new LocalStrategy({
             const err = new Error(`Missing school name for Local Login.`)
             console.error(err.message);
             req.flash('message', `Missing school name.`);
-            return done(err, null);
+            return done(err, false);
         }
 
         Student.findOne({ 'account.email': email }, { 'id': 1 }, (err, student) => {
             if (err) {
                 console.error(`An error occurred while querying for student email [${email}] in Local Signup:\n${err}`);
                 req.flash('message', 'An error ocurred.');
-                return done(err, null, );
+                return done(err, false);
             }
 
             if (student) {
                 const err = new Error('Student email already exists.');
                 console.error(err.message);
                 req.flash('message', err.message);
-                return done(err, null);
+                return done(err, false);
             }
 
             const newStudent = new Student({
@@ -235,10 +335,8 @@ passport.use('local-signup', new LocalStrategy({
                 const err = new Error('Placeowner email already exists.');
                 console.error(err.message);
                 req.flash('message', err.message);
-                return done(err, null);
+                return done(err, false);
             }
-
-            
 
             const newPlaceowner = new Placeowner({
                 firstName: firstName,
@@ -267,7 +365,7 @@ passport.use('local-signup', new LocalStrategy({
         const err = new Error(`Invalid role provided for Local Signup.`);
         console.error(err.message);
         req.flash('message', `Invalid role provided.`);
-        return done(err, null);
+        return done(err, false);
     }
 }))
 
@@ -275,9 +373,10 @@ passport.use('local-signup', new LocalStrategy({
 // ADMIN LOGIN =========================================================================================
 passport.use('local-login-admin', new LocalStrategy({
     usernameField: 'email',
-    passwordField: 'password'
+    passwordField: 'password',
+    passReqToCallback: true
 
-}, function(email, password, done) {
+}, function(req, email, password, done) {
     console.log('Local Login Strategy Invoked');
     console.log(req.body);
 
@@ -285,26 +384,28 @@ passport.use('local-login-admin', new LocalStrategy({
         const err = new Error(`Missing required field(s) for Local ADMIN Login.`)
         console.error(err.message);
         req.flash('message', `Missing required login field(s).`);
-        return done(err, null);
+        return done(err, false);
     }
+
+
 
     Admin.findOne({ 'account.email' : email}, (err, admin) => {
         if (err) {
             console.error(`An error occurred while querying for admin email [${email}] in Local ADMIN Login:\n${err}`);
             req.flash('message', 'An error ocurred.');
-            return done(err, null, );
+            return done(err, false);
         }
 
         if (!admin) {
             console.log('Admin email does not exist.');
             req.flash('message', 'Invalid email or password.');
-            return done(null, null);
+            return done(null, false);
         }
 
         if (password !== admin.account.password) {
             console.log('Invalid admin password.');
             req.flash('message', 'Invalid email or password.');
-            return done(null, null);
+            return done(null, false);
         }
 
         admin.account.lastLoggedIn = new Date();
@@ -312,7 +413,7 @@ passport.use('local-login-admin', new LocalStrategy({
             if (err) {
                 console.error(`An error occurred while updating Admin [${admin.account.email}]'s Last Logged In date.`);
                 req.flash('message', 'An error ocurred.');
-                return done(err, null);
+                return done(err, false);
             }
 
             console.log(`Admin ${admin.firstName} ${admin.lastName} logged in.`);
@@ -320,6 +421,5 @@ passport.use('local-login-admin', new LocalStrategy({
         })
     })
 }))
-
 
 module.exports = passport;
