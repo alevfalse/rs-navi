@@ -25,7 +25,7 @@ app.set('view engine', 'ejs'); // templating engine for dynamic pages
 app.set('views', __dirname + '/views'); // folder containing the pages to be served
 
 app.use(express.static(__dirname + '/public')); // serving static files
-app.use(morgan('dev')); // logging
+app.use(morgan(process.env.MODE == 'dev' ? 'dev' : 'combined')); // logging
 
 // for parsing request body
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -71,7 +71,7 @@ mongoose.connect(database.uri, { useNewUrlParser: true }, (err) => {
 
     console.log('Connected to database!');
     app.listen(process.env.PORT || 5000, () => {
-        console.log(`Application is now listening to http://localhost:${process.env.PORT}`);
+        console.log(`Application is now listening to port ${process.env.PORT}`);
         console.log(`MODE: ${process.env.MODE}`)
     });
 })
