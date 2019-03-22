@@ -14,7 +14,7 @@ validateRouter.get('/email', (req, res) => {
         return res.send(false);
     }
 
-    switch (role)
+    switch (role.toLowerCase())
     {
     case 'student':
         process.nextTick(() => {
