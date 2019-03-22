@@ -8,7 +8,7 @@ const PlaceownerSchema = new mongoose.Schema({
         password: String,
         hashCode: { type: String, default: null },
         status:   { type: Number, default: 0 },
-        role:     { type: Number, default: 0 },
+        role:     { type: Number, default: 1 },
         created:  { type: Date, default: new Date() },
         lastLoggedIn: { type: Date, default: new Date() }
     },
@@ -22,16 +22,20 @@ const PlaceownerSchema = new mongoose.Schema({
     }
 })
 
-/* account status:       license type:                    subscription status:
-0 - unverified            0 - Real Estate Appraiser       0 - unsubscribed
-1 - verified              1 - Real Estate Broker          1 - subscribed
-2 - suspended             2 - Real Estate Accountant      2 - expired
-3 - banned              
-4 - deleted              license status:                
-5 - subscribed            0 - none
-                          1 - unverified
-                          2 - verified
-                          3 - revoked
+/* 
+account status:         license type:                    
+0 - unverified          0 - Real Estate Appraiser       
+1 - verified            1 - Real Estate Broker          
+2 - suspended           2 - Real Estate Accountant      
+3 - banned               
+4 - deleted             subscription status:              
+5 - subscribed          0 - unsubscribed
+                        1 - subscribed
+license status:         2 - expired
+0 - none                3 - cancelled
+1 - unverified
+2 - verified
+3 - revoked
 */
 
 module.exports = mongoose.model('Placeowner', PlaceownerSchema);
