@@ -28,8 +28,12 @@ hr {
     width: 80%;
 }
 
+button {
+    text-transform: capitalize;
+}
 button.btn:focus {
     box-shadow: none;
+    
 }
 
 #mainNavbar .navbar-brand {
