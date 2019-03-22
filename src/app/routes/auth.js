@@ -7,15 +7,22 @@ const Student = require('../models/student');
 const Placeowner = require('../models/placeowner');
 
 function generateHashCode(str) {
+
     let hash = 0, i, chr;
 
-    if (str.length === 0) return hash;
+    try {
+        if (str.length === 0) return hash;
 
-    for (i = 0; i < str.length; i++) {
-        chr   = str.charCodeAt(i);
-        hash  = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
+        for (i = 0; i < str.length; i++) {
+            chr   = str.charCodeAt(i);
+            hash  = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+    } catch (err) {
+        console.error(err);
+        return err;
     }
+    
     return hash;
 }
 
@@ -90,7 +97,7 @@ authRouter.get('/reset/:role/:hashCode', (req, res) => {
         return;
     }
 
-    switch (role)
+    switch (role.toLowerCase())
     {
     case 'student':
         process.nextTick(() => {
@@ -222,7 +229,7 @@ authRouter.post('/signup', (req, res, next) => {
 });
 
 
-function generateHashCode(email) {
+function getHashCode(email) {
     const unhashedString = email + process.env.HASH_CODE_SALT  + new Date().toUTCString();
     return Math.abs(generateHashCode(unhashedString));
 }
@@ -268,35 +275,84 @@ function sendResetCodeEmail(recepientEmail, hashCode, user, role, req, res) {
     });
 }
 
+function validateForgotPasswordForm(inputEmail, role) {
+    let errorMessage = '';
+
+    if (!inputEmail) {
+        errorMessage += 'No email address provided.\n';
+    } else if (!role) {
+        errorMessage += 'No role provided.\n';
+    } else if (inputEmail.startsWith(' ')) {
+        errorMessage += 'Email address must not start with space.\n';
+    } else if (inputEmail.match(/[^a-zA-Z0-9.@_]/)) {
+        errorMessage += 'Email address contains an invalid character.\n';
+    } else if (inputEmail.length == 0) {
+        errorMessage += 'Email address cannot be empty.\n';
+    } else if (inputEmail.length > 50) {
+        errorMessage += 'Email address must not be more than 50 characters.\n';
+    } // regex: if email starts/ends with @ or period || 2 or more @ || an @ is preceded by a period
+    else if (!inputEmail.includes('@') || inputEmail.match(/[@.]$|^[@.]|@[^@]*@|\.@/)) {
+        errorMessage += 'Invalid email address.\n';
+    }
+
+    if (errorMessage.length > 0) {
+        return new Error(errorMessage);
+    } else {
+        return null;
+    }
+}
 // rsnavigation.com/auth/forgot
 authRouter.post('/forgot', (req, res) => {
     const inputEmail = req.body.email;
-    console.log(`Email: ${inputEmail}`);
+    const inputRole = req.body.role;
 
-    if (!inputEmail) {
-        req.flash('message', 'No email provided.');
+    let formError = validateForgotPasswordForm(inputEmail, inputRole);
+    if (formError) {
+        req.flash('message', formError.message);
         req.session.save((err) => {
             if (err) { console.error(err); }
-            return res.redirect('/auth');
+            res.redirect('/auth');
         })
         return;
     }
 
-    process.nextTick(() => {
-        Student.findOne({ 'account.email': inputEmail }, (err, student) => {
+    switch (inputRole.toLowerCase())
+    {
+    case 'student':
+        process.nextTick(() => {
 
-            if (err) {
-                console.error(`An error occurred while querying student email [${inputEmail}]`);
-                req.flash( 'message', 'An error occurred. Please try again later.');
-                req.session.save((err) => {
-                    if (err) { console.error(err); }
-                    res.redirect('/auth');
-                })
-                return;
-            }
-    
-            if (student) {
-                const hashCode = generateHashCode(student.account.email);
+            Student.findOne({ 'account.email': inputEmail }, (err, student) => {
+
+                if (err) {
+                    console.error(`An error occurred while querying student email [${inputEmail}]`);
+                    req.flash( 'message', 'An error occurred. Please try again later.');
+                    req.session.save((err) => {
+                        if (err) { console.error(err); }
+                        res.redirect('/auth');
+                    })
+                    return;
+                }
+        
+                if (!student) {
+                    req.flash('message', 'Student email does not exist.');
+                    req.session.save((err) => {
+                        if (err) { console.error(err); }
+                        res.redirect('/auth');
+                    })
+                    return;
+                }
+
+                if (student.account.status == 0) {
+                    req.flash('message', 'Your email address is still unverified.');
+                    req.session.save((err) => {
+                        if (err) { console.error(err); }
+                        res.redirect('/auth');
+                    })
+                    return;
+                }
+
+                const hashCode = getHashCode(student.account.email);
+                console.log(`Generated Hash Code: ${hashCode}`);
                 student.account.hashCode = hashCode;
                 student.save((err) => {
                     if (err) {
@@ -308,13 +364,50 @@ authRouter.post('/forgot', (req, res) => {
                         })
                         return;
                     }
+
                     sendResetCodeEmail(student.account.email, hashCode, student, 'student', req, res);
                 })
-    
-            } else {
-                Placeowner.findOne({ 'account.email': inputEmail }, (err, placeowner) => {
+            })
+        });
+        break;
+
+    case 'placeowner':
+        process.nextTick(() => {
+            Placeowner.findOne({ 'account.email': inputEmail }, (err, placeowner) => {
+
+                if (err) {
+                    console.error(`An error occurred while querying placeowner email [${inputEmail}]`);
+                    req.flash('message', 'An error occurred. Please try again later.');
+                    req.session.save((err) => {
+                        if (err) { console.error(err); }
+                        res.redirect('/auth');
+                    });
+                    return;
+                }
+
+                if (!placeowner) {
+                    req.flash('message', 'Placeowner email does not exist.');
+                    req.session.save((err) => {
+                        if (err) { console.error(err); }
+                        res.redirect('/auth');
+                    })
+                    return;
+                }
+
+                if (placeowner.account.status == 0) {
+                    req.flash('message', 'Your email address is still unverified.');
+                    req.session.save((err) => {
+                        if (err) { console.error(err); }
+                        res.redirect('/auth');
+                    })
+                    return;
+                }
+
+                const hashCode = getHashCode(placeowner.account.email);
+                placeowner.account.hashCode = hashCode;
+                placeowner.save((err) => {
                     if (err) {
-                        console.error(`An error occurred while querying placeowner email [${inputEmail}]`);
+                        console.error(`An error occurred while saving placeowner ${inputEmail}:\n${err}`);
                         req.flash('message', 'An error occurred. Please try again later.');
                         req.session.save((err) => {
                             if (err) { console.error(err); }
@@ -322,37 +415,20 @@ authRouter.post('/forgot', (req, res) => {
                         })
                         return;
                     }
-    
-                    if (!placeowner) {
-                        req.flash('message', 'Placeowner email does not exist.');
-                        req.session.save((err) => {
-                            if (err) { console.error(err); }
-                            res.redirect('/auth');
-                        })
-                        return;
-                    }
-    
-                    const hashCode = generateHashCode(placeowner.account.email);
-                    placeowner.account.hashCode = hashCode;
-                    placeowner.save((err) => {
-                        if (err) {
-                            console.error(`An error occurred while saving placeowner ${inputEmail}:\n${err}`);
-                            req.flash('message', 'An error occurred. Please try again later.');
-                            req.session.save((err) => {
-                                if (err) { console.error(err); }
-                                res.redirect('/auth');
-                            })
-                            return;
-                        }
-    
-                        sendResetCodeEmail(placeowner.account.email, hashCode, placeowner, 'placeowner', req, res);
-                    })
-                })
-            }
-            
+
+                    sendResetCodeEmail(placeowner.account.email, hashCode, placeowner, 'placeowner', req, res);
+                });
+            });
+        });
+        break;
+
+    default:
+        req.flash('message', 'Invalid role provided.');
+        req.session.save((err) => {
+            if (err) { console.error(err); }
+            res.redirect('/auth');
         })
-    })
-    
+    }
 })
 
 // forgot password
@@ -373,6 +449,7 @@ authRouter.post('/reset', (req, res) => {
     const role = req.body.role;
     const hashCode = req.query.hashCode;
 
+    
     if (confirmNewPassword !== newPassword) {
         const err = new Error('Passwords do not match.');
         console.error(err);
@@ -384,7 +461,7 @@ authRouter.post('/reset', (req, res) => {
         return;
     }
 
-    switch (role)
+    switch (role.toLowerCase())
     {
     case 'student':
         Student.findOne({ 'account.email': email, 'account.hashcode': hashCode }, (err, student) => {
