@@ -1,5 +1,8 @@
 require('dotenv').config();
 
+if (!require('./check.env')()) {
+    process.exit(1);
+}
 // REQUIRED MODULES ======================================================================
 const express    = require('express');
 const session    = require('express-session');
@@ -15,35 +18,35 @@ const passport   = require('./config/passport');
 // DATABASE ==============================================================================
 const database   = require('./config/database');
 
-
-
 // APPLICATION ===========================================================================
 const app = express();
 
-app.set('view engine', 'ejs');
-app.set('views', __dirname + '/views');
-
-app.disable('etag');
+app.set('view engine', 'ejs'); // templating engine for dynamic pages
+app.set('views', __dirname + '/views'); // folder containing the pages to be served
 
 app.use(express.static(__dirname + '/public')); // serving static files
 app.use(morgan('dev')); // logging
+
+// for parsing request body
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+// SESSION ===============================================================================
 app.use(session({
-    secret: 'cookie cutter',
-    saveUninitialized: false,   // don't create session until something stored
+    secret: process.env.SESSION_SECRET,
+    cookie: { maxAge: 1000 * 60 * 60 * 24 * 3 }, // max age of 3 days
+    saveUninitialized: false,   // don't save session in the database if not modified
     resave: false,              // don't save session if unmodified
     store: new MongoStore({ 
         mongooseConnection: mongoose.connection,
-        ttl: 1 * 24 * 60 * 60,  // max age of 1 day
-        touchAfter: 1 * 60 * 60 // session will be updated every hour except when session data is changed
-    }),
+        touchAfter: 60 * 60 * 24 // the session will be updated only one time in a period of 24 hours, 
+        // does not matter how many request's are made (with the exception of those that change something on the session data)
+    })
 }))
 
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(flash()); 
+app.use(flash()); // for flashing messages between requests
 
 // ROUTERS ===============================================================================
 const rootRouter = require('./app/routes/root');
@@ -63,9 +66,11 @@ console.log('Application configured.');
 
 console.log(`Connecting to MongoDB: ${database.uri}`);
 mongoose.connect(database.uri, { useNewUrlParser: true }, (err) => {
-    if (err) return console.error(err);
+    if (err) return console.error(`An error occurred while trying to connect to the database:\n${err}`);
+
     console.log('Connected to database!');
-    app.listen(process.env.PORT || 8080, () => {
+    app.listen(process.env.PORT || 5000, () => {
         console.log(`Application is now listening to http://localhost:${process.env.PORT}`);
+        console.log(`MODE: ${process.env.MODE}`)
     });
 })
