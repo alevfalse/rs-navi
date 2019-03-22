@@ -63,20 +63,20 @@
         <!-- Login Form -->
         <div class="collapse show" id="login">
 
-            <div class="collapse show" id="loginForm">
+            <div class="collapse show" id="upperLogin">
                 <div class="row justify-content-center text-center mb-3">
                     <div class="col-8">
                         <h2 class="display-6 text-white collapse show" id="loginRoleTitle">Login as Student</h2>
                     </div>
                 </div>
     
-                <form method="POST" action="/auth/login">
+                <form method="POST" action="/auth/login" id="loginForm">
                     <div class="row justify-content-center text-center">
                         <div class="col-8 col-md-6 col-lg-5 col-xl-4 formFields">
                             <input type="email" class="form-control" placeholder="Email" name="email" id="loginEmail" required>
                             <div class="mb-3"></div>
                             <input type="password" class="form-control mb-3" placeholder="Password" name="password" required>
-                            <input type="text" value="student" id="loginRoleInput" name="role" hidden>
+                            <input type="text" value="student" id="loginRoleInput" name="role" hidden required>
                             <button type="submit" class="btn btn-sm btn-primary px-4">Login</button>
                         </div>
                     </div>
@@ -95,8 +95,10 @@
                 <div class="col-8 col-md-6 col-lg-5 col-xl-4">
                     <form method="POST" action="/auth/forgot">
                         <div class="formFields">
-                            <input type="email" class="form-control" name="email" placeholder="Email" id="forgotPasswordEmail" required>
-                            <div></div>
+                                <input type="email" class="form-control" name="email" placeholder="Email" id="forgotPasswordEmail" required>
+                                <div></div>
+                                <button type="button" class="btn btn-sm btn-info mt-3" id="forgotPasswordRoleButton">Student</button><br>
+                            <input type="text" value="student" id="forgotPasswordRoleInput" name="role" required>
                             <button type="submit" class="btn btn-sm btn-primary mt-3">Reset Password</button>
                         </div>
                     </form>
@@ -106,7 +108,7 @@
         
         <!-- Signup Form -->
         <div class="collapse" id="signup">
-            <form method="POST" action="/auth/signup">
+            <form method="POST" action="/auth/signup" id="signupForm">
                 <div class="row justify-content-center text-center mb-3">
                     <h2 class="display-5 text-white collapse show" id ="signupRoleTitle">Sign up as Student</span></h2>
                 </div>
@@ -118,13 +120,13 @@
                         <div class="mb-3"></div>
                         <input type="text" class="form-control" placeholder="School Name" name="schoolName" id="schoolNameInput" required>
                         <div class="mb-3"></div>
-                        <input type="email" class="form-control" placeholder="Email" name="email" required>
+                        <input type="email" class="form-control" placeholder="Email" name="email" id="signupEmail" required>
                         <div class="mb-3"></div>
                         <input type="password" class="form-control" placeholder="Password" name="password" id="signupPassword" required>
                         <div class="mb-3"></div>
                         <input type="password" class="form-control" placeholder="Confirm Password" name="confirmPassword" id="confirmSignupPassword" required>
                         <div class="mb-3"></div>
-                        <input type="text" name="role" value="student" id="signupRoleInput" hidden>
+                        <input type="text" name="role" value="student" id="signupRoleInput" hidden required>
                         <button type="submit" class="btn btn-sm btn-primary px-4">Signup</button>
                     </div>
                 </div>
