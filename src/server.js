@@ -33,6 +33,7 @@ app.use(bodyParser.json());
 
 // SESSION ===============================================================================
 app.use(session({
+    name: 'rs-navi.session',
     secret: process.env.SESSION_SECRET,
     cookie: { maxAge: 1000 * 60 * 60 * 24 * 3 }, // max age of 3 days
     saveUninitialized: false,   // don't save session in the database if not modified
