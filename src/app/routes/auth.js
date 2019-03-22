@@ -6,7 +6,7 @@ const passport = require('../../config/passport');
 const Student = require('../models/student');
 const Placeowner = require('../models/placeowner');
 
-function getHashCode(str) {
+function generateHashCode(str) {
     let hash = 0, i, chr;
 
     if (str.length === 0) return hash;
@@ -24,34 +24,152 @@ function getHashCode(str) {
 
 // rsnavigation.com/auth/
 authRouter.get('/', (req, res) => {
+
+    // prevent user from accessing authentication page if already logged in
     if (req.isAuthenticated()) {
         req.flash('message', 'You are already logged in.');
-        return res.redirect('/');
+        req.session.save((err) => {
+            if (err) { console.error(err); }
+            res.redirect('/');
+        })
+    } else {
+        res.render('auth', { user: req.user, message: req.flash('message') },
+            (err, html) => {
+                if (err) { 
+                    console.error(err);
+                    return res.sendStatus(500); 
+                }
+                res.send(html);
+            }
+        );
     }
-
-    const flashMessage = req.flash('message');
-    console.log(`Flash Message: ${flashMessage}`);
-
-    res.render('auth', { user: req.user, message: flashMessage }, (err, html) => {
-        if (err) {
-            console.error(`An error occurred while rendering Authentication page:\n${err}`);
-            return res.sendStatus(500);
-            // return res.sendFile('/public/status/500.html', { root: __dirname });
-        }
-        res.status(200).send(html);
-    });
 })
 
+// rsnavigation.com/auth/logout
 authRouter.get('/logout', (req, res) => {
+
+    // check if user is logged in first
     if (req.isAuthenticated()) {
-        console.log(`${req.user.firstName} logged out.`);
         req.logout();
         req.flash('message', 'Successfully logged out.');
-        return res.redirect('/');
+        req.session.save((err) => {
+            if (err) { console.error(err); }
+            res.redirect('/auth');
+        });
     } else {
-        console.log('Already logged out.');
-        req.flash('message', 'You are already logged out.');
-        return res.redirect('/');
+        req.flash('message', 'You are not logged in.');
+        req.session.save((err) => {
+            if (err) { console.error(err); }
+            res.redirect('/auth');
+        });
+    }
+})
+
+// forgot password
+authRouter.get('/reset/:role/:hashCode', (req, res) => {
+
+    if (req.isAuthenticated()) {
+        req.flash('You must be loggged out before resetting a forgotten password.');
+        req.session.save((err) => {
+            if (err) { console.error(err) };
+            res.redirect('/');
+        })
+        return;
+    }
+
+    const role = req.params.role;
+    const hashCode = req.params.hashCode;
+
+    if (!role || !hashCode) {
+        console.error('Missing required input fields.');
+        req.flash('message', 'Page not found.');
+        req.session.save((err) => {
+            if (err) { console.error(err); }
+            res.redirect('/');
+        })
+        return;
+    }
+
+    switch (role)
+    {
+    case 'student':
+        process.nextTick(() => {
+            Student.findOne({ 'account.hashCode': hashCode }, (err, student) => {
+    
+                if (err) {
+                    console.error(`An error occurred while querying for hash code of student:\n${err}`);
+                    req.flash('message', 'An error occurred. Please try again later.');
+                    req.session.save((err) => {
+                        if (err) { console.error(err) };
+                        res.redirect('/auth');
+                    })
+                    return;
+                }
+    
+                if (!student) {
+                    req.flash('message', 'Page not found.');
+                    req.session.save((err) => {
+                        if (err) { console.error(err); }
+                        res.redirect('/');
+                    })
+                    return;
+                }
+    
+                res.render('reset', { message: req.flash('message'), email: student.account.email, role: role, hashCode: hashCode }, 
+                    (err, html) => {
+                        if (err) { 
+                            console.error(err);
+                            return res.sendStatus(500); 
+                        }
+                        res.send(html);
+                    }
+                );
+            })
+        })
+        break;
+
+    case 'placeowner':
+        process.nextTick(() => {
+            Placeowner.findOne({ 'account.hashCode': hashCode }, (err, placeowner) => {
+                if (err) {
+                    console.error(`An error occurred while querying for hash code of Placeowner [${placeowner.account.email}]:\n${err}`);
+                    req.flash('message', 'An error occurred. Please try again later.');
+                    req.session.save((err) => {
+                        if (err) { console.error(err); }
+                        res.redirect('/auth');
+                    })
+                    return;
+                }
+    
+                if (!placeowner) {
+                    req.flash('message', 'Page not found.');
+                    req.session.save((err) => {
+                        if (err) { console.error(err); }
+                        res.redirect('/');
+                    })
+                    return;
+                }
+    
+                console.log(placeowner);
+                res.render('reset', { message: req.flash('message'), email: placeowner.account.email, role: role, hashCode: hashCode },
+                    (err, html) => {
+                        if (err) { 
+                            console.error(err);
+                            return res.sendStatus(500); 
+                        }
+                        res.send(html);
+                    }
+                );
+            })
+        })
+        break;
+
+    default: 
+        req.flash('message', 'Page not found.');
+        req.session.save((err) => {
+            if (err) { console.error(err); }
+            res.redirect('/');
+        })
     }
 })
 
@@ -59,31 +177,65 @@ authRouter.get('/logout', (req, res) => {
 // POST ROUTES ============================================================================
 
 // rsnavigation.com/auth/login
-authRouter.post('/login', passport.authenticate('local-login', {
-    successRedirect: '/profile',
-    failureRedirect: '/auth',
-    failureFlash: true,
-}))
+authRouter.post('/login', (req, res, next) => {
+    passport.authenticate('local-login', (err, user) => {
+
+        // if an error occurred or no user is found with the provided credentials
+        if (err || !user) {
+            req.session.save((err) => {
+                if (err) { console.error(err); }
+                res.redirect('/auth');
+            })
+            return;
+        }
+
+        req.logIn(user, (err) => {
+            if (err) { 
+                console.error(err);
+                req.flash('message', 'Failed to log in. Please try again later.');
+                req.session.save((err) => {
+                    if (err) { console.error(err); }
+                    res.redirect('/auth');
+                })
+            } else {
+                req.session.save((err) => {
+                    if (err) { console.error(err); }
+                    res.redirect('/profile');
+                }) 
+            }
+        });
+    }) (req, res, next);
+});
 
 // rsnavigation.com/auth/signup
-authRouter.post('/signup', passport.authenticate('local-signup', {
-    successRedirect: '/auth',
-    failureRedirect: '/auth',
-    failureFlash: true,
-    successFlash: true,
-    session: false
-}))
+authRouter.post('/signup', (req, res, next) => {
+    passport.authenticate('local-signup', (err, user) => {
+
+        if (err) { console.error(err); }
+
+        req.session.save((err) => {
+            if (err) { return next(err); }
+            return res.redirect('/auth');
+        })
+        
+    }) (req, res, next);
+});
 
 
 function generateHashCode(email) {
-    const unhashedString = email + 'SALT'  + new Date().toUTCString();
-    return Math.abs(getHashCode(unhashedString));
+    const unhashedString = email + process.env.HASH_CODE_SALT  + new Date().toUTCString();
+    return Math.abs(generateHashCode(unhashedString));
 }
 
 function sendResetCodeEmail(recepientEmail, hashCode, user, role, req, res) {
 
-    const text = `Good day! We have received a password reset request from your account.\n\n`
-        + `You can click this link to reset your password:\nhttp://rsnavigation.com/auth/reset/${role}/${hashCode}`;
+    let url = `${process.env.mode == 'dev' ? `localhost:${process.env.PORT}` : 'http://rsnavigation.com'}/auth/reset/${role}/${hashCode}`
+    const text = `Good day! We have received a password reset request from your account at ${Date()}.\n\n`
+        + `You can click this link to reset your password:\n${url}\n\n`
+        + `If you did not send this request, we suggest you secure your account by clicking this link anyway or requesting a new one\n`
+        + `at http://rsnavigation.com/auth and select Forgot Password. You may also update your password on your account's profile page\n`
+        + `if you still have access to it (which we hope that you do). \n\n`
+        + `Thank you for using RS Navi.\n- RS Navi Team`;
 
     const mailOptions = {
         from: "roomstayin.navigation@gmail.com",
@@ -92,22 +244,26 @@ function sendResetCodeEmail(recepientEmail, hashCode, user, role, req, res) {
         text: text
     };
     
-    mailer.sendMail(mailOptions, function (err, info) {
+    mailer.sendMail(mailOptions, (err, info) => {
 
         if (err) {
-            req.flash('message', 'Failed to send password reset link to your email. Please try again later.');
             console.error(`An error occurred while sending password reset email to ${recepientEmail}:\n${err}`);
-            user.account.hashCode = null;
-            user.save((err) => {
-                if (err) {
-                    console.error(`An error occurred while deleting hashCode of ${user.account.email}:\n${err}`);
-                }
-                return res.redirect('/auth');
-            });
+            req.flash('message', 'Failed to send password reset link to your email. Please try again later.');
+            req.session.save((err) => {
+                if (err) { console.error(err); }
+                user.account.hashCode = null;
+                user.save((err) => {
+                    if (err) { console.error(`An error occurred while deleting hashCode of ${user.account.email}:\n${err}`); }
+                    res.redirect('/auth');
+                });
+            })
         } else {
-            req.flash('message', 'Successfully sent password reset link to your email.');
             console.log(`Email sent: ${info.response}`);
-            return res.redirect('/auth');
+            req.flash('message', 'Successfully sent password reset link to your email.');
+            req.session.save((err) => {
+                if (err) { console.error(err) }
+                return res.redirect('/auth');
+            })
         }
     });
 }
@@ -118,128 +274,85 @@ authRouter.post('/forgot', (req, res) => {
     console.log(`Email: ${inputEmail}`);
 
     if (!inputEmail) {
-        const err = new Error(`No email provided.`);
-        console.error(err.message);
-        req.flash( 'message', err.message );
-        return res.redirect('/auth');
-    }
-
-    Student.findOne({ 'account.email': inputEmail }, (err, student) => {
-
-        if (err) {
-            console.error(`An error occurred while querying student email [${inputEmail}]`);
-            req.flash( 'message', 'An error occurred. Please try again later.');
+        req.flash('message', 'No email provided.');
+        req.session.save((err) => {
+            if (err) { console.error(err); }
             return res.redirect('/auth');
-        }
+        })
+        return;
+    }
 
-        if (student) {
+    process.nextTick(() => {
+        Student.findOne({ 'account.email': inputEmail }, (err, student) => {
 
-            const hashCode = generateHashCode(student.account.email);
-            console.log(`Generated Hash Code: ${hashCode}`);
-
-            student.account.hashCode = hashCode;
-            
-            student.save((err) => {
-                if (err) {
-                    console.error(`An error occurred while saving student ${inputEmail}:\n${err}`);
-                    req.flash('message', 'An error occurred. Please try again later.');
-                    return res.redirect('/auth');
-                }
-
-                sendResetCodeEmail(student.account.email, hashCode, student, 'student', req, res);
-            })
-
-        } else {
-
-            Placeowner.findOne({ 'account.email': inputEmail }, (err, placeowner) => {
-
-                if (err) {
-                    console.error(`An error occurred while querying placeowner email [${inputEmail}]`);
-                    req.flash('message', 'An error occurred. Please try again later.');
-                    return res.redirect('/auth');
-                }
-
-                if (!placeowner) {
-                    req.flash('message', 'Placeowner email does not exist.');
-                    return res.redirect('/auth');
-                }
-
-
-                const hashCode = generateHashCode(placeowner.account.email);
-                console.log(`Generated Hash Code: ${hashCode}`);
-
-                placeowner.account.hashCode = hashCode;
-
-                placeowner.save((err) => {
-                    if (err) {
-                        console.error(`An error occurred while saving placeowner ${inputEmail}:\n${err}`);
-                        req.flash('message', 'An error occurred. Please try again later.');
-                        return res.redirect('/auth');
-                    }
-
-                    sendResetCodeEmail(placeowner.account.email, hashCode, placeowner, 'placeowner', req, res);
+            if (err) {
+                console.error(`An error occurred while querying student email [${inputEmail}]`);
+                req.flash( 'message', 'An error occurred. Please try again later.');
+                req.session.save((err) => {
+                    if (err) { console.error(err); }
+                    res.redirect('/auth');
                 })
-            })
-        }
-        
+                return;
+            }
+    
+            if (student) {
+                const hashCode = generateHashCode(student.account.email);
+                student.account.hashCode = hashCode;
+                student.save((err) => {
+                    if (err) {
+                        console.error(`An error occurred while saving student ${inputEmail}:\n${err}`);
+                        req.flash('message', 'An error occurred. Please try again later.');
+                        req.session.save((err) => {
+                            if (err) { console.error(err); }
+                            res.redirect('/auth');
+                        })
+                        return;
+                    }
+                    sendResetCodeEmail(student.account.email, hashCode, student, 'student', req, res);
+                })
+    
+            } else {
+                Placeowner.findOne({ 'account.email': inputEmail }, (err, placeowner) => {
+                    if (err) {
+                        console.error(`An error occurred while querying placeowner email [${inputEmail}]`);
+                        req.flash('message', 'An error occurred. Please try again later.');
+                        req.session.save((err) => {
+                            if (err) { console.error(err); }
+                            res.redirect('/auth');
+                        })
+                        return;
+                    }
+    
+                    if (!placeowner) {
+                        req.flash('message', 'Placeowner email does not exist.');
+                        req.session.save((err) => {
+                            if (err) { console.error(err); }
+                            res.redirect('/auth');
+                        })
+                        return;
+                    }
+    
+                    const hashCode = generateHashCode(placeowner.account.email);
+                    placeowner.account.hashCode = hashCode;
+                    placeowner.save((err) => {
+                        if (err) {
+                            console.error(`An error occurred while saving placeowner ${inputEmail}:\n${err}`);
+                            req.flash('message', 'An error occurred. Please try again later.');
+                            req.session.save((err) => {
+                                if (err) { console.error(err); }
+                                res.redirect('/auth');
+                            })
+                            return;
+                        }
+    
+                        sendResetCodeEmail(placeowner.account.email, hashCode, placeowner, 'placeowner', req, res);
+                    })
+                })
+            }
+            
+        })
     })
-})
-
-// forgot password
-authRouter.get('/reset/:role/:hashCode', (req, res) => {
-
-    if (req.isAuthenticated()) {
-        req.flash('You must log out first before resetting forgotten password.');
-        return res.redirect('/');
-    }
-
-    const role = req.params.role;
-    const hashCode = req.params.hashCode;
-
-    if (!role || !hashCode) {
-        console.error('Missing required queries.');
-        return res.redirect('/auth');
-    }
-
-    switch (role)
-    {
-    case 'student':
-        Student.findOne({ 'account.hashCode': hashCode }, (err, student) => {
-            console.log(student);
-
-            if (err) {
-                console.error(`An error occurred while querying for hash code of student:\n${err}`);
-                req.flash('message', 'An error occurred. Please try again later.');
-                return res.redirect('/auth');
-            }
-
-            if (!student) {
-                return res.sendStatus(404);
-            }
-
-            res.render('reset', { message: req.flash('message'), email: student.account.email, role: role, hashCode: hashCode });
-        })
-        break;
-
-    case 'placeowner':
-        Placeowner.findOne({ 'account.hashCode': hashCode }, (err, placeowner) => {
-            if (err) {
-                console.error(`An error occurred while querying for hash code of Placeowner [${placeowner.account.email}]:\n${err}`);
-                req.flash('message', 'An error occurred. Please try again later.');
-                return res.redirect('/auth');
-            }
-
-            if (!placeowner) {
-                return res.sendStatus(404);
-            }
-
-            console.log(placeowner);
-            res.render('reset', { message: req.flash('message'), email: placeowner.account.email, role: role, hashCode: hashCode });
-        })
-        break;
-
-    default: res.sendStatus(404);
-    }
+    
 })
 
 // forgot password
@@ -247,7 +360,11 @@ authRouter.post('/reset', (req, res) => {
 
     if (req.isAuthenticated()) {
         req.flash('message', 'You must log out first before resetting forgotten password.');
-        return res.redirect('/');
+        req.session.save((err) => {
+            if (err) { console.error(err); }
+            res.redirect('/');
+        })
+        return;
     }
 
     const email = req.body.email;
@@ -260,7 +377,11 @@ authRouter.post('/reset', (req, res) => {
         const err = new Error('Passwords do not match.');
         console.error(err);
         req.flash('message', err.message);
-        return res.redirect('/auth');
+        req.session.save((err) => {
+            if (err) { console.error(err); }
+            res.redirect('/auth');
+        })
+        return;
     }
 
     switch (role)
@@ -270,25 +391,41 @@ authRouter.post('/reset', (req, res) => {
             if (err) {
                 console.error(`An error occurred while querying for hash code of student email [${email}]:\n${err}`);
                 req.flash('message', 'An error occurred. Please try again later.');
-                return res.redirect('/auth');
+                req.session.save((err) => {
+                    if (err) { console.error(err); }
+                    res.redirect('/auth');
+                })
+                return;
             }
 
             if (!student) {
-                console.error(`Invalid POST request for placeowner password reset.`);
-                return res.sendStatus(404);
+                req.flash('message', 'An error occurred. Please try again later.');
+                req.session.save((err) => {
+                    if (err) { console.error(err); }
+                    res.redirect('/auth');
+                })
+                return;
             }
 
             student.account.password = newPassword;
             student.account.haschCode = null;
+
             student.save((err) => {
                 if (err) {
                     console.error(`An error occurred while saving Student ${student.account.email}'s new password.`);
-                    req.flash('message', 'An error occurred. Failed to update you password.');
-                    return res.redirect('/auth');
-                } else {
-                    req.flash('message', 'Password update successful.');
-                    return res.redirect('/auth');
+                    req.flash('message', 'Failed to update you password. Please try again later.');
+                    req.session.save((err) => {
+                        if (err) { console.error(err); }
+                        res.redirect('/auth');
+                    })
+                    return;
                 }
+
+                req.flash('message', 'Password update successful.');
+                req.session.save((err) => {
+                    if (err) { console.error(err); }
+                    res.redirect('/auth');
+                })
             })
         })
         break;
@@ -298,7 +435,11 @@ authRouter.post('/reset', (req, res) => {
             if (err) {
                 console.error(`An error occurred while querying for hash code of placeowner email [${email}]:\n${err}`);
                 req.flash('message', 'An error occurred. Please try again later.');
-                return res.redirect('/auth');
+                req.session.save((err) => {
+                    if (err) { console.error(err); }
+                    res.redirect('/auth');
+                })
+                return;
             }
 
             if (!placeowner) {
@@ -312,10 +453,18 @@ authRouter.post('/reset', (req, res) => {
                 if (err) {
                     console.error(`An error occurred while saving Placeowner ${placeowner.account.email}'s new password.`);
                     req.flash('message', 'An error occurred. Failed to update you password.');
-                    return res.redirect('/auth');
+                    req.session.save((err) => {
+                        if (err) { console.error(err); }
+                        res.redirect('/auth');
+                    })
+                    return;
                 } else {
                     req.flash('message', 'Password update successful.');
-                    return res.redirect('/auth');
+                    req.session.save((err) => {
+                        if (err) { console.error(err); }
+                        res.redirect('/auth');
+                    })
+                    return;
                 }
             })
         })
@@ -326,7 +475,11 @@ authRouter.post('/reset', (req, res) => {
 })
 
 authRouter.get('/*', (req, res) => {
-    res.sendStatus(404);
+    req.flash('message', 'Page not found.');
+    req.session.save((err) => {
+        if (err) { console.error(err); }
+        res.redirect('/');
+    })
 })
 
 module.exports = authRouter;
