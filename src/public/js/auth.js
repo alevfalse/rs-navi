@@ -26,14 +26,26 @@ $("#signupPassword, #confirmSignupPassword").keyup(function() {
     const password = $("#signupPassword");
     const confirm = $("#confirmSignupPassword");
 
-    if (confirm.val() !== password.val()) {
+    if (password.val().length <= 7) {
         password.removeClass('is-valid').addClass('is-invalid');
-        confirm.removeClass('is-valid').addClass('is-invalid')
-        confirm.next().addClass('invalid-feedback').text('Passwords do not match');
+        password.next().addClass('invalid-feedback').text('Must be at least 8 characters');
+
+        confirm.removeClass('is-valid is-invalid')
+        confirm.next().removeClass('invalid-feedback').text('');
+
     } else {
-        password.removeClass('is-invalid').addClass('is-valid')
-        confirm.removeClass('is-invalid').addClass('is-valid')
-        confirm.next().addClass('valid-feedback').text('');
+        password.removeClass('is-invalid');
+        password.next().removeClass('invalid-feedback').text('');
+
+        if (confirm.val() !== password.val()) {
+            password.removeClass('is-valid').addClass('is-invalid');
+            confirm.removeClass('is-valid').addClass('is-invalid')
+            confirm.next().addClass('invalid-feedback').text('Passwords do not match');
+        } else {
+            password.removeClass('is-invalid').addClass('is-valid')
+            confirm.removeClass('is-invalid').addClass('is-valid')
+            confirm.next().removeClass('invalid-feedback').text('');
+        }
     }
 })
 
@@ -61,6 +73,7 @@ $("input[type='text']").keyup(function() {
     $(this).removeClass('is-valid').addClass('is-invalid');
     $(this).next().removeClass('valid-feedback').addClass('invalid-feedback')
 })
+
 
 const validateEmailFunction = function(email, role, input, res) {
     $.ajax({
