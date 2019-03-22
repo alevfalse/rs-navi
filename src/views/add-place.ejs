@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="../css/bootstrap.min.css" type="text/css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="../css/all.min.css" type="text/css">
+    <!-- Favicon-->
+    <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico"/>
+
+    <title>Add A Place</title>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-6 mx-auto text-center">
+                <h2 class="display-4 mt-5">Upload Files</h2>
+                <form method="POST" action="/places/add" enctype="multipart/form-data">
+                    <div class="custom-file">
+                        <input type="file" name="file" class="custom-file-input" id="file">
+                        <label class="custom-file-label" for="file">Browse Files</label>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary mt-3">Upload</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="../js/jquery-3.3.1.min.js"></script>
+    <!-- Boostrap JS + Popper.js -->
+    <script src="../js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

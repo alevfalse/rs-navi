@@ -50,28 +50,28 @@ app.use(passport.session());
 app.use(flash()); // for flashing messages between requests
 
 // ROUTERS ===============================================================================
-const rootRouter = require('./app/routes/root');
 const authRouter = require('./app/routes/auth');
 const validateRouter = require('./app/routes/validate');
 const autocompleteRouter = require('./app/routes/autocomplete');
+const placesRouter = require('./app/routes/places');
 const adminRouter = require('./app/routes/admin');
+const rootRouter = require('./app/routes/root');
 
 // bind the routes to the application
 app.use('/auth', authRouter);
 app.use('/validate', validateRouter);
 app.use('/autocomplete', autocompleteRouter);
+app.use('/places', placesRouter);
 app.use('/admin', adminRouter);
 app.use('/', rootRouter);
 
 console.log('Application configured.');
-
-console.log(`Connecting to MongoDB: ${database.uri}`);
+console.log(`Connecting to database...`);
 mongoose.connect(database.uri, { useNewUrlParser: true }, (err) => {
     if (err) return console.error(`An error occurred while trying to connect to the database:\n${err}`);
-
     console.log('Connected to database!');
     app.listen(process.env.PORT || 5000, () => {
         console.log(`Application is now listening to port ${process.env.PORT}`);
         console.log(`MODE: ${process.env.MODE}`)
     });
-})
+});
