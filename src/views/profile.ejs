@@ -36,24 +36,24 @@
     
     <% if (locals.message) { 
         if (message.length > 0) { %>
-        <!-- Alert Message From Server -->
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="alert alert-primary alert-dismissible fade show mt-5" role="alert">
-                    <%= locals.message %>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+            <!-- Alert Message From Server -->
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="alert alert-primary alert-dismissible fade show mt-5" role="alert">
+                        <%= locals.message %>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-     <% } %>
- <% } %>
+        <% } %>
+    <% } %>
 
     <!-- Search -->
     <main class="container">
-        <div class="row justify-content-center">
-            <div class="col-5 col-md-4 col-lg-3">
+        <div class="row">
+            <div class="col-5 col-md-4 col-lg-3 mx-auto">
                 <a href="/"><img class="img-fluid" src="images/logo_no_title.png" id="logo"></a>
             </div>
         </div>
