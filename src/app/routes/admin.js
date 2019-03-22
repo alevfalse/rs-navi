@@ -35,7 +35,11 @@ adminRouter.get('/login', (req, res) => {
 });
 
 adminRouter.get('/*', (req, res) => {
-    res.sendStatus(404);
+    req.flash('message', 'Page not found.');
+    req.session.save((err) => {
+        if (err) console.error(err);
+        res.redirect('/');
+    })
 });
 
 // rsnavigation.com/admin/login
