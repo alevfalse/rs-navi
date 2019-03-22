@@ -89,7 +89,7 @@ passport.use('local-login', new LocalStrategy({
         return done(err, null);
     }
 
-    switch (role)
+    switch (role.toLowerCase())
     {
     case 'student':
         Student.findOne({ 'account.email': email }, (err, student) => {
@@ -174,61 +174,41 @@ function validateForm(firstName, lastName, email, password, confirmPassword) {
     // first name
     if (firstName.startsWith(' ')) {
         errorMessage += 'First name must not start with a space.\n';
-    }
-    
-    if (firstName.match(/[^a-zA-Zñ\s]|\s{2,}/) || firstName.match(/[^a-zA-Zñ\s]|\s{2,}/)) {
+    } else if (firstName.match(/[^a-zA-Zñ\s]|\s{2,}/) || firstName.match(/[^a-zA-Zñ\s]|\s{2,}/)) {
         errorMessage += 'First name contains an invalid character.\n';
-    }
-
-    if (firstName.length == 0) {
+    } else if (firstName.length == 0) {
         errorMessage += 'First name cannot be empty.\n';
-    }
-    
-    if (firstName.length > 50) {
+    } else if (firstName.length > 50) {
         errorMessage += 'First name must not be more than 50 characters.\n';
     }
 
     // last name
     if (lastName.startsWith(' ')) {
         errorMessage += 'Last name must not start with a space.\n';
-    }
-    
-    if (lastName.match(/[^a-zA-Zñ\s]|\s{2,}/) || lastName.match(/[^a-zA-Zñ\s]|\s{2,}/)) {
+    } else if (lastName.match(/[^a-zA-Zñ\s]|\s{2,}/) || lastName.match(/[^a-zA-Zñ\s]|\s{2,}/)) {
         errorMessage += 'Last name contains an invalid character.\n';
-    }
-
-    if (lastName.length == 0) {
+    } else if (lastName.length == 0) {
         errorMessage += 'Last name cannot be empty.\n';
-    }
-    
-    if (lastName.length > 50) {
+    } else if (lastName.length > 50) {
         errorMessage += 'Last name must not be more than 50 characters.\n';
     }
     
     // email
     if (email.startsWith(' ')) {
         errorMessage += 'Email address must not start with space.\n';
-    } 
-    
-    if (email.match(/[^a-zA-Z0-9.@_]/)) {
+    } else if (email.match(/[^a-zA-Z0-9.@_]/)) {
         errorMessage += 'Email address contains an invalid character.\n';
-    } 
-    
-    if (email.length == 0) {
+    } else if (email.length == 0) {
         errorMessage += 'Email address cannot be empty.\n';
-    } 
-    
-    if (email.length > 50) {
+    } else if (email.length > 50) {
         errorMessage += 'Email address must not be more than 50 characters.\n';
-    } 
-    
-    // regex: if email starts/ends with @ or period || 2 or more @ || an @ is preceded by a period
-    if (!email.includes('@') || email.match(/[@.]$|^[@.]|@[^@]*@|\.@/)) {
+    } // regex: if email starts/ends with @ or period || 2 or more @ || an @ is preceded by a period
+    else if (!email.includes('@') || email.match(/[@.]$|^[@.]|@[^@]*@|\.@/)) {
         errorMessage += 'Invalid email address.\n';
     }
 
     // password
-    if (password.length <= 8) {
+    if (password.length <= 7) {
         errorMessage += 'Password must be at least 8 characters.\n';
     } else if (password !== confirmPassword) {
         errorMessage += 'Passwords do not match.\n';
@@ -267,13 +247,13 @@ passport.use('local-signup', new LocalStrategy({
         return done(err, false);
     }
 
-    const formError = validateForm(firstName, last, email);
+    const formError = validateForm(firstName, lastName, email, password, confirmPassword);
     if (formError) {
         req.flash('message', formError.message);
         return done(formError, false);
     }
 
-    switch (role)
+    switch (role.toLowerCase())
     {
     case 'student':
         const schoolName = req.body.schoolName;
