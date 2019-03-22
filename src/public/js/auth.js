@@ -1,4 +1,4 @@
-$(document).ready(() => {
+$(document).ready(function() {
     $('form').attr('autocomplete', 'off');  // disable default autocomplete
     $("main").animate({ opacity: 1 }, 1000) // fade-in
 })
