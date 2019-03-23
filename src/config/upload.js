@@ -4,13 +4,24 @@ const multer = require('multer');
 const GridFsStorage = require('multer-gridfs-storage');
 const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
+const database = require('./database');
 
-const connection = mongoose.connect(require('./database').uri, { useNewUrlParser: true });
+let uri;
+
+switch (process.env.MODE)
+{
+case 'dev':   uri = database.devURI;   break;
+case 'prod':  uri = database.prodURI;  break;
+case 'local': uri = database.localURI; break;
+default: return console.error('Invalid MODE environment variable value.');
+}
+
+const connection = mongoose.connect(uri, { useNewUrlParser: true });
 
 let gfs;
 // initialize stream
 connection.then((client) => {
-    console.log(`Database Connection Opened for GridFS.`)
+    console.log(`GridFS Stream connected to ${process.env.MODE} database.`)
     gfs = Grid(client.connection, mongoose.mongo);
     gfs.collection('uploads');
 })
@@ -30,6 +41,8 @@ const storage = new GridFsStorage({
         });
     }
 });
+
+storage.ready().then(() => { console.log(`Multer GridFS Storage connected to ${process.env.MODE} database.`) });
 
 const upload = multer({ storage });
 

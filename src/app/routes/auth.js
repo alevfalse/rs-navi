@@ -12,7 +12,7 @@ function sendResetPasswordEmail(req, res, user, hashCode) {
 
     const role = user.account.role == 0 ? 'student' : 'placeowner';
 
-    let url = `${process.env.mode == 'dev' ? `localhost:${process.env.PORT}` : 'http://rsnavigation.com'}/auth/reset/${role}/${hashCode}`;
+    let url = `${process.env.mode == 'prod' ? 'http://rsnavigation.com' : `localhost:${process.env.PORT}`}/auth/reset/${role}/${hashCode}`;
 
     const text = `Good day! We have received a password reset request from your ${role} account.\n\n`
         + `You can click this link to reset your password:\n${url}\n\n`
@@ -28,8 +28,9 @@ function sendResetPasswordEmail(req, res, user, hashCode) {
         text: text
     };
     
+    console.time('Reset Password Email');
     mailer.sendMail(mailOptions, (err, info) => {
-
+        console.timeEnd('Reset Password Email');
         if (err) {
             console.error(`An error occurred while sending password reset email to ${user.account.email}:\n${err}`);
             user.account.hashCode = null;
@@ -56,7 +57,7 @@ function sendResetPasswordEmail(req, res, user, hashCode) {
 function sendEmailVerification(req, res, user, hashCode) {
 
     const role = user.account.role == 0 ? 'student' : 'placeowner';
-    let url = `${process.env.mode == 'dev' ? `localhost:${process.env.PORT}` : 'http://rsnavigation.com'}/auth/verify/${role}/${hashCode}`;
+    let url = `${process.env.mode == 'prod' ? 'http://rsnavigation.com' : `localhost:${process.env.PORT}`}/auth/verify/${role}/${hashCode}`;
 
     const text = `Congratulations! You have successfully created an RS Navigation ${role} account and you are just one step away from acessing it.\n\n`
         + `You can click this link to verify that this is indeed your email address:\n${url}\n\n`
@@ -71,7 +72,9 @@ function sendEmailVerification(req, res, user, hashCode) {
         text: text
     };
     
+    console.time('Email Verification Email');
     mailer.sendMail(mailOptions, (err, info) => {
+        console.timeEnd('Email Verification Email');
 
         if (err) {
             console.error(`An error occurred while sending verification link to ${user.account.email}:\n${err}`);
@@ -485,7 +488,9 @@ authRouter.post('/signup', (req, res, next) => {
             });
         }
 
+        console.time('Crypto10');
         crypto.randomBytes(10, (err, buffer) => {
+            console.timeEnd('Crypto10');
             if (err) {
                 console.error(err);
                     req.flash('message', 'An error occurred. Please try again later.');
@@ -565,7 +570,9 @@ authRouter.post('/forgot', (req, res) => {
                     return;
                 }
 
+                console.time('Crypto10');
                 crypto.randomBytes(10, (err, buffer) => {
+                    console.timeEnd('Crypto10');
                     if (err) {
                         console.error(err);
                         req.flash('message', 'An error occurred. Please try again later.');
@@ -629,7 +636,9 @@ authRouter.post('/forgot', (req, res) => {
                     return;
                 }
 
+                console.time('Crypto10');
                 crypto.randomBytes(10, (err, buffer) => {
+                    console.timeEnd('Crypto10');
                     if (err) {
                         console.error(err);
                         req.flash('message', 'An error occurred. Please try again later.');

@@ -8,11 +8,11 @@ module.exports = function() {
 
     if (!process.env.MODE) {
         valid = false;
-        console.error(`The MODE environment variable is not set in your environment file (.env). Set it to 'dev' during development, testing or staging.\n`
+        console.error(`The MODE environment variable is not set in your environment file (.env). Set it to 'dev' or 'local' during development, testing or staging.\n`
             + `Set it to 'prod' during production or official release of the application.`);
-    } else if (process.env.MODE !== 'dev' && process.env.MODE !== 'prod') {
+    } else if (process.env.MODE !== 'dev' && process.env.MODE !== 'prod' && process.env.MODE !== 'local') {
         valid = false;
-        console.error(`The MODE environment variable is set to an invalid value. Valid values are 'dev' or 'prod' without the single quotes.`);
+        console.error(`The MODE environment variable is set to an invalid value. Valid values are 'dev', 'prod', or 'local' without the single quotes.`);
     }
 
     if (!process.env.SESSION_SECRET) {
