@@ -25,10 +25,10 @@ To pull any changes others have made use the comand:
 You can run the application on a local server using the command:
 > npm run dev
 
+Note: The command above will start the nodemon module, which means that you do not have 
+to restart the server whenever any changes are saved.
+
 ## Running the server during production
 For official release, set your MODE environment variable to "prod" then run:
 > npm start
-
-Note: The command above will start the nodemon module, which means that you do not have 
-to restart the server whenever any changes are saved.
 
