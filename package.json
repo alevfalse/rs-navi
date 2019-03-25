@@ -1,11 +1,11 @@
 {
   "name": "rs-navi",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "A web application that helps students find a place to live near their school.",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js --trace-sync-io --trace-warnings"
   },
   "repository": {
     "type": "git",
@@ -34,7 +34,8 @@
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "request": "^2.88.0",
-    "request-promise": "^4.2.4"
+    "request-promise": "^4.2.4",
+    "rotating-file-stream": "^1.4.0"
   },
   "devDependencies": {
     "nodemon": "^1.18.10"
