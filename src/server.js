@@ -72,6 +72,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash()); // for flashing messages between requests
 
+app.use((req, res, next) => {
+    req.session.save((err) => {
+        console.log('Session Saved.');
+        if (err) { console.error(err); }
+        next();
+    });
+});
+
 // bind the routes to the application
 app.use('/auth', authRouter);
 app.use('/validate', validateRouter);
