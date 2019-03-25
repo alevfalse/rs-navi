@@ -3,43 +3,59 @@ const passport = require('../../config/passport');
 
 function isAuthenticated(req, res, next) {
     if (req.isAuthenticated() && req.user.account.role == 7) {
-        console.log('User:');
-        console.log(req.user);
         return next();
-    } else {
-        console.log(`Unauthorized access for: ${req.url}`);
-        return res.status(401).redirect('/admin/login');
     }
+        
+    console.log(`Unauthorized access for Admin URL: ${req.url}`);
+    req.flash('message', 'Unauthorized!');
+    return res.redirect('/admin/login');
 }
 
-// rsnavigation.com/admin
+// GET rsnavigation.com/admin
 adminRouter.get('/', isAuthenticated, (req, res) => {
-    res.render('admin/home', { message: req.flash('message') }, (err, html) => {
-        if (err) {
-            console.error(`Something went wrong while rendering the [Admin Home] page:\n${err}`);
-            res.sendStatus(500);
-        }
-        res.status(200).send(html);
-    });
-});
-
-// rsnavigation.com/admin/login
-adminRouter.get('/login', (req, res) => {
-    res.render('admin/login', { message: req.flash('message') }, (err, html) => {
-        if (err) {
-            console.error(`Something went wrong while rendering the [Admin Login] page:\n${err}`);
-            res.sendStatus(500);
-        }
-        res.status(200).send(html);
-    });
-});
-
-adminRouter.get('/*', (req, res) => {
-    req.flash('message', 'Page not found.');
+    
     req.session.save((err) => {
-        if (err) console.error(err);
-        res.redirect('/');
-    })
+        if (err) {
+            console.error(err);
+            return res.sendStatus(500); // TODO: Send custom status 500 page
+        }
+
+        res.render('admin/home', { message: req.flash('message') },
+        (err, html) => {
+            if (err) {
+                console.error(err);
+                return res.sendStatus(500); // TODO: Send custom status 500 page
+            }
+            return res.send(html);
+        });
+    });
+});
+
+// GET rsnavigation.com/admin/login
+adminRouter.get('/login', (req, res) => {
+
+    req.session.save((err) => {
+        if (err) {
+            console.error(err);
+            return res.sendStatus(500); // TODO: Send custom status 500 page
+        }
+
+        res.render('admin/login', { message: req.flash('message') },
+        (err, html) => {
+            if (err) {
+                console.error(err);
+                return res.sendStatus(500); // TODO: Send custom status 500 page
+            }
+            return res.send(html);
+        });
+    });
+});
+
+// Invalid URL
+adminRouter.get('/*', (req, res) => {
+    console.log('ADMIN: Page Not Found');
+    req.flash('message', 'Page not found.');
+    return res.redirect('/admin');
 });
 
 // rsnavigation.com/admin/login
