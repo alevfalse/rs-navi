@@ -10,7 +10,7 @@ const PlaceownerSchema = new mongoose.Schema({
         status:   { type: Number, default: 0 },
         role:     { type: Number, default: 1 },
         created:  { type: Date, default: new Date() },
-        lastLoggedIn: { type: Date, default: new Date() }
+        lastLoggedIn: { type: Date, default: null }
     },
     license: {
         status: { type: Number, default: 0 },
