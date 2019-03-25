@@ -12,7 +12,7 @@ function sendResetPasswordEmail(req, res, user, hashCode) {
 
     const role = user.account.role == 0 ? 'student' : 'placeowner';
 
-    let url = `${process.env.mode == 'prod' ? 'http://rsnavigation.com' : `localhost:${process.env.PORT}`}/auth/reset/${role}/${hashCode}`;
+    let url = `${process.env.MODE == 'prod' ? 'http://rsnavigation.com' : `localhost:${process.env.PORT}`}/auth/reset/${role}/${hashCode}`;
 
     const text = `Good day! We have received a password reset request from your ${role} account.\n\n`
         + `You can click this link to reset your password:\n${url}\n\n`
@@ -50,7 +50,7 @@ function sendResetPasswordEmail(req, res, user, hashCode) {
 function sendEmailVerification(req, res, user, hashCode) {
 
     const role = user.account.role == 0 ? 'student' : 'placeowner';
-    let url = `${process.env.mode == 'prod' ? 'http://rsnavigation.com' : `localhost:${process.env.PORT}`}/auth/verify/${role}/${hashCode}`;
+    let url = `${process.env.MODE == 'prod' ? 'http://rsnavigation.com' : `localhost:${process.env.PORT}`}/auth/verify/${role}/${hashCode}`;
 
     const text = `Congratulations! You have successfully created an RS Navigation ${role} account and you are just one step away from acessing it.\n\n`
         + `You can click this link to verify that this is indeed your email address:\n${url}\n\n`
