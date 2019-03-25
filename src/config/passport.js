@@ -67,8 +67,6 @@ function validateSignupForm(firstName, lastName, email, password, confirmPasswor
 
 // stores the user's id in session to be used during deserialization
 passport.serializeUser((user, done) => {
-    console.log(`Serializing User: ${user.id}`);
-    console.log(user);
     done(null, user.id);  
 });
 
@@ -76,36 +74,34 @@ passport.serializeUser((user, done) => {
 // using their id that is stored in session
 passport.deserializeUser((id, done) => {
 
-    console.log(`Deserializing User: ${id}`);
-
     process.nextTick(() => {
         Student.findById(id, (err, student) => {
             if (err) {
-                console.error(`An error occurred while querying for student ID [${id}] in Deserialize User:\n${err}`)
+                console.error(err);
                 return done(err, false);
             }
     
             if (student) {
-                console.log(`Deserialized Student: ${id}`);
-                return done(null, student) // bind user to request
-    
+                return done(null, student)
+
             } else {
                 process.nextTick(() => {
+
                     Placeowner.findById(id, (err, placeowner) => {
                         if (err) {
-                            console.error(`An error occurred while querying for placeowner ID [${id}] in Deserialize User:\n${err}`)
+                            console.error(err);
                             return done(err, false);
                         }
         
                         if (placeowner) {
-                            console.log(`Deserialized Placeowner: ${id}`);
                             return done(null, placeowner);
                             
                         } else {
                             process.nextTick(() => {
+
                                 Admin.findById(id, (err, admin) => {
                                     if (err) {
-                                        console.error(`An error occurred while querying for Admin ID [${id}] in Deserialize User:\n${err}`)
+                                        console.error(err);
                                         return done(err, false);
                                     }
 
@@ -113,7 +109,6 @@ passport.deserializeUser((id, done) => {
                                         return done(null, false)
                                     }
 
-                                    console.log(`Deserialized Admin: ${id}`);
                                     return done(null, admin);
                                 });
                             });
@@ -125,7 +120,8 @@ passport.deserializeUser((id, done) => {
     });
 });
 
-// NOTE: No need to call for req.session.save() after every req.flash() in the following code.
+
+// NOTE: There's no need to call for req.session.save() after every req.flash() in the following code.
 // It will be called on the passport.authenticate()'s callback function.
 
 // =====================================================================================================
@@ -396,19 +392,17 @@ passport.use('local-login-admin', new LocalStrategy({
 
     Admin.findOne({ 'account.email' : email}, (err, admin) => {
         if (err) {
-            console.error(`An error occurred while querying for admin email [${email}] in Local ADMIN Login:\n${err}`);
+            console.error(err);
             req.flash('message', 'An error ocurred.');
             return done(err, false);
         }
 
         if (!admin) {
-            console.log('Admin email does not exist.');
             req.flash('message', 'Invalid email or password.');
             return done(null, false);
         }
 
         if (password !== admin.account.password) {
-            console.log('Invalid admin password.');
             req.flash('message', 'Invalid email or password.');
             return done(null, false);
         }

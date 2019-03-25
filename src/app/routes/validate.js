@@ -18,47 +18,41 @@ validateRouter.get('/email', (req, res) => {
     {
     case 'student':
         process.nextTick(() => {
+
             Student.findOne({ 'account.email': inputEmail }, { 'email': 1}, (err, foundEmail) => {
                 if (err) {
-                    console.error(`An error occurred while validating student email [${inputEmail}]:\n${err}`);
+                    console.error(err);
                     return res.send(false);
                 }
     
-                if (foundEmail) {
-                    console.log(`Found Student Email: ${foundEmail}`);
-                    res.send(false);
-                } else {
-                    res.send(true);
-                }
+                if (foundEmail) { res.send(false); }
+                else { res.send(true); }
             });
         });
         break;
 
     case 'placeowner':
         process.nextTick(() => {
+
             Placeowner.findOne({ 'account.email': inputEmail }, { 'email': 1}, (err, foundEmail) => {
                 if (err) {
-                    console.error(`An error occurred while validating placeowner email [${inputEmail}]:\n${err}`);
+                    console.error(err);
                     return res.send(false);
                 }
     
-                if (foundEmail) {
-                    console.log(`Found Placeowner Email: ${foundEmail}`);
-                    res.send(false);
-                } else {
-                    res.send(true);
-                }
+                if (foundEmail) { return res.send(false); }
+                else { return res.send(true); }
             });
         });
         break;
 
     default:
-        res.send(false);
+        return res.send(false);
     }
 })
 
 validateRouter.get('/*', (req, res) => {
-    res.sendStatus(404);
+    return res.sendStatus(404);
 })
 
 module.exports = validateRouter;
