@@ -28,28 +28,21 @@ function sendResetPasswordEmail(req, res, user, hashCode) {
         text: text
     };
     
-    console.time('Reset Password Email');
     mailer.sendMail(mailOptions, (err, info) => {
-        console.timeEnd('Reset Password Email');
+
         if (err) {
             console.error(`An error occurred while sending password reset email to ${user.account.email}:\n${err}`);
             user.account.hashCode = null;
             user.save((err) => {
-                if (err) { console.error(`An error occurred while deleting hashCode of ${user.account.email}:\n${err}`); }
+                if (err) { console.error(err); }
                 req.flash('message', 'Failed to send password reset link to your email. Please try again later.');
-                req.session.save((err) => {
-                    if (err) { console.error(err); }
-                    res.redirect('/auth');
-                });
+                return res.redirect('/auth');
             });
-            
+
         } else {
             console.log(`Email sent: ${info.response}`);
             req.flash('message', 'Password reset link has been sent to your email.');
-            req.session.save((err) => {
-                if (err) { console.error(err) }
-                res.redirect('/auth');
-            });
+            return res.redirect('/auth');
         }
     });
 }
@@ -72,33 +65,27 @@ function sendEmailVerification(req, res, user, hashCode) {
         text: text
     };
     
-    console.time('Email Verification Email');
     mailer.sendMail(mailOptions, (err, info) => {
-        console.timeEnd('Email Verification Email');
 
         if (err) {
-            console.error(`An error occurred while sending verification link to ${user.account.email}:\n${err}`);
+            console.error(err);
             user.account.hashCode = null;
             user.save((err) => {
-                if (err) { console.error(`An error occurred while deleting hashCode of ${user.account.email}:\n${err}`); }
+                if (err) { console.error(err); }
                 req.flash('message', 'Failed to send verification link to your email. Please try again later.');
-                req.session.save((err) => {
-                    if (err) { console.error(err); }
-                    res.redirect('/auth');
-                });
+                return res.redirect('/auth');
             });
+
         } else {
             console.log(`Email sent: ${info.response}`);
             req.flash('message', 'Verification link has been sent to your email.');
-            req.session.save((err) => {
-                if (err) { console.error(err) }
-                res.redirect('/auth');
-            });
+            return res.redirect('/auth');
         }
     });
 }
 
 function validateForgotPasswordForm(inputEmail, role) {
+
     let errorMessage = '';
 
     if (!inputEmail) {
@@ -128,130 +115,105 @@ function validateForgotPasswordForm(inputEmail, role) {
 // =======================================================================================
 // GET ROUTES ============================================================================
 
-// rsnavigation.com/auth/
+// GET rsnavigation.com/auth/
 authRouter.get('/', (req, res) => {
 
     // prevent user from accessing authentication page if already logged in
     if (req.isAuthenticated()) {
         req.flash('message', 'You are already logged in.');
-        req.session.save((err) => {
-            if (err) { console.error(err); }
-            res.redirect('/');
-        });
-    } else {
-        res.render('auth', { user: req.user, message: req.flash('message') },
-            (err, html) => {
-                if (err) { 
-                    console.error(err);
-                    return res.sendStatus(500); 
-                }
-                res.send(html);
-            }
-        );
+        return res.redirect('/profile')
     }
+
+    req.session.save((err) => {
+        const flashMessage = req.flash('message');
+        console.log('Flash Message: ' + flashMessage);
+        
+        if (err) {
+            console.error(err);
+            return res.sendStatus(500); // TODO: Send custom status 500 page
+        }
+    
+        res.render('auth', { user: req.user, message: flashMessage },
+        (err, html) => {
+            if (err) { 
+                console.error(err);
+                return res.sendStatus(500); // TODO: Send custom status 500 page
+            }
+            return res.send(html);
+        });
+    });
 })
 
-// rsnavigation.com/auth/logout
+// GET rsnavigation.com/auth/logout
 authRouter.get('/logout', (req, res) => {
 
-    // check if user is logged in first
-    if (req.isAuthenticated()) {
-        req.logout();
-        req.flash('message', 'Logged out.');
-        req.session.save((err) => {
-            if (err) { console.error(err); }
-            res.redirect('/auth');
-        });
-    } else {
+    if (!req.isAuthenticated()) {
         req.flash('message', 'You are not logged in.');
-        req.session.save((err) => {
-            if (err) { console.error(err); }
-            res.redirect('/auth');
-        });
+        return res.redirect('/auth');
     }
+
+    req.logout();
+    req.flash('message', 'Logged out.');
+    return res.redirect('/auth');
 })
 
-// verify email
+// GET rsnavigation.com/verify/<role>/<hashCode>
 authRouter.get('/verify/:role/:hashCode', (req, res) => {
-    console.log(req.params);
 
     if (req.isAuthenticated()) {
-        req.flash('You must be loggged out before verifying an email address.');
-        req.session.save((err) => {
-            if (err) { console.error(err) };
-            res.redirect('/');
-        });
-        return;
+        req.flash('Please log out before verifying an email address.');
+        return res.redirect('/profile');
     }
 
     const role = req.params.role;
     const hashCode = req.params.hashCode;
 
     if (!role || !hashCode) {
-        console.error('Missing required input fields.');
-        req.flash('message', 'Page not found.');
-        req.session.save((err) => {
-            if (err) { console.error(err); }
-            res.redirect('/');
-        });
-        return;
+        req.flash('message', 'Invalid verification link.');
+        return res.redirect('/auth');
     }
 
     switch (role.toLowerCase())
     {
     case 'student':
         process.nextTick(() => {
+
+            // Find one student with the provided hash code, has a status of unverified and a role of student
             Student.findOne({ 'account.hashCode': hashCode, 'account.status': 0, 'account.role': 0 }, (err, student) => {
-
-                console.log(`Student: ${student}`);
-
                 if (err) {
-                    console.error(`An error occurred while querying for verification hash code of student:\n${err}`);
+                    console.error(err);
                     req.flash('message', 'An error occurred. Please try again later.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err) };
-                        res.redirect('/');
-                    });
-                    return;
+                    return res.redirect('/auth');
                 }
 
                 if (!student) {
-                    req.flash('message', 'Page not found.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/');
-                    });
-                    return;
+                    req.flash('message', 'Invalid verification link.');
+                    return res.redirect('/auth');
                 }
 
+                // If the student exists, set their hash code to null and status to verified
                 student.account.hashCode = null;
                 student.account.status = 1;
+                student.account.lastLoggedIn = new Date();
+
+                // Update student in the database
                 student.save((err) => {
                     if (err) {
                         console.error(err);
                         req.flash('message', 'An error occurred. Please try again later.');
-                        req.session.save((err) => {
-                            if (err) { console.error(err) };
-                            res.redirect('/');
-                        });
-                        return;
+                        return res.redirect('/auth');
                     }
 
+                    // Authenticate the student and bind it to request as req.user
                     req.logIn(student, (err) => {
                         if (err) { 
                             console.error(err);
                             req.flash('message', 'Your student email address has been verified but failed to log you in automatically.');
-                            req.session.save((err) => {
-                                if (err) { console.error(err); }
-                                res.redirect('/auth');
-                            });
-                        } else {
-                            req.flash('message', 'Email address verified.')
-                            req.session.save((err) => {
-                                if (err) { console.error(err); }
-                                res.redirect('/profile');
-                            });
-                        }
+                            return res.redirect('/auth');
+                        } 
+
+                        req.flash('message', 'Email address verified.')
+                        return res.redirect('/profile');
                     });
                 });
             });
@@ -259,76 +221,64 @@ authRouter.get('/verify/:role/:hashCode', (req, res) => {
         break;
 
     case 'placeowner':
-        Placeowner.findOne({ 'account.hashCode': hashCode, 'account.status': 0, 'account.role': 1 }, (err, placeowner) => {
-            if (err) {
-                console.error(`An error occurred while querying for verification hash code of placeowner:\n${err}`);
-                req.flash('message', 'An error occurred. Please try again later.');
-                req.session.save((err) => {
-                    if (err) { console.error(err) };
-                    res.redirect('/');
-                });
-                return;
-            }
+        process.nextTick(() => {
 
-            if (!placeowner) {
-                req.flash('message', 'Page not found.');
-                req.session.save((err) => {
-                    if (err) { console.error(err); }
-                    res.redirect('/');
-                });
-                return;
-            }
-
-            placeowner.account.hashCode = null;
-            placeowner.account.status = 1;
-            placeowner.save((err) => {
+            // Find one placeowner with the provided hash code, has a status of unverified and a role of placeowner
+            Placeowner.findOne({ 'account.hashCode': hashCode, 'account.status': 0, 'account.role': 1 }, (err, placeowner) => {
                 if (err) {
                     console.error(err);
                     req.flash('message', 'An error occurred. Please try again later.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err) };
-                        res.redirect('/');
-                    });
-                    return;
+                    return res.redirect('/auth');
                 }
 
-                req.logIn(placeowner, (err) => {
-                    if (err) { 
+                if (!placeowner) {
+                    req.flash('message', 'Invalid verification link.');
+                    return res.redirect('/auth');
+                }
+
+                // If the placeowner exists, set their hash code to null and status to verified
+                placeowner.account.hashCode = null;
+                placeowner.account.status = 1;
+                placeowner.account.lastLoggedIn = new Date();
+
+                // Update placeowner in the database
+                placeowner.save((err) => {
+                    if (err) {
                         console.error(err);
-                        req.flash('message', 'Your placeowner email address has been verified but failed to log you in automatically.');
-                        req.session.save((err) => {
-                            if (err) { console.error(err); }
-                            res.redirect('/auth');
-                        });
-                    } else {
-                        req.flash('message', 'Email address verified.')
-                        req.session.save((err) => {
-                            if (err) { console.error(err); }
-                            res.redirect('/profile');
-                        });
+                        req.flash('message', 'An error occurred. Please try again later.');
+                        return res.redirect('/auth');
                     }
+
+                    // Authenticate the placeowner and bind it to request as req.user
+                    req.logIn(placeowner, (err) => {
+                        if (err) { 
+                            console.error(err);
+                            req.flash('message', 'Your placeowner email address has been verified but failed to log you in automatically.');
+                            return res.redirect('/auth'); // Internal Server Error
+                        }
+
+                        req.flash('message', 'Email address verified.')
+                        return res.redirect('/profile');
+                    });
                 });
             });
         });
         break;
 
     default:
-        
+        req.flash('message', 'Invalid verification link.');
+        return res.redirect('/auth'); // Bad Request
     }
 })
 
-// forgot password
+// GET rsnavigation.com/reset/<role>/<hashCode>
 authRouter.get('/reset/:role/:hashCode', (req, res) => {
 
     console.log(req.params);
 
     if (req.isAuthenticated()) {
         req.flash('You must be loggged out before resetting a forgotten password.');
-        req.session.save((err) => {
-            if (err) { console.error(err) };
-            res.redirect('/');
-        });
-        return;
+        return res.redirect('/profile');
     }
 
     const role = req.params.role;
@@ -336,182 +286,136 @@ authRouter.get('/reset/:role/:hashCode', (req, res) => {
 
     if (!role || !hashCode) {
         console.error('Missing required input fields.');
-        req.flash('message', 'Page not found.');
-        req.session.save((err) => {
-            if (err) { console.error(err); }
-            res.redirect('/');
-        });
-        return;
+        req.flash('message', 'Invalid reset password link.');
+        return res.redirect('/auth');
     }
 
     switch (role.toLowerCase())
     {
     case 'student':
         process.nextTick(() => {
+
             Student.findOne({ 'account.hashCode': hashCode, 'account.status': 1, 'account.role': 0 }, (err, student) => {
-    
-                console.log(`Student: ${student}`);
 
                 if (err) {
-                    console.error(`An error occurred while querying for hash code of student:\n${err}`);
+                    console.error(err);
                     req.flash('message', 'An error occurred. Please try again later.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err) };
-                        res.redirect('/');
-                    });
-                    return;
+                    return res.redirect('/auth');
                 }
     
                 if (!student) {
-                    req.flash('message', 'Page not found.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/');
-                    });
-                    return;
+                    req.flash('message', 'Invalid reset password link.');
+                    return res.redirect('/auth');
                 }
     
-                res.render('reset', { message: req.flash('message'), email: student.account.email, role: role, hashCode: hashCode }, 
+                req.session.save((err) => {
+                    if (err) { 
+                        console.error(err);
+                        return res.sendStatus(500); // TODO: Send custom status 500 page
+                    }
+
+                    res.render('reset', { message: req.flash('message'), email: student.account.email, role: role, hashCode: hashCode }, 
                     (err, html) => {
                         if (err) { 
                             console.error(err);
-                            return res.sendStatus(500); 
+                            return res.sendStatus(500); // TODO: Send custom status 500 page
                         }
-                        res.send(html);
-                    }
-                );
+                        return res.send(html);
+                    });
+                });
             });
         });
         break;
 
     case 'placeowner':
         process.nextTick(() => {
+
             Placeowner.findOne({ 'account.hashCode': hashCode, 'account.status': 1, 'account.role': 1 }, (err, placeowner) => {
-                
-                console.log(`Placeowner: ${placeowner}`);
 
                 if (err) {
-                    console.error(`An error occurred while querying for hash code of Placeowner [${placeowner.account.email}]:\n${err}`);
+                    console.error(err);
                     req.flash('message', 'An error occurred. Please try again later.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/');
-                    });
-                    return;
+                    return res.redirect('/auth');
                 }
     
                 if (!placeowner) {
-                    req.flash('message', 'Page not found.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/');
-                    });
-                    return;
+                    req.flash('message', 'Invalid reset password link.');
+                    return res.redirect('/auth');
                 }
-    
-                console.log(placeowner);
-                res.render('reset', { message: req.flash('message'), email: placeowner.account.email, role: role, hashCode: hashCode },
+
+                req.session.save((err) => {
+                    if (err) { 
+                        console.error(err);
+                        return res.sendStatus(500); // TODO: Send custom status 500 page
+                    }
+
+                    res.render('reset', { message: req.flash('message'), email: placeowner.account.email, role: role, hashCode: hashCode },
                     (err, html) => {
                         if (err) { 
                             console.error(err);
-                            return res.sendStatus(500); 
+                            return res.sendStatus(500); // TODO: Send custom status 500 page
                         }
                         res.send(html);
-                    }
-                );
+                    });
+                });
             });
         });
         break;
 
     default: 
-        req.flash('message', 'Page not found.');
-        req.session.save((err) => {
-            if (err) { console.error(err); }
-            res.redirect('/');
-        });
+        req.flash('message', 'Invalid reset password link.');
+        return res.redirect('/auth');
     }
 })
 
 // ========================================================================================
 // POST ROUTES ============================================================================
 
-// rsnavigation.com/auth/login
+// POST rsnavigation.com/auth/login
 authRouter.post('/login', (req, res, next) => {
     passport.authenticate('local-login', (err, user) => {
 
-        // if an error occurred or no user is found with the provided credentials
+        // if an error occurred or no user is found with the provided login credentials
         if (err || !user) {
-            req.session.save((err) => {
-                if (err) { console.error(err); }
-                res.redirect('/auth');
-            })
-            return;
+            return res.redirect('/auth');
         }
 
         req.logIn(user, (err) => {
             if (err) { 
                 console.error(err);
-                req.flash('message', 'Failed to log in. Please try again later.');
-                req.session.save((err) => {
-                    if (err) { console.error(err); }
-                    res.redirect('/auth');
-                })
-            } else {
-                req.session.save((err) => {
-                    if (err) { console.error(err); }
-                    res.redirect('/profile');
-                }) ;
+                req.flash('message', 'Failed to log in. Please try logging in again later.');
+                return res.redirect('/auth');
             }
+                
+            res.redirect('/profile');
         });
     }) (req, res, next);
 });
 
 
-// rsnavigation.com/auth/signup
+// POST rsnavigation.com/auth/signup
 authRouter.post('/signup', (req, res, next) => {
     passport.authenticate('local-signup', (err, user) => {
 
-
-        if (err) { 
-            console.error(err);
-            req.session.save((err) => {
-                if (err) { console.error(err); }
-                res.redirect('/auth');
-            });
-            return;
+        if (err || !user) {
+            return res.redirect('/auth');
         }
 
-        if (!user) {
-            req.session.save((err) => {
-                if (err) { console.error(err); }
-                return res.redirect('/auth');
-            });
-        }
-
-        console.time('Crypto10');
         crypto.randomBytes(10, (err, buffer) => {
-            console.timeEnd('Crypto10');
             if (err) {
                 console.error(err);
-                    req.flash('message', 'An error occurred. Please try again later.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/auth');
-                    })
-                return;
+                req.flash('message', 'An error occurred. Please try signing up again later.');
+                return res.redirect('/auth');
             }
+
             const hashCode = buffer.toString('hex');
-            console.log(`Generated Signup Hash Code: ${hashCode}`);
             user.account.hashCode = hashCode;
+
             user.save((err) => {
                 if (err) {
                     console.error(err);
                     req.flash('message', 'An error occurred. Please try again later.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/auth');
-                    });
-                    return;
+                    return res.redirect('/auth');
                 }
 
                 sendEmailVerification(req, res, user, hashCode);
@@ -520,19 +424,16 @@ authRouter.post('/signup', (req, res, next) => {
     }) (req, res, next);
 });
 
-// rsnavigation.com/auth/forgot
+// POST rsnavigation.com/auth/forgot
 authRouter.post('/forgot', (req, res) => {
+
     const inputEmail = req.body.email;
     const inputRole = req.body.role;
 
     let formError = validateForgotPasswordForm(inputEmail, inputRole);
     if (formError) {
         req.flash('message', formError.message);
-        req.session.save((err) => {
-            if (err) { console.error(err); }
-            res.redirect('/auth');
-        });
-        return;
+        return res.redirect('/auth');
     }
 
     switch (inputRole.toLowerCase())
@@ -545,56 +446,34 @@ authRouter.post('/forgot', (req, res) => {
                 if (err) {
                     console.error(`An error occurred while querying student email [${inputEmail}]`);
                     req.flash( 'message', 'An error occurred. Please try again later.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/auth');
-                    })
-                    return;
+                    return res.redirect('/auth');
                 }
         
                 if (!student) {
                     req.flash('message', 'Student email does not exist.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/auth');
-                    })
-                    return;
+                    return res.redirect('/auth');
                 }
 
                 if (student.account.status == 0) {
                     req.flash('message', 'Your email address is still unverified.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/auth');
-                    })
-                    return;
+                    return res.redirect('/auth');
                 }
 
-                console.time('Crypto10');
                 crypto.randomBytes(10, (err, buffer) => {
-                    console.timeEnd('Crypto10');
                     if (err) {
                         console.error(err);
                         req.flash('message', 'An error occurred. Please try again later.');
-                        req.session.save((err) => {
-                            if (err) { console.error(err); }
-                            res.redirect('/auth');
-                        })
-                        return;
+                        return res.redirect('/auth');
                     }
 
                     const hashCode = buffer.toString('hex');
-                    console.log(`Generated Student Hash Code: ${hashCode}`);
                     student.account.hashCode = hashCode;
+
                     student.save((err) => {
                         if (err) {
                             console.error(`An error occurred while saving student ${inputEmail}:\n${err}`);
                             req.flash('message', 'An error occurred. Please try again later.');
-                            req.session.save((err) => {
-                                if (err) { console.error(err); }
-                                res.redirect('/auth');
-                            })
-                            return;
+                            return res.redirect('/auth');
                         }
 
                         sendResetPasswordEmail(req, res, student, hashCode);
@@ -606,61 +485,40 @@ authRouter.post('/forgot', (req, res) => {
 
     case 'placeowner':
         process.nextTick(() => {
+
             Placeowner.findOne({ 'account.email': inputEmail, 'account.role': 1 }, (err, placeowner) => {
 
                 if (err) {
                     console.error(`An error occurred while querying placeowner email [${inputEmail}]`);
                     req.flash('message', 'An error occurred. Please try again later.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/auth');
-                    });
-                    return;
+                    return res.redirect('/auth');
                 }
 
                 if (!placeowner) {
                     req.flash('message', 'Placeowner email does not exist.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/auth');
-                    });
-                    return;
+                    return res.redirect('/auth');
                 }
 
                 if (placeowner.account.status == 0) {
                     req.flash('message', 'Your email address is still unverified.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/auth');
-                    });
-                    return;
+                    return res.redirect('/auth');
                 }
 
-                console.time('Crypto10');
                 crypto.randomBytes(10, (err, buffer) => {
-                    console.timeEnd('Crypto10');
                     if (err) {
                         console.error(err);
                         req.flash('message', 'An error occurred. Please try again later.');
-                        req.session.save((err) => {
-                            if (err) { console.error(err); }
-                            res.redirect('/auth');
-                        })
-                        return;
+                        return res.redirect('/auth');
                     }
 
                     const hashCode = buffer.toString('hex');
                     placeowner.account.hashCode = hashCode;
-                    console.log(`Generated Placeowner Hash Code: ${hashCode}`);
+
                     placeowner.save((err) => {
                         if (err) {
                             console.error(`An error occurred while saving placeowner ${inputEmail}:\n${err}`);
                             req.flash('message', 'An error occurred. Please try again later.');
-                            req.session.save((err) => {
-                                if (err) { console.error(err); }
-                                res.redirect('/auth');
-                            })
-                            return;
+                            return res.redirect('/auth');
                         }
     
                         sendResetPasswordEmail(req, res, placeowner, hashCode);
@@ -671,24 +529,17 @@ authRouter.post('/forgot', (req, res) => {
         break;
 
     default:
-        req.flash('message', 'Invalid role provided.');
-        req.session.save((err) => {
-            if (err) { console.error(err); }
-            res.redirect('/auth');
-        });
+        req.flash('message', 'Invalid credentials provided.'); // invalid role
+        return res.redirect('/auth');
     }
 });
 
-// forgot password
+// POST rsnavigation.com/auth/reset
 authRouter.post('/reset', (req, res) => {
 
     if (req.isAuthenticated()) {
         req.flash('message', 'You must log out first before resetting forgotten password.');
-        req.session.save((err) => {
-            if (err) { console.error(err); }
-            res.redirect('/');
-        });
-        return;
+        return res.redirect('/profile');
     }
 
     const email = req.body.email;
@@ -701,112 +552,82 @@ authRouter.post('/reset', (req, res) => {
         const err = new Error('Passwords do not match.');
         console.error(err);
         req.flash('message', err.message);
-        req.session.save((err) => {
-            if (err) { console.error(err); }
-            res.redirect('/auth');
-        });
-        return;
+        return res.redirect('/auth');
     }
 
     switch (role.toLowerCase())
     {
     case 'student':
         Student.findOne({ 'account.email': email, 'account.hashcode': hashCode, 'account.status': 1 }, (err, student) => {
+            
             if (err) {
                 console.error(`An error occurred while querying for hash code of student email [${email}]:\n${err}`);
                 req.flash('message', 'An error occurred. Please try again later.');
-                req.session.save((err) => {
-                    if (err) { console.error(err); }
-                    res.redirect('/auth');
-                });
-                return;
+                return res.redirect('/auth');
             }
 
             if (!student) {
                 req.flash('message', 'Invalid credentials.');
-                req.session.save((err) => {
-                    if (err) { console.error(err); }
-                    res.redirect('/auth');
-                });
-                return;
+                return res.redirect('/auth');
             }
 
             student.account.password = newPassword;
             student.account.haschCode = null;
+
             student.save((err) => {
                 if (err) {
-                    console.error(`An error occurred while saving Student ${student.account.email}'s new password.`);
+                    console.error(err);
                     req.flash('message', 'Failed to update your password. Please try again later.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/auth');
-                    });
-                    return;
+                    return res.redirect('/auth');
                 }
 
                 req.flash('message', 'Password updated.');
-                req.session.save((err) => {
-                    if (err) { console.error(err); }
-                    res.redirect('/auth');
-                });
+                return res.redirect('/auth');
             });
         });
         break;
 
     case 'placeowner':
         Placeowner.findOne({ 'account.email': email, 'account.hashcode': hashCode, 'account.status': 1 }, (err, placeowner) => {
+            
             if (err) {
-                console.error(`An error occurred while querying for hash code of placeowner email [${email}]:\n${err}`);
+                console.error(err);
                 req.flash('message', 'An error occurred. Please try again later.');
-                req.session.save((err) => {
-                    if (err) { console.error(err); }
-                    res.redirect('/auth');
-                });
-                return;
+                return res.redirect('/auth');
             }
 
             if (!placeowner) {
                 req.flash('message', 'Invalid credentials.');
-                req.session.save((err) => {
-                    if (err) { console.error(err); }
-                    res.redirect('/auth');
-                });
-                return;
+                return res.redirect('/auth');
             }
 
             placeowner.account.password = newPassword;
             placeowner.account.hashCode = null;
+
             placeowner.save((err) => {
                 if (err) {
-                    console.error(`An error occurred while saving Placeowner ${placeowner.account.email}'s new password.`);
+                    console.error(err);
                     req.flash('message', 'Failed to update your password. Please try again later.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/auth');
-                    });
-                    return;
-                } else {
-                    req.flash('message', 'Password updated.');
-                    req.session.save((err) => {
-                        if (err) { console.error(err); }
-                        res.redirect('/auth');
-                    });
-                    return;
+                     return res.redirect('/auth');
                 }
+
+                req.flash('message', 'Password updated.');
+                return res.redirect('/auth');
             });
         });
         break;
 
-    default: res.sendStatus(404);
+    default: 
+        req.flash('message', 'Invalid credentials provided.'); // invalid role
+        return res.redirect('/auth');
     }
 })
 
+// Invalid URL
 authRouter.get('/*', (req, res) => {
+    console.log('AUTH: Page Not Found');
     req.flash('message', 'Page not found.');
-    req.session.save((err) => {
-        if (err) { console.error(err); }
-        res.redirect('/');
-    });
+    return res.redirect('/');
 })
 
 module.exports = authRouter;

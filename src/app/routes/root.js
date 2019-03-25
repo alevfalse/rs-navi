@@ -6,52 +6,54 @@ const Query = require('../models/query');
 
 // a middle to check if a user is logged in
 function isAuthenticated(req, res, next) {
-    console.log(`${req.url}: Authenticated: ${req.isAuthenticated()}`);
     if (req.isAuthenticated()) {
         return next();
-    } else {
-        req.flash('message', 'Unauthorized!');
-        req.session.save((err) => {
-            if (err) console.error(err);
-            res.redirect('/auth');
-        })
     }
+    
+    req.flash('message', 'Unauthorized!');
+    return res.redirect('/auth');
 }
 
 openRouter.get('/', (req, res) => {
-    res.render('index', { user: req.user, message: req.flash('message') },
-        (err, html) => {
-            if (err) { 
-                console.error(err);
-                return res.sendStatus(500); 
-            }
-            res.send(html);
+
+    req.session.save((err) => {
+        const flashMessage = req.flash('message');
+        console.log('Flash Message: ' + flashMessage);
+        if (err) { 
+            console.error(err);
+            return res.sendStatus(500); // TODO: Send custom status 500 page
         }
-    );
-})
+
+        res.render('index', { user: req.user, message: flashMessage },
+            (err, html) => {
+                if (err) { 
+                    console.error(err);
+                    return res.sendStatus(500); 
+                }
+
+                return res.send(html);
+            }
+        );
+    });
+});
 
 openRouter.get('/search', (req, res) => {
+
     const query = req.query.schoolName;
 
     if (!query) {
         req.flash('message', 'Please provide a school name.');
-        req.session.save((err) => {
-            if (err) console.error(err);
-            res.redirect('/');
-        });
-        return;
+        return res.redirect('/');
+
     } else if (query.length <= 1) {
         req.flash('message', 'School name is too short.');
-        req.session.save((err) => {
-            if (err) console.error(err);
-            res.redirect('/');
-        });
-        return;
+        return res.redirect('/');
     }
 
     const newQuery = new Query({ keyword: query });
+
     newQuery.save((err, savedQuery) => {
-        if (err) console.error(`An error occurred while saving query [${query}] to database:\n${err}`);
+        if (err) { console.error(err); }
         else console.log(`Search query "${savedQuery.keyword}" has been saved to the database.`);
     })
 
@@ -60,28 +62,40 @@ openRouter.get('/search', (req, res) => {
 
     request(uri).then(response => {
         const data = JSON.parse(response);
-        res.send(data.features); // update for user friendly format
-    }).catch(err => console.error(err));
+        return res.json(data.features); // update for user friendly format
+    }).catch(err => { 
+        console.error(err)
+        req.flash('message', 'An error occurred. Please try searching again later.');
+        return res.redirect('/');
+    });
 })
 
 openRouter.get('/profile', isAuthenticated, (req, res) => {
-    res.render('profile', { user: req.user, message: req.flash('message') },
-        (err, html) => {
-            if (err) { 
-                console.error(err);
-                return res.sendStatus(500); 
-            }
-            res.send(html);
+
+    req.session.save((err) => {
+        if (err) {
+            console.error(err);
+            return res.sendStatus(500); // TODO: Send custom status 500 page
         }
-    );
+
+        res.render('profile', { user: req.user, message: req.flash('message') },
+            (err, html) => {
+                if (err) { 
+                    console.error(err);
+                    return res.sendStatus(500); // TODO: Send custom status 500 page
+                }
+                
+                return res.send(html);
+            }
+        );
+    });
 })
 
+// INVALID URL
 openRouter.get('/*', (req, res) => {
+    console.log('ROOT: Page Not Found');
     req.flash('message', 'Page not found.');
-    req.session.save((err) => {
-        if (err) console.error(err);
-        res.redirect('/');
-    })
+    return res.redirect('/');
 })
 
 module.exports = openRouter;
