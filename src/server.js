@@ -54,17 +54,16 @@ app.set('views', __dirname + '/views'); // folder containing the pages to be ser
 
 
 // session
-const cookie = { maxAge: 1000 * 60 * 60 * 24 * 3 };
-if (mode === 'prod') cookie.domain = '.rsnavigation.com';
+const cookie = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 3 days
+if (mode === 'prod') cookie.domain = '.rsnavigation.com'; // set cookie's domain to the main domain at production
 app.use(session({
-    name: 'rs-navi.session',
     secret: process.env.SESSION_SECRET,
     cookie: cookie,
-    saveUninitialized: true,   // don't save session in the database if not modified
-    resave: true,              // don't save session if unmodified
+    saveUninitialized: false,   // don't save session in the database if not modified
+    resave: false,              // don't save session if unmodified
     store: new MongoStore({ 
-        mongooseConnection: mongoose.connection
-        //touchAfter: 60 * 60 * 24 // the session will be updated only one time in a period of 24 hours, 
+        mongooseConnection: mongoose.connection,
+        touchAfter: 60 * 60 * 24 // the session will be updated only one time in a period of 24 hours, 
         // does not matter how many request's are made (with the exception of those that change something on the session data)
     })
 }))
