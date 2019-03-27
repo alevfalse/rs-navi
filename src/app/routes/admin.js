@@ -12,7 +12,10 @@ function isAuthenticated(req, res, next) {
         
     console.log(`Unauthorized access for Admin URL: ${req.url}`);
     req.flash('message', 'Unauthorized!');
-    return res.redirect('/admin/login');
+    return req.session.save((err) => {
+        if (err) { console.error(err); }
+        res.redirect('/admin/login');
+    });
 }
 
 // GET rsnavigation.com/admin
@@ -29,21 +32,14 @@ adminRouter.get('/', isAuthenticated, (req, res) => {
                 console.error(err);
                 return res.sendStatus(500); // TODO: Send custom status 500 page
             }
-
-            req.session.save((err) => {
+        
+            res.render('admin/home', { admin: req.user, students: students, placeowners: placeowners, message: req.flash('message') },
+            (err, html) => {
                 if (err) {
                     console.error(err);
                     return res.sendStatus(500); // TODO: Send custom status 500 page
                 }
-        
-                res.render('admin/home', { admin: req.user, students: students, placeowners: placeowners, message: req.flash('message') },
-                (err, html) => {
-                    if (err) {
-                        console.error(err);
-                        return res.sendStatus(500); // TODO: Send custom status 500 page
-                    }
-                    return res.send(html);
-                });
+                return res.send(html);
             });
         });
     });
@@ -69,18 +65,71 @@ adminRouter.get('/login', (req, res) => {
     });
 });
 
+// GET rsnavigation.com/admin/login
+adminRouter.get('/logout', (req, res) => {
+
+    if (req.isAuthenticated()) {
+
+        if (req.user.account.role == 7) {
+            req.logOut();
+            req.flash('message', 'Logged out admin account.');
+            req.session.save((err) => {
+                if (err) { console.error(err); }
+                res.redirect('/admin/login');
+            })
+
+        } else {
+            req.flash('message', 'You are not logged in as admin.');
+            req.session.save((err) => {
+                if (err) { console.error(err); }
+                res.redirect('/admin/login');
+            });
+        }
+
+    } else {
+        req.flash('message', 'Unauthorized!');
+        req.session.save((err) => {
+            if (err) { console.error(err); }
+            res.redirect('/admin/login');
+        });
+    }
+});
+
 // Invalid URL
 adminRouter.get('/*', (req, res) => {
-    console.log('ADMIN: Page Not Found');
     req.flash('message', 'Page not found.');
-    return res.redirect('/admin');
+    return req.session.save((err) => {
+        if (err) { console.error(err); }
+        res.redirect('/admin');
+    });
 });
 
 // rsnavigation.com/admin/login
-adminRouter.post('/login', passport.authenticate('local-login-admin', {
-    successRedirect: '/admin',
-    failureRedirect: '/admin/login',
-    failureMessage: true
-}));
+adminRouter.post('/login', (req, res, next) => {
+    
+    passport.authenticate('local-login-admin', (err, admin) => {
+
+        // if an error occurred or no user is found with the provided login credentials
+        if (err || !admin) {
+            return res.redirect('/login');
+        }
+
+        req.logIn(admin, (err) => {
+            if (err) { 
+                console.error(err);
+                req.flash('message', 'Failed to log in. Please try logging in again later.');
+                return req.session.save((err) => {
+                    if (err) { console.error(err); }
+                    res.redirect('/admin/login');
+                });
+            }
+                
+            req.session.save((err) => {
+                if (err) { console.error(err); }
+                res.redirect('/admin');
+            });
+        });
+    }) (req, res, next);
+});
 
 module.exports = adminRouter;

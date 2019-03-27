@@ -28,7 +28,8 @@
 
         <div class="collapse navbar-collapse" id="navLinks">
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item"><a href="/admin/logout" class="nav-link"><%= admin.firstName %> <%= admin.lastName %></a></li>
+                <li class="nav-item"><a href="" class="nav-link"><%= admin.firstName %> <%= admin.lastName %></a></li>
+                <li class="nav-item"><a href="/admin/logout" class="nav-link">Logout</a></li>
             </ul>
         </div>
     </nav>
@@ -50,14 +51,15 @@
     <% } %>
 
     <main class="container text-white">
-        <div class="row justify-content-center mt-5">
+        <div class="row justify-content-center my-5">
             <div class="col-10 col-md-8 col-lg-6 text-center">
-                <h2 class="display-5">Admin Control Center</h2>
+                <h2 class="display-4">Admin Control Center</h2>
             </div>
         </div>
         <% if (locals.students) {
-            if (students.length > 0) {
-                students.forEach(student => { %>
+            if (students.length > 0) { %>
+                <h4 class="display-4 mb-3">Students</h4>
+                <% students.forEach(student => { %>
                     <div class="row justify-content-center mt-1">
                         <h5 class="display-5"><%= student.firstName %> <%= student.lastName %></h5>
                     </div>
@@ -66,8 +68,9 @@
         } %>
 
         <% if (locals.placeowners) {
-            if (placeowners.length > 0) {
-                placeowners.forEach(placeowner => { %>
+            if (placeowners.length > 0) { %>
+                <h2 class="display-4 mb-3">Placeowners</h2>
+                <% placeowners.forEach(placeowner => { %>
                     <div class="row justify-content-center mt-1">
                         <h5 class="display-5"><%= placeowner.firstName %> <%= placeowner.lastName %></h5>
                     </div>

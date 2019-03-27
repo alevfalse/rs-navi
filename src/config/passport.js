@@ -406,15 +406,17 @@ passport.use('local-login-admin', new LocalStrategy({
             req.flash('message', 'Invalid email or password.');
             return done(null, false);
         }
-
+        
+        console.log(admin);
         admin.account.lastLoggedIn = new Date();
+        console.log(admin);
         admin.save((err) => {
             if (err) {
-                console.error(`An error occurred while updating Admin [${admin.account.email}]'s Last Logged In date.`);
+                console.error(err);
                 req.flash('message', 'An error ocurred.');
                 return done(err, false);
             }
-
+            console.log(admin);
             console.log(`Admin ${admin.firstName} ${admin.lastName} logged in.`);
             return done(null, admin);
         })
