@@ -5,9 +5,13 @@ html, body {
 
 body {
     font-family: 'Roboto Condensed', sans-serif;
-    background: url("../images/background_stars.jpg");
+    background: url("https://wallpapertag.com/wallpaper/full/c/f/a/130131-dark-wallpaper-1920x1080-1920x1080-for-mac.jpg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
+}
+
+main { 
+    height: 100%;
 }

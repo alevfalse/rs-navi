@@ -7,14 +7,14 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="../css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="./css/bootstrap.min.css" type="text/css">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="../css/all.min.css" type="text/css">
+    <link rel="stylesheet" href="./css/all.min.css" type="text/css">
     <!-- Favicon-->
     <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico"/>
 
     <!-- My CSS -->
-    <link rel="stylesheet" href="../css/admin-home.css" type="text/css">
+    <link rel="stylesheet" href="./css/admin-home.css" type="text/css">
     
     <title>Admin</title>
 </head>
@@ -28,50 +28,53 @@
 
         <div class="collapse navbar-collapse" id="navLinks">
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item"><a href="/admin/logout" class="nav-link"><%= user.firstName %> <%= user.lastName %></a></li>
+                <li class="nav-item"><a href="/admin/logout" class="nav-link"><%= admin.firstName %> <%= admin.lastName %></a></li>
             </ul>
         </div>
     </nav>
     
     <% if (locals.message) { 
         if (message.length > 0) { %>
-        <!-- Alert Message From Server -->
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="alert alert-primary alert-dismissible fade show mt-5" role="alert">
-                    <%= locals.message %>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+            <!-- Alert Message From Server -->
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="alert alert-primary alert-dismissible fade show mt-5" role="alert">
+                        <%= locals.message %>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-     <% } %>
- <% } %>
-    <!-- Search -->
-    <main class="container">
-        <div class="row justify-content-center">
-            <% if (locals.message) { %>
-                <div class="col-6 alert alert-info alert-dismissible fade show" role="alert">
-                    <%= locals.message %>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            <% } %>
-            <div class="col-5 col-md-4 col-lg-3">
-                <a href="/"><img class="img-fluid" src="images/logo_no_title.png" id="logo"></a>
-            </div>
-        </div>
-        <div class="row justify-content-center mt-5">
-            <div class="col-10 col-md-8 col-lg-6">
-                <h2 class="display-4">Admin Control Center</h2>
-            </div>
-        </div>
-    </main>
+        <% } %>
+    <% } %>
 
-    <!-- Footer Component -->
-    <% include ../public/components/footer.ejs %>
+    <main class="container text-white">
+        <div class="row justify-content-center mt-5">
+            <div class="col-10 col-md-8 col-lg-6 text-center">
+                <h2 class="display-5">Admin Control Center</h2>
+            </div>
+        </div>
+        <% if (locals.students) {
+            if (students.length > 0) {
+                students.forEach(student => { %>
+                    <div class="row justify-content-center mt-1">
+                        <h5 class="display-5"><%= student.firstName %> <%= student.lastName %></h5>
+                    </div>
+                <% })
+            }
+        } %>
+
+        <% if (locals.placeowners) {
+            if (placeowners.length > 0) {
+                placeowners.forEach(placeowner => { %>
+                    <div class="row justify-content-center mt-1">
+                        <h5 class="display-5"><%= placeowner.firstName %> <%= placeowner.lastName %></h5>
+                    </div>
+                <% })
+            }
+        } %>
+    </main>
 
     <!-- jQuery -->
     <script src="../js/jquery-3.3.1.min.js"></script>
