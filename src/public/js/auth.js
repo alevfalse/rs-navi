@@ -76,7 +76,7 @@ $("input[type='text']").keyup(function() {
 
 
 const validateEmailFunction = function(email, role, input, res) {
-    console.log('EXECUTED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    
     $.ajax({
         url: '/validate/email',
         data: { 
@@ -88,23 +88,14 @@ const validateEmailFunction = function(email, role, input, res) {
             valid = valid;
             console.log(input.attr('id'));
             if (valid) {
-                if (input.attr('id') == "forgotPasswordEmail") {
-                    input.removeClass('is-valid').addClass('is-invalid');
-                    res.addClass('invalid-feedback').text('Email does not exist')
-                } else {
-                    input.removeClass('is-invalid').addClass('is-valid');
-                    res.removeClass('invalid-feedback').text('');
-                }
+                input.removeClass('is-invalid').addClass('is-valid');
+                res.removeClass('invalid-feedback').text('');
             } else {
-                if (input.attr('id') == "forgotPasswordEmail") {
-                    input.removeClass('is-invalid').addClass('is-valid');
-                } else {
-                    input.removeClass('is-valid').addClass('is-invalid');
-                    res.addClass('invalid-feedback').text('Email address is already taken');
-                }
+                input.removeClass('is-valid').addClass('is-invalid');
+                res.addClass('invalid-feedback').text('Email address is already taken');
             }
         }
-    })
+    });
 }
 
 // client-side rate-limiting
