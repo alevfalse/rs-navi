@@ -89,13 +89,6 @@ openRouter.get('/profile', isAuthenticated, (req, res) => {
             }
         );
     });
-})
-
-// INVALID URL
-openRouter.get('/*', (req, res) => {
-    console.log('ROOT: Page Not Found');
-    req.flash('message', 'Page not found.');
-    return res.redirect('/');
-})
+});
 
 module.exports = openRouter;

@@ -42,9 +42,4 @@ autocompleteRouter.get('/schools', (req, res) => {
     });
 });
 
-autocompleteRouter.get('/*', (req, res) => {
-    req.flash('message', 'Page not found.');
-    res.redirect('/');
-});
-
 module.exports = autocompleteRouter;

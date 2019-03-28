@@ -88,6 +88,30 @@ app.use('/places', placesRouter);
 app.use('/admin', adminRouter);
 app.use('/', rootRouter);
 
+// final route handler if no route responded so we assume 404
+app.use((req, res, next) => {
+    const err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
+
+app.use((err, req, res, next) => {
+    console.error(err);
+    res.status = err.status || 500;
+    let title;
+    let message;
+
+    if (res.status === 404) {
+        title = '404 Not Found';
+        message = 'Sorry, we could\'t find the page you are looking for.';
+    } else {
+        title = '500 Internal Server Error';
+        message = 'Something went wrong. We are onto it.';
+    }
+
+    res.render('error', { title: title, message: message });
+});
+
 console.log('Application configured.');
 
 connection.once('connected', () => {

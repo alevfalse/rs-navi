@@ -388,8 +388,6 @@ passport.use('local-login-admin', new LocalStrategy({
         return done(err, false);
     }
 
-
-
     Admin.findOne({ 'account.email' : email}, (err, admin) => {
         if (err) {
             console.error(err);

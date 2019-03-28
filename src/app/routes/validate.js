@@ -49,10 +49,6 @@ validateRouter.get('/email', (req, res) => {
     default:
         return res.send(false);
     }
-})
-
-validateRouter.get('/*', (req, res) => {
-    return res.sendStatus(404);
-})
+});
 
 module.exports = validateRouter;

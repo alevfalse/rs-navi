@@ -31,18 +31,26 @@ function sendResetPasswordEmail(req, res, user, hashCode) {
     mailer.sendMail(mailOptions, (err, info) => {
 
         if (err) {
-            console.error(`An error occurred while sending password reset email to ${user.account.email}:\n${err}`);
+            console.error(err);
+
             user.account.hashCode = null;
+
             user.save((err) => {
                 if (err) { console.error(err); }
+
                 req.flash('message', 'Failed to send password reset link to your email. Please try again later.');
-                return res.redirect('/auth');
+                req.session.save((err) => {
+                    if (err) { console.error(err); }
+                    res.redirect('/auth');
+                });
             });
 
         } else {
-            console.log(`Email sent: ${info.response}`);
             req.flash('message', 'Password reset link has been sent to your email.');
-            return res.redirect('/auth');
+            req.session.save((err) => {
+                if (err) { console.error(err); }
+                res.redirect('/auth');
+            });
         }
     });
 }
@@ -116,30 +124,25 @@ function validateForgotPasswordForm(inputEmail, role) {
 // GET ROUTES ============================================================================
 
 // GET rsnavigation.com/auth/
-authRouter.get('/', (req, res) => {
+authRouter.get('/', (req, res, next) => {
 
     // prevent user from accessing authentication page if already logged in
     if (req.isAuthenticated()) {
         req.flash('message', 'You are already logged in.');
-        return res.redirect('/profile')
+        req.session.save((err) => {
+            if (err) { return next(err); }
+            res.redirect('/profile')
+        });
+        return;
     }
 
     req.session.save((err) => {
-        const flashMessage = req.flash('message');
-        console.log('Flash Message: ' + flashMessage);
-        
-        if (err) {
-            console.error(err);
-            return res.sendStatus(500); // TODO: Send custom status 500 page
-        }
+        if (err) { return next(err); }
     
-        res.render('auth', { user: req.user, message: flashMessage },
+        res.render('auth', { user: req.user, message: req.flash('message') },
         (err, html) => {
-            if (err) { 
-                console.error(err);
-                return res.sendStatus(500); // TODO: Send custom status 500 page
-            }
-            return res.send(html);
+            if (err) { return next(err); }
+            res.send(html);
         });
     });
 })
@@ -149,12 +152,19 @@ authRouter.get('/logout', (req, res) => {
 
     if (!req.isAuthenticated()) {
         req.flash('message', 'You are not logged in.');
-        return res.redirect('/auth');
+        req.session.save((err) => {
+            if (err) { return next(err); }
+            res.redirect('/auth');
+        })
+        return;
     }
 
     req.logout();
     req.flash('message', 'Logged out.');
-    return res.redirect('/auth');
+    req.session.save((err) => {
+        if (err) { return next(err); }
+        res.redirect('/auth');
+    });
 })
 
 // GET rsnavigation.com/verify/<role>/<hashCode>
@@ -605,12 +615,7 @@ authRouter.post('/reset', (req, res) => {
             placeowner.account.hashCode = null;
 
             placeowner.save((err) => {
-                if (err) {
-                    console.error(err);
-                    req.flash('message', 'Failed to update your password. Please try again later.');
-                     return res.redirect('/auth');
-                }
-
+                if (err) { return next(err); }
                 req.flash('message', 'Password updated.');
                 return res.redirect('/auth');
             });
@@ -621,13 +626,6 @@ authRouter.post('/reset', (req, res) => {
         req.flash('message', 'Invalid credentials provided.'); // invalid role
         return res.redirect('/auth');
     }
-})
-
-// Invalid URL
-authRouter.get('/*', (req, res) => {
-    console.log('AUTH: Page Not Found');
-    req.flash('message', 'Page not found.');
-    return res.redirect('/');
-})
+});
 
 module.exports = authRouter;
