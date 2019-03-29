@@ -42,6 +42,7 @@ if (mode === 'prod') {
 }
 
 app.use(express.static(path.join(__dirname + '/public')));
+app.use('/favicon.ico', express.static(__dirname + 'images/favicon.ico'));
 
 // logging
 const logDirectory = path.join(__dirname + '/logs');
@@ -72,19 +73,11 @@ app.use(passport.session());
 app.use(flash()); // for flashing messages between requests
 
 app.use((req, res, next) => {
-    req.session.save((err) => {
-        console.log('Session Saved.');
-        if (err) { console.error(err); }
-        next();
-    });
-});
-
-app.use((req, res, next) => {
-    console.log(req.connection.remoteAddress);
-    console.log(req.ip);
-    console.log(req.ips);
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    console.log(ip);
     next();
 })
+
 // bind the routes to the application
 app.use('/auth', authRouter);
 app.use('/places', placesRouter);
