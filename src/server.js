@@ -73,7 +73,7 @@ app.use(passport.session());
 app.use(flash()); // for flashing messages between requests
 
 app.use((req, res, next) => {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
     console.log(ip);
     next();
 })
