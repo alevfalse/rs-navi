@@ -121,7 +121,7 @@ function isAuthenticated(req, res, next) {
 
 // GET rsnavigation.com/auth/
 authRouter.get('/', isAuthenticated, (req, res, next) => {
-    
+
     const options = {
         user: req.user,
         message: req.flash('message'),
@@ -176,7 +176,10 @@ authRouter.get('/verify/:role/:hashCode', (req, res, next) => {
                 // if no student was found with the given hash code
                 if (!student) {
                     req.flash('message', 'Invalid verification link.');
-                    return res.redirect('/auth');
+                    return req.session.save((err) => {
+                        if (err) { return next(err); }
+                        res.redirect('/auth');
+                    });
                 }
 
                 // If the student exists, set their hash code to null and status to verified
@@ -212,7 +215,10 @@ authRouter.get('/verify/:role/:hashCode', (req, res, next) => {
 
                 if (!placeowner) {
                     req.flash('message', 'Invalid verification link.');
-                    return res.redirect('/auth');
+                    return req.session.save((err) => {
+                        if (err) { return next(err); }
+                        res.redirect('/auth');
+                    });
                 }
 
                 // If the placeowner exists, set their hash code to null and status to verified
@@ -229,7 +235,10 @@ authRouter.get('/verify/:role/:hashCode', (req, res, next) => {
                         if (err) { return next(err); } // status 500
 
                         req.flash('message', 'Email address verified.')
-                        return res.redirect('/profile');
+                        return req.session.save((err) => {
+                            if (err) { return next(err); }
+                            res.redirect('/profile');
+                        });
                     });
                 });
             });
@@ -444,7 +453,7 @@ authRouter.post('/forgot', (req, res, next) => {
                     });
                 }
 
-                crypto.randomBytes(10, (err, buffer) => {
+                crypto.randomBytes(6, (err, buffer) => {
                     if (err) { return next(err); } // status 500
 
                     const hashCode = buffer.toString('hex');
@@ -502,7 +511,7 @@ authRouter.post('/reset', (req, res, next) => {
 
     switch (role.toLowerCase())
     {
-    case 'student':
+    case 'student': {
         Student.findOne({ 'account.email': email, 'account.hashcode': hashCode, 'account.status': 1 }, (err, student) => {
             
             if (err) { return next(err); } // status 500
@@ -528,9 +537,9 @@ authRouter.post('/reset', (req, res, next) => {
                 });
             });
         });
-        break;
+    } break;
 
-    case 'placeowner':
+    case 'placeowner': {
         Placeowner.findOne({ 'account.email': email, 'account.hashcode': hashCode, 'account.status': 1 }, (err, placeowner) => {
             
             if (err) { return next(err); } // status 500
@@ -556,7 +565,7 @@ authRouter.post('/reset', (req, res, next) => {
                 });
             });
         });
-        break;
+    }   break;
 
     default: 
         req.flash('message', 'Invalid credentials.'); // invalid role
