@@ -79,6 +79,12 @@ app.use((req, res, next) => {
     });
 });
 
+app.use((req, res, next) => {
+    console.log(req.connection.remoteAddress);
+    console.log(req.ip);
+    console.log(req.ips);
+    next();
+})
 // bind the routes to the application
 app.use('/auth', authRouter);
 app.use('/places', placesRouter);
