@@ -36,9 +36,10 @@ const rootRouter = require('./app/routes/root');
 const app = express();
 
 // enable when behind a reverse proxy during production
-//if (mode === 'prod') { 
-app.set('trust proxy', true);
-console.log('Trust Proxy enabled.') 
+if (mode === 'prod') { 
+    app.set('trust proxy', true);
+    console.log('Trust Proxy enabled.') 
+}
 
 app.use(express.static(path.join(__dirname + '/public')));
 app.use('/favicon.ico', express.static(__dirname + '/public/images/favicon.ico'));
@@ -70,11 +71,6 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash()); // for flashing messages between requests
-
-app.set('trust proxy', function (ip) {
-    if (ip === '127.0.0.1') return true // trusted IPs
-    else return false
-});
 
 app.use((req, res, next) => {
     const ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
