@@ -3,7 +3,10 @@ const upload = require('../../config/upload');
 
 // GET rsnavigation.com/places/add
 placesRouter.get('/add', (req, res) => {
-    return res.render('add-place');
+    return res.render('add-place', (err, html) => {
+        if (err) { return next (err); }
+        res.send(html);
+    });
 });
 
 // POST rsnavigation.com/places/add

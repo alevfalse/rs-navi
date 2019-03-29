@@ -6,9 +6,10 @@ const AdminSchema = new mongoose.Schema({
     account: {
         email:    String,
         password: String,
+        passcode: Number,
         role:         { type: Number, default: 7 },
         created:      { type: Date, default: new Date() },
-        lastLoggedin: { type: Date, default: null }
+        lastLoggedIn: { type: Date, default: null }
     }
 })
 

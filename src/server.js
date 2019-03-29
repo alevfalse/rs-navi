@@ -35,9 +35,13 @@ const rootRouter = require('./app/routes/root');
 // APPLICATION ===========================================================================
 const app = express();
 
-if (mode === 'prod') { app.enable('trust proxy'); }
+// enable when behind a reverse proxy during production
+if (mode === 'prod') { 
+    app.enable('trust proxy');
+    console.log('Trust Proxy enabled.') 
+}
 
-app.use(express.static(__dirname + '/public')); // serving static files
+app.use(express.static(path.join(__dirname + '/public')));
 
 // logging
 const logDirectory = path.join(__dirname + '/logs');
@@ -52,20 +56,15 @@ app.use(bodyParser.json());
 app.set('view engine', 'ejs'); // templating engine for dynamic pages
 app.set('views', __dirname + '/views'); // folder containing the pages to be served
 
-
 // session
 const cookie = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 3 days
 if (mode === 'prod') cookie.domain = '.rsnavigation.com'; // set cookie's domain to the main domain at production
 app.use(session({
     secret: process.env.SESSION_SECRET,
     cookie: cookie,
-    saveUninitialized: false,   // don't save session in the database if not modified
-    resave: false,              // don't save session if unmodified
-    store: new MongoStore({ 
-        mongooseConnection: mongoose.connection,
-        touchAfter: 60 * 60 * 24 // the session will be updated only one time in a period of 24 hours, 
-        // does not matter how many request's are made (with the exception of those that change something on the session data)
-    })
+    saveUninitialized: true, // save the session immediately even if not modified
+    resave: true, // resave the session in every request
+    store: new MongoStore({ mongooseConnection: mongoose.connection })
 }))
 
 app.use(passport.initialize());
@@ -82,13 +81,13 @@ app.use((req, res, next) => {
 
 // bind the routes to the application
 app.use('/auth', authRouter);
-app.use('/validate', validateRouter);
-app.use('/autocomplete', autocompleteRouter);
 app.use('/places', placesRouter);
 app.use('/admin', adminRouter);
+app.use('/validate', validateRouter);
+app.use('/autocomplete', autocompleteRouter);
 app.use('/', rootRouter);
 
-// final route handler if no route responded so we assume 404
+// error handlers
 app.use((req, res, next) => {
     const err = new Error('Not Found');
     err.status = 404;
@@ -96,27 +95,25 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-    console.error(err);
-    res.status = err.status || 500;
-    let title;
-    let message;
+    res.status(err.status || 500);
+    let title, message;
 
-    if (res.status === 404) {
+    if (res.statusCode === 404) {
         title = '404 Not Found';
         message = 'Sorry, we could\'t find the page you are looking for.';
     } else {
-        title = '500 Internal Server Error';
-        message = 'Something went wrong. We are onto it.';
+        console.error(err); // TODO: Write server errors to a log file
+        title = '500 Internal Server Error T_T';
+        message = 'Something went wrong. Our lazy devs are onto it.';
     }
 
     res.render('error', { title: title, message: message });
 });
 
 console.log('Application configured.');
-
 connection.once('connected', () => {
     console.log(`Application successfully connected to ${mode} database.`);
     app.listen(port, () => {
-        console.log(`${mode === 'prod' ? 'rsnavigation.com is now live and' : 'RS Navi (Dev) is now '} listening to port ${port}!`);
+        console.log(`${mode === 'prod' ? 'rsnavigation.com is now live and' : 'RS Navi (Dev) is now'} listening to port ${port}!`);
     });
 })

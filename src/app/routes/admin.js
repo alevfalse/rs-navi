@@ -4,84 +4,69 @@ const passport = require('../../config/passport');
 const Student = require('../models/student');
 const Placeowner = require('../models/placeowner');
 
-// middleware functions
+// if the user is not authenticated as admin, render admin login page
 function isAuthenticated(req, res, next) {
     if (req.isAuthenticated() && req.user.account.role == 7) {
         return next();
     }
-        
-    console.log(`Unauthorized access for Admin URL: ${req.url}`);
-    req.flash('message', 'Unauthorized!');
-    return req.session.save((err) => {
+
+    res.render('admin/login', { message: req.flash('message') },
+    (err, html) => {
         if (err) { return next(err); }
-        res.redirect('/admin/login');
+        res.send(html);
     });
 }
 
-// =======================================================================================================================================
-// GET ===================================================================================================================================
+// ==========================================================================================================================================
+// GET ======================================================================================================================================
 
 // GET rsnavigation.com/admin
-adminRouter.get('/', isAuthenticated, (req, res) => {
-    
-    Student.find((err, students) => {
-        if (err) { return next(err); }
+adminRouter.get('/', isAuthenticated, (req, res, next) => {
 
-        Placeowner.find((err, placeowners) => {
-            if (err) { return next(err); }
-        
-            res.render('admin/home', { admin: req.user, students: students, placeowners: placeowners, message: req.flash('message') },
-            (err, html) => {
-                if (err) { return next(err); }
-                return res.send(html);
-            });
-        });
-    });
-});
-
-// GET rsnavigation.com/admin/login
-adminRouter.get('/login', (req, res) => {
-
-    req.session.save((err) => {
-        if (err) { return next(err); }
-
-        res.render('admin/login', { message: req.flash('message') },
+    // parallel database querying
+    Promise.all([
+        Student.find().exec(),
+        Placeowner.find().exec()
+    ])
+    .then(([students, placeowners]) => {
+        res.render('admin/home', 
+        { admin: req.user, students: students, placeowners: placeowners, message: req.flash('message') },
         (err, html) => {
             if (err) { return next(err); }
             res.send(html);
         });
-    });
+    })
+    .catch((err) => { return next(err); })
 });
 
-// GET rsnavigation.com/admin/login
-adminRouter.get('/logout', (req, res) => {
+// GET rsnavigation.com/admin/logout
+adminRouter.get('/logout', (req, res, next) => {
 
-    if (req.isAuthenticated()) {
+    // redirect to admin login page if not authenticated
+    if (!req.isAuthenticated()) {
+        return res.redirect('/admin');
+    }
 
-        if (req.user.account.role == 7) {
-            req.logout();
-            req.flash('message', 'Logged out admin account.');
-            req.session.save((err) => {
-                if (err) { return next(err); }
-                res.redirect('/admin/login');
-            })
-
-        } else {
-            req.flash('message', 'You are not logged in as admin.');
-            req.session.save((err) => {
-                if (err) { return next(err); }
-                res.redirect('/admin/login');
-            });
-        }
-
-    } else {
-        req.flash('message', 'Unauthorized!');
+    // logout the admin if authenticated user's account role is equal to 7
+    if (req.user.account.role === 7) {
+        req.logout();
+        req.flash('message', 'Logged out admin account.');
         req.session.save((err) => {
             if (err) { return next(err); }
-            res.redirect('/admin/login');
+            res.redirect('/admin');
+        });
+
+    // redirect to profile page if the account is a regular user
+    } else {
+        req.flash('message', 'You are not logged in as admin.');
+        req.session.save((err) => {
+            if (err) { return next(err); }
+            res.redirect('/profile');
         });
     }
 });
+
+
 
 // ==========================================================================================================================================
 // POST =====================================================================================================================================
@@ -89,29 +74,23 @@ adminRouter.get('/logout', (req, res) => {
 // POST rsnavigation.com/admin/login
 adminRouter.post('/login', (req, res, next) => {
     
+    // use configured local login strategy for admin
     passport.authenticate('local-login-admin', (err, admin) => {
 
+        // if an error occurred, pass error to error handler configured in server.js
         if (err) { return next(err); }
 
-        // if an error occurred or no user is found with the provided login credentials
+        // if no admin with provided credentials is found, redirect to admin login page
         if (!admin) {
-            req.session.save((err) => {
+            return req.session.save((err) => {
                 if (err) { return next(err); }
-                res.redirect('/admin/login');
+                res.redirect('/admin');
             });
-            return;
         }
 
+        // authenticate the admin and bind it to request as req.user
         req.logIn(admin, (err) => {
-            if (err) { 
-                if (err) { return next(err); }
-                req.flash('message', 'Failed to log in. Please try logging in again later.');
-                req.session.save((err) => {
-                    if (err) { return next(err); }
-                    res.redirect('/admin/login');
-                });
-                return;
-            }
+            if (err) { return next(err); } // status 500;
                 
             req.session.save((err) => {
                 if (err) { return next(err); }

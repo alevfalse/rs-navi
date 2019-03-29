@@ -1,0 +1,22 @@
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    background-image: url("/images/sad_blue_robot.gif");
+    background-size: 50rem;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #AEDCF3;
+}
+
+@media only screen and (max-width: 600px) {
+    body {
+        background-size: 25rem;
+    }
+
+    .display-4 {
+        font-size: 2rem;
+    }
+}

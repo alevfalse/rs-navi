@@ -9,10 +9,7 @@ autocompleteRouter.get('/schools', (req, res) => {
 
     const query = regexEscape(req.query.query);
 
-    if (!query){
-        req.flash('message','Page not found.');
-        return res.redirect('/');   
-    }
+    if (!query) { next(); }
     
     if (query.length <= 1) {
         return res.json({ suggestions: [''] });

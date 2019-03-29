@@ -11,10 +11,10 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css" integrity="sha256-7rF6RaSKyh16288E3hVdzQtHyzatA2MQRGu0cf6pqqM=" crossorigin="anonymous" />
     <!-- Favicon-->
-    <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico"/>
+    <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico"/>
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/index.css" type="text/css">
+    <link rel="stylesheet" href="/css/index.css" type="text/css">
     
     <title>RS Navi - Home</title>
 </head>
@@ -28,15 +28,20 @@
 
         <div class="collapse navbar-collapse" id="navLinks">
             <ul class="navbar-nav ml-auto">
-                <% if (locals.user) { %>
-                    <li class="nav-item"><a href="/profile" class="nav-link"><%= user.firstName %> <%= user.lastName %> <i class="fas fa-user"></i></a></li>
-                    <li class="nav-item"><a href="/auth/logout" class="nav-link">Logout</a></li>
-                    <% if (user.account.role == 1) { %>
+                <% if (locals.user) {
+                    if (user.account.role == 7) { %>
+                        <li class="nav-item"><a href="/admin" class="nav-link"><%= user.firstName %> <%= user.lastName %> <i class="fas fa-user"></i></a></li>
+                        <li class="nav-item"><a href="/admin/logout" class="nav-link">Logout</a></li>
+                    <% } else { %>
+                        <li class="nav-item"><a href="/profile" class="nav-link"><%= user.firstName %> <%= user.lastName %> <i class="fas fa-user"></i></a></li>
+                        <li class="nav-item"><a href="/auth/logout" class="nav-link">Logout</a></li>
+                    %< }
+                    if (user.account.role == 1) { %>
                         <li class="nav-item"><a href="/places/add" class="nav-link">Add A Place <i class="fas fa-home"></i> </a></li>
                     <% } %>
                 <% }  else { %>
                     <li class="nav-item"><a href="/auth" class="nav-link">Login <i class="fas fa-user"></i></a></li>
-                    <li class="nav-item"><a href="/places/add" class="nav-link">Add A Place <i class="fas fa-home"></i> </a></li>
+                    <li class="nav-item"><a href="/auth" class="nav-link">Add A Place <i class="fas fa-home"></i> </a></li>
                 <% } %>
             </ul>
         </div>
@@ -63,13 +68,13 @@
 
         <div class="row justify-content-center">
             <div class="col-5 col-md-4 col-lg-3">
-                <a href="/"><img class="img-fluid" src="images/logo_no_title.png" id="logo"></a>
+                <a href="/"><img class="img-fluid" src="/images/logo_no_title.png" id="logo"></a>
             </div>
         </div>
         <form method="GET" action="/search">
             <div class="row justify-content-center mt-5">
                 <div class="col-10 col-md-8 col-lg-6">
-                    <div class="input-group mb-3">
+                    <div class="input-group mb-5">
                         <input type="text" class="form-control" placeholder="Enter school name..." name="schoolName"  id="searchField" required>
                         <div class="input-group-append">
                             <button class="btn btn-primary" type="submit"> <i class="fas fa-search"></i> </button>
