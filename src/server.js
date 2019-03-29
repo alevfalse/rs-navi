@@ -36,13 +36,12 @@ const rootRouter = require('./app/routes/root');
 const app = express();
 
 // enable when behind a reverse proxy during production
-if (mode === 'prod') { 
-    app.enable('trust proxy');
-    console.log('Trust Proxy enabled.') 
-}
+//if (mode === 'prod') { 
+app.set('trust proxy', true);
+console.log('Trust Proxy enabled.') 
 
 app.use(express.static(path.join(__dirname + '/public')));
-app.use('/favicon.ico', express.static(__dirname + 'images/favicon.ico'));
+app.use('/favicon.ico', express.static(__dirname + '/public/images/favicon.ico'));
 
 // logging
 const logDirectory = path.join(__dirname + '/logs');
@@ -75,6 +74,8 @@ app.use(flash()); // for flashing messages between requests
 app.use((req, res, next) => {
     const ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
     console.log(ip);
+    console.log(req.ip);
+    console.log(req.ips);
     next();
 })
 
