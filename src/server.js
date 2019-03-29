@@ -37,7 +37,7 @@ const app = express();
 
 // enable when behind a reverse proxy during production
 if (mode === 'prod') { 
-    app.set('trust proxy', true);
+    app.enable('trust proxy');
     console.log('Trust Proxy enabled.') 
 }
 
@@ -47,15 +47,15 @@ app.use('/favicon.ico', express.static(__dirname + '/public/images/favicon.ico')
 // logging
 const logDirectory = path.join(__dirname + '/logs');
 fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory); // create logs folder if it does not exist
-app.use(morgan('dev'));
+app.use(morgan(mode === 'dev' ? 'dev' : 'common'));
 app.use(morgan('common', { stream: fs.createWriteStream(path.join(logDirectory, 'access.log'), { flags: 'a' }) }));
 
 // for parsing request body
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.set('view engine', 'ejs'); // templating engine for dynamic pages
-app.set('views', __dirname + '/views'); // folder containing the pages to be served
+app.set('view engine', 'ejs'); // templating engine for rendering pages
+app.set('views', __dirname + '/views'); // folder containing the pages to be rendered
 
 // session
 const cookie = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 3 days
@@ -72,14 +72,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash()); // for flashing messages between requests
 
-app.use((req, res, next) => {
-    const ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
-    console.log(ip);
-    console.log(req.ip);
-    console.log(req.ips);
-    next();
-});
-
 // bind the routes to the application
 app.use('/auth', authRouter);
 app.use('/places', placesRouter);
@@ -88,7 +80,7 @@ app.use('/validate', validateRouter);
 app.use('/autocomplete', autocompleteRouter);
 app.use('/', rootRouter);
 
-// error handlers
+// ERROR HANDLERS ======================================================
 app.use((req, res, next) => {
     const err = new Error('Not Found');
     err.status = 404;
@@ -112,6 +104,7 @@ app.use((err, req, res, next) => {
 });
 
 console.log('Application configured.');
+
 connection.once('connected', () => {
     console.log(`Application successfully connected to ${mode} database.`);
     app.listen(port, () => {
