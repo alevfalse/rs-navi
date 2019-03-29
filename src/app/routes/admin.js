@@ -90,7 +90,7 @@ adminRouter.post('/login', (req, res, next) => {
 
         // authenticate the admin and bind it to request as req.user
         req.logIn(admin, (err) => {
-            if (err) { return next(err); } // status 500;
+            if (err) { return next(err); } // status 500
                 
             req.session.save((err) => {
                 if (err) { return next(err); }

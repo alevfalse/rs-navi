@@ -27,7 +27,7 @@
         <div class="collapse navbar-collapse" id="navLinks">
             <ul class="navbar-nav ml-auto">
                 <% if (locals.user) {
-                    if (user.account.role == 7) { %>
+                    if (user.account.role === 7) { %>
                         <li class="nav-item"><a href="/admin" class="nav-link"><%= user.firstName %> <%= user.lastName %> <i class="fas fa-user"></i></a></li>
                         <li class="nav-item"><a href="/admin/logout" class="nav-link">Logout</a></li>
                     <% } else { %>
@@ -39,7 +39,7 @@
                     <% } %>
                 <% }  else { %>
                     <li class="nav-item"><a href="/auth" class="nav-link">Login <i class="fas fa-user"></i></a></li>
-                    <li class="nav-item"><a href="/auth" class="nav-link">Add A Place <i class="fas fa-home"></i> </a></li>
+                    <li class="nav-item"><a href="/auth?placeowner=1" class="nav-link">Add A Place <i class="fas fa-home"></i> </a></li>
                 <% } %>
             </ul>
         </div>

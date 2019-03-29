@@ -28,11 +28,11 @@ function sendResetPasswordEmail(req, res, next, user, hashCode) {
     };
     
     mailer.sendMail(mailOptions, (err, info) => {
-        if (err) { return next(err); } // status 500;
+        if (err) { return next(err); } // status 500
 
         req.flash('message', 'Password reset link has been sent to your email.');
         req.session.save((err) => {
-            if (err) { return next(err); } // status 500;
+            if (err) { return next(err); } // status 500
             res.redirect('/auth');
         });
     });
@@ -57,12 +57,12 @@ function sendEmailVerification(req, res, next, user, hashCode) {
     };
     
     mailer.sendMail(mailOptions, (err, info) => {
-        if (err) { return next(err); } // status 500;
+        if (err) { return next(err); } // status 500
 
         console.log(`Email sent: ${info.response}`);
         req.flash('message', 'Verification link has been sent to your email.');
         req.session.save((err) => {
-            if (err) { return next(err); } // status 500;
+            if (err) { return next(err); } // status 500
             res.redirect('/auth');
         });
     });
@@ -121,8 +121,14 @@ function isAuthenticated(req, res, next) {
 
 // GET rsnavigation.com/auth/
 authRouter.get('/', isAuthenticated, (req, res, next) => {
-    res.render('auth', { user: req.user, message: req.flash('message') },
-    (err, html) => {
+    
+    const options = {
+        user: req.user,
+        message: req.flash('message'),
+        placeowner: req.query.placeowner ? 1 : null
+    }
+
+    res.render('auth', options, (err, html) => {
         if (err) { return next(err); }
         res.send(html);
     });
@@ -165,8 +171,9 @@ authRouter.get('/verify/:role/:hashCode', (req, res, next) => {
 
             // Find one student with the provided hash code, has a status of unverified and a role of student
             Student.findOne({ 'account.hashCode': hashCode, 'account.status': 0, 'account.role': 0 }, (err, student) => {
-                if (err) { return next(err); } // status 500;
+                if (err) { return next(err); } // status 500
 
+                // if no student was found with the given hash code
                 if (!student) {
                     req.flash('message', 'Invalid verification link.');
                     return res.redirect('/auth');
@@ -179,14 +186,17 @@ authRouter.get('/verify/:role/:hashCode', (req, res, next) => {
 
                 // Update student in the database
                 student.save((err) => {
-                    if (err) { return next(err); } // status 500;
+                    if (err) { return next(err); } // status 500
 
                     // Authenticate the student and bind it to request as req.user
-                    req.logIn(student, (err) => {
-                        if (err) { return next(err); } // status 500;
+                    req.login(student, (err) => {
+                        if (err) { return next(err); } // status 500
 
                         req.flash('message', 'Email address verified.')
-                        return res.redirect('/profile');
+                        req.session.save((err) => {
+                            if (err) { return next(err); } // status 500
+                            res.redirect('/profile');
+                        });
                     });
                 });
             });
@@ -198,7 +208,7 @@ authRouter.get('/verify/:role/:hashCode', (req, res, next) => {
 
             // Find one placeowner with the provided hash code, has a status of unverified and a role of placeowner
             Placeowner.findOne({ 'account.hashCode': hashCode, 'account.status': 0, 'account.role': 1 }, (err, placeowner) => {
-                if (err) { return next(err); } // status 500;
+                if (err) { return next(err); } // status 500
 
                 if (!placeowner) {
                     req.flash('message', 'Invalid verification link.');
@@ -212,11 +222,11 @@ authRouter.get('/verify/:role/:hashCode', (req, res, next) => {
 
                 // Update placeowner in the database
                 placeowner.save((err) => {
-                    if (err) { return next(err); } // status 500;
+                    if (err) { return next(err); } // status 500
 
                     // Authenticate the placeowner and bind it to request as req.user
                     req.logIn(placeowner, (err) => {
-                        if (err) { return next(err); } // status 500;
+                        if (err) { return next(err); } // status 500
 
                         req.flash('message', 'Email address verified.')
                         return res.redirect('/profile');
@@ -308,16 +318,16 @@ authRouter.post('/login', (req, res, next) => {
 
         if (!user) {
             return req.session.save((err) => {
-                if (err) { return next(err); } // status 500;
+                if (err) { return next(err); } // status 500
                 res.redirect('/auth');
             });
         }
 
         req.logIn(user, (err) => {
-            if (err) { return next(err); } // status 500;
+            if (err) { return next(err); } // status 500
                 
             req.session.save((err) => {
-                if (err) { return next(err); } // status 500;
+                if (err) { return next(err); } // status 500
                 res.redirect('/profile');
             });
         });
@@ -329,23 +339,23 @@ authRouter.post('/login', (req, res, next) => {
 authRouter.post('/signup', (req, res, next) => {
     passport.authenticate('local-signup', (err, user) => {
 
-        if (err) { return next(err); } // status 500;
+        if (err) { return next(err); } // status 500
 
         if (!user) {
             return req.session.save((err) => {
-                if (err) { return next(err); } // status 500;
+                if (err) { return next(err); } // status 500
                 res.redirect('/auth');
             });
         }
 
         crypto.randomBytes(10, (err, buffer) => {
-            if (err) { return next(err); } // status 500;
+            if (err) { return next(err); } // status 500
 
             const hashCode = buffer.toString('hex');
             user.account.hashCode = hashCode;
 
             user.save((err) => {
-                if (err) { return next(err); } // status 500;
+                if (err) { return next(err); } // status 500
                 sendEmailVerification(req, res, next, user, hashCode);
             });
         });

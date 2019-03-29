@@ -183,7 +183,7 @@ $("#switchRoleButton").click(function() {
         signupRole.val(loginRole.val());
 
         if (signupRole.val() === 'student') {
-            schoolNameInput.removeAttr('disabled').css('display', 'inline');
+            schoolNameInput.removeAttr('disabled hidden').css('display', 'inline');
         } else {
             schoolNameInput.attr('disabled', 'disabled').css('display', 'none');
         }

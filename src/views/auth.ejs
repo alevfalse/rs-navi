@@ -26,7 +26,7 @@
 
         <div class="collapse navbar-collapse" id="navLinks">
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item collapse show" id="switchRoleNav"><button type="button" class="btn nav-link bg-transparent" id="switchRoleButton">Login as Placeowner</button></li>
+                <li class="nav-item collapse show" id="switchRoleNav"><button type="button" class="btn nav-link bg-transparent" id="switchRoleButton">Login as <%= locals.placeowner ? 'Student' : 'Placeowner' %></button></li>
             </ul>
         </div>
     </nav>
@@ -64,7 +64,7 @@
             <div class="collapse show" id="upperLogin">
                 <div class="row justify-content-center text-center mb-3">
                     <div class="col-8">
-                        <h2 class="display-6 text-white collapse show" id="loginRoleTitle">Login as Student</h2>
+                        <h2 class="display-6 text-white collapse show" id="loginRoleTitle">Login as <%= locals.placeowner ? 'Placeowner' : 'Student' %></h2>
                     </div>
                 </div>
     
@@ -74,7 +74,7 @@
                             <input type="email" class="form-control" placeholder="Email" name="email" id="loginEmail" required>
                             <div class="mb-3"></div>
                             <input type="password" class="form-control mb-3" placeholder="Password" name="password" required>
-                            <input type="text" value="student" id="loginRoleInput" name="role" hidden required>
+                                <input type="text" value=<%= locals.placeowner ? "placeowner" : "student" %> id="loginRoleInput" name="role" required>
                             <button type="submit" class="btn btn-sm btn-primary px-4">Login</button>
                         </div>
                     </div>
@@ -96,7 +96,7 @@
                                 <input type="email" class="form-control" name="email" placeholder="Email" id="forgotPasswordEmail" required>
                                 <div></div>
                                 <button type="button" class="btn btn-sm btn-info mt-3" id="forgotPasswordRoleButton">Student</button><br>
-                            <input type="text" value="student" id="forgotPasswordRoleInput" name="role" hidden required>
+                            <input type="text" value="student" id="forgotPasswordRoleInput" name="role" required>
                             <button type="submit" class="btn btn-sm btn-primary mt-3 mb-5">Reset Password</button>
                         </div>
                     </form>
@@ -108,7 +108,7 @@
         <div class="collapse" id="signup">
             <form method="POST" action="/auth/signup" id="signupForm">
                 <div class="row justify-content-center text-center mb-3">
-                    <h2 class="display-5 text-white collapse show" id ="signupRoleTitle">Sign up as Student</span></h2>
+                    <h2 class="display-5 text-white collapse show" id ="signupRoleTitle">Sign up as <%= locals.placeowner ? "Placeowner" : "Student" %></span></h2>
                 </div>
                 <div class="row justify-content-center text-center">
                     <div class="col-8 col-md-6 col-lg-5 col-xl-4 formFields">
@@ -116,7 +116,7 @@
                         <div class="mb-3"></div>
                         <input type="text" class="form-control" placeholder="Last Name" name="lastName" required>
                         <div class="mb-3"></div>
-                        <input type="text" class="form-control" placeholder="School Name" name="schoolName" id="schoolNameInput" required>
+                        <input type="text" class="form-control" placeholder="School Name" name="schoolName" id="schoolNameInput" required <% if (locals.placeowner) { %> hidden disabled <% } %> >
                         <div class="mb-3"></div>
                         <input type="email" class="form-control" placeholder="Email" name="email" id="signupEmail" required>
                         <div class="mb-3"></div>
@@ -124,7 +124,7 @@
                         <div class="mb-3"></div>
                         <input type="password" class="form-control" placeholder="Confirm Password" name="confirmPassword" id="confirmSignupPassword" required>
                         <div class="mb-3"></div>
-                        <input type="text" name="role" value="student" id="signupRoleInput" hidden required>
+                        <input type="text" name="role" value=<%= locals.placeowner ? "placeowner" : "student" %> id="signupRoleInput" required>
                         <button type="submit" class="btn btn-sm btn-primary px-4">Signup</button>
                     </div>
                 </div>
