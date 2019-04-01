@@ -74,7 +74,7 @@
                             <input type="email" class="form-control" placeholder="Email" name="email" id="loginEmail" required>
                             <div class="mb-3"></div>
                             <input type="password" class="form-control mb-3" placeholder="Password" name="password" required>
-                                <input type="text" value=<%= locals.placeowner ? "placeowner" : "student" %> id="loginRoleInput" name="role" required>
+                                <input type="text" value=<%= locals.placeowner ? "placeowner" : "student" %> id="loginRoleInput" name="role" required hidden>
                             <button type="submit" class="btn btn-sm btn-primary px-4">Login</button>
                         </div>
                     </div>
@@ -96,7 +96,7 @@
                                 <input type="email" class="form-control" name="email" placeholder="Email" id="forgotPasswordEmail" required>
                                 <div></div>
                                 <button type="button" class="btn btn-sm btn-info mt-3" id="forgotPasswordRoleButton">Student</button><br>
-                            <input type="text" value="student" id="forgotPasswordRoleInput" name="role" required>
+                            <input type="text" value="student" id="forgotPasswordRoleInput" name="role" required hidden>
                             <button type="submit" class="btn btn-sm btn-primary mt-3 mb-5">Reset Password</button>
                         </div>
                     </form>
@@ -124,7 +124,7 @@
                         <div class="mb-3"></div>
                         <input type="password" class="form-control" placeholder="Confirm Password" name="confirmPassword" id="confirmSignupPassword" required>
                         <div class="mb-3"></div>
-                        <input type="text" name="role" value=<%= locals.placeowner ? "placeowner" : "student" %> id="signupRoleInput" required>
+                        <input type="text" name="role" value=<%= locals.placeowner ? "placeowner" : "student" %> id="signupRoleInput" required hidden>
                         <button type="submit" class="btn btn-sm btn-primary px-4">Signup</button>
                     </div>
                 </div>

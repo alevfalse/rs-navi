@@ -27,6 +27,11 @@
         <div class="collapse navbar-collapse" id="navLinks">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item"><a href="/profile" class="nav-link"><%= user.firstName %> <%= user.lastName %> <i class="fas fa-user"></i></a></li>
+
+                <% if (user.account.role === 1) { %>
+                    <li class="nav-item"><a href="/places/add" class="nav-link">Add A Place <i class="fas fa-home"></i> </a></li>
+                <% } %>
+
                 <li class="nav-item"><a href="/auth/logout" class="nav-link">Logout</a></li>
             </ul>
         </div>

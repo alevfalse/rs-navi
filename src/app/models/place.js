@@ -2,24 +2,27 @@ const mongoose = require('mongoose');
 
 const PlaceSchema = new mongoose.Schema({
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'Placeowner' },
-    reviews: [
-        {
-            author: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
-            rating: Number,
-            comment: String,
-            status: { type: Number, default: 0 },
-            votes:  { type: Number, default: 0 },
-            date:   { type: Date, default: new Date() },
-            edited: { type: Boolean, default: false }
-        }
-    ],
-    status: { type: Number, default: 0 }
+    name: String,
+    type: Number,
+    status: { type: Number, default: 0 },
+    address: {
+        lotNumber: String,
+        streetName: String,
+        subdivision: String,
+        barangay: String,
+        city: String,
+        province: String,
+        zipCode: String
+    },
+    description: String,
+    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }]
 })
 
-/* status:
-0 - good
-1 - bad
-2 - deleted
-*/
+/* status:      /* types:
+0 - good        0: boarding house
+1 - bad         1: dormitory
+2 - deleted     2: apartment
+                3: condominium
+*/          
 
 module.exports = mongoose.model('Place', PlaceSchema);

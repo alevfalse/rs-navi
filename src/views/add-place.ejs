@@ -1,37 +1,150 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"> 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css" integrity="sha256-7rF6RaSKyh16288E3hVdzQtHyzatA2MQRGu0cf6pqqM=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="/css/auth.css">
+    <style>
+        #thumbnail:hover {
+            cursor: pointer;
+        }
 
-    <title>Add A Place</title>
-</head>
-<body>
-    <div class="container">
-        <div class="row">
-            <div class="col-6 mx-auto text-center">
-                <h2 class="display-4 mt-5">Upload Files</h2>
-                <form method="POST" action="/places/add" enctype="multipart/form-data">
-                    <div class="custom-file">
-                        <input type="file" name="file" class="custom-file-input" id="file">
-                        <label class="custom-file-label" for="file">Browse Files</label>
-                    </div>
-                    <button type="submit" class="btn btn-sm btn-primary mt-3">Upload</button>
-                </form>
+        body {
+            font-family: 'Roboto Condensed', sans-serif;
+            background: 
+                linear-gradient(
+                rgba(0, 0, 0, 0.7), 
+                rgba(0, 0, 0, 0.7)
+                ),
+                url("/images/background.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        input.form-control {
+            color: skyblue;
+        }
+
+        textarea{
+            resize: none;
+        }
+    </style>
+    <title>RS Navi - Property List</title> 
+</head> 
+    <body>
+
+        <!-- Navbar -->
+        <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
+            <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
+            <button class="navbar-toggler" data-toggle="collapse" data-target="#navLinks" aria-label="Toggle navigation links">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+    
+            <div class="collapse navbar-collapse" id="navLinks">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a href="/profile" class="nav-link"><%= user.firstName %> <%= user.lastName %> <i class="fas fa-user"></i></a></li>
+                    <li class="nav-item"><a href="/auth/logout" class="nav-link">Logout</a></li>
+                </ul>
             </div>
-        </div>
-    </div>
+        </nav>
 
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
-    <!-- Bootstrap JS + Popper.js Bundle -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script> 
-</body>
+        <div class="container">
+            <div class="row justify-content-center mt-5">
+                <h1><font color="white">Your Place Listings</font></h1>
+            </div>
+            
+
+            <form method="POST" action="/places/add" id="addPlace">
+
+                <div class="row">
+                    <div class="col">
+
+                        <!-- Place Name -->
+                        <div class="form-group text-white">
+                                <label for="exampleFormControlInput1"><font color="white">Place Name: </font></label>
+                                <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="placeName" required>
+                        </div>
+                    </div>
+
+                    <!-- Place Type (Top Right)-->
+                    <div class="form-group">
+                        <div class="col">
+                            <label for="exampleFormControlSelect1"><font color="white">Place Type: </font></label>
+                                <select class="form-control bg-transparent" id="exampleFormControlSelect1" name="type" required>
+                                <option value="0">Boarding House</option>
+                                <option value="1">Dormitory</option>
+                                <option value="2">Apartment</option>
+                                <option value="3">Condominium</option>
+                                </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                      <!-- Place Address -->
+                        <div class="form-group">
+                            <label>Lot Number: </font></label>
+                            <input type="text" class="form-control bg-transparent" placeholder="" name="lotNumber" required>
+                            <label>Street Name: </font></label>
+                            <input type="text" class="form-control bg-transparent" placeholder="" name="streetName" required>
+                            <label>Subdivision: </font></label>
+                            <input type="text" class="form-control bg-transparent" placeholder="" name="subdivision" required>
+                            <label>Barangay: </font></label>
+                            <input type="text" class="form-control bg-transparent" placeholder="" name="barangay" required>
+                            <label>City: </font></label>
+                            <input type="text" class="form-control bg-transparent" placeholder="" name="city" required>
+                            <label>Province: </font></label>
+                            <input type="text" class="form-control bg-transparent" placeholder="" name="province" required>
+                            <label>ZIP Code: </font></label>
+                            <input type="text" class="form-control bg-transparent" placeholder="" name="zipCode" required>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <!-- Place Info (Add Image)-->
+                        <div class="form-group">
+                            <label for="exampleFormControlTextarea1"><font color="white">Place Information: </font></label>
+                            <textarea class="form-control bg-transparent" id="exampleFormControlTextarea1" rows="3" name="placeInfo" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary mb-2">Add Image</button>
+                    </div>
+                </div>
+
+                <!-- Place Contact Info -->
+                <div class="form-group">
+                    <label for="exampleFormControlTextarea1"><font color="white">Place Contact Information: </font></label>
+                    <textarea class="form-control bg-transparent" id="exampleFormControlTextarea1" rows="3" name="contactInfo" required></textarea>
+                  </div>
+               
+                <!-- Add Place to Listing -->
+                <button type="submit" class="btn btn-primary mb-5">Add Place Listing</button>
+            </form>
+        </div>
+
+        <% include ../public/components/footer.ejs %>
+        <!-- jQuery -->
+            <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+        <!-- Bootstrap JS + Popper.js Bundle -->
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
+        <script>
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+
+        $("#edit, #back").click(function() {
+            $("#profile").collapse("toggle");
+            $("#update").collapse("toggle");
+        })
+
+        </script> 
+    </body>
 </html>
