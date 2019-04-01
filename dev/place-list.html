@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css" integrity="sha256-7rF6RaSKyh16288E3hVdzQtHyzatA2MQRGu0cf6pqqM=" crossorigin="anonymous" />  
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="/css/error.css">
+
+    <link href='https://api.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.css' rel='stylesheet' />
+
+    <style>
+        img.resize {
+            max-width:10%;
+            max-height:10%;
+        }
+
+        #slideshow {
+            overflow: hidden;
+            height: 180px;
+            width: 286px;
+            margin: 0 auto;
+        }
+
+        .slide {
+            float: left;
+            height: 180px;
+            width: 286px;
+        }
+
+        @-webkit-keyframes slide {
+            20% {margin-left: 0px;}
+            30% {margin-left: -728px;}
+            50% {margin-left: -728px;}
+            60% {margin-left: -1456px;}
+            70% {margin-left: -1456px;}
+            80% {margin-left: -2184px;}
+            90% {margin-left: -2184px;}
+        }
+
+        .slide-wrapper {
+            -webkit-animation: slide 5s ease infinite;
+        }
+    
+    </style>
+    
+    <title>Place Listing</title> 
+</head> 
+<body>
+     <!-- Search -->
+     <div class="container">
+        <form method="GET" action="/search">
+            <div class="row justify-content-center mt-5">
+                <div class="col-10 col-md-8 col-lg-6">
+                    <div class="input-group mb-5">
+                        <input type="text" class="form-control" placeholder="Enter school name..." name="schoolName"  id="searchField" required>
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit"> <i class="fas fa-search"></i> </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </form>
+        </div>
+
+        <!--Map-->
+        <div class="img-thumbnail float-left">
+            <div id='map' style='width: 400px; height: 300px;'></div>
+        </div> 
+        <!--Place-->
+        <div class="border">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="card" style="width: 18rem;">
+                        <div id="slideshow">
+                            <div class="slide-wrapper">
+                                <div class="slide">
+                                    <img class="card-img-top slide-number" src="images/room.jpg" alt="Place Image">
+                                    <img class="card-img-top slide-number" src="images/room2.jpg" alt="Place Image">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            <a href="#" class="btn btn-primary">View Place</a>
+                        </div>            
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="card" style="width: 18rem;">
+                            <img class="card-img-top" src="..." alt="Place Image">
+                            <div class="card-body">
+                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                                <a href="#" class="btn btn-primary">View Place</a>
+                            </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                        <div class="card" style="width: 18rem;">
+                                <img class="card-img-top" src="..." alt="Place Image">
+                                <div class="card-body">
+                                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                                    <a href="#" class="btn btn-primary">View Place</a>
+                                </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <!-- Bootstrap JS + Popper.js Bundle -->
+   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
+   <script src='https://api.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.js'></script>
+
+   <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiamFzc2VyZWRnZSIsImEiOiJjanR5MXQwbTIxZ3g3NGRxeWY2cGwwZ2FmIn0.GCg26EvH4f4HfbtBphWTyg';
+        var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11'
+        });
+    </script>
+
+</body>
+</html>
