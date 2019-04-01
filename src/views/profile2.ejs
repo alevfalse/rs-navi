@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    
+    <link rel="stylesheet" type="text/css" href="/css/index.css">
+    
+    <style>
+        #thumbnail:hover {
+            cursor: pointer;
+        }
+
+        body {
+            font-family: 'Roboto Condensed', sans-serif;
+            background: 
+                linear-gradient(
+                rgba(0, 0, 0, 0.7), 
+                rgba(0, 0, 0, 0.7)
+                ),
+                url("images/background.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        main {
+            height: 100%;
+        }
+        
+    </style>
+    <title>RS Navi - Profile Placeowner</title> 
+</head> 
+    <body>
+
+        <!-- Navbar -->
+        <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
+            <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
+            <button class="navbar-toggler" data-toggle="collapse" data-target="#navLinks" aria-label="Toggle navigation links">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+    
+            <div class="collapse navbar-collapse" id="navLinks">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a href="/profile" class="nav-link"><%= user.firstName %> <%= user.lastName %> <i class="fas fa-user"></i></a></li>
+    
+                    <% if (user.account.role === 1) { %>
+                        <li class="nav-item"><a href="/places/add" class="nav-link">Add A Place <i class="fas fa-home"></i> </a></li>
+                    <% } %>
+    
+                    <li class="nav-item"><a href="/auth/logout" class="nav-link">Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main>
+            <div class="container collapse show" id="profile">
+                <div class="row justify-content-center mt-5">
+                    <div class="card bg-transparent">
+                        <div class="text-center">
+                            <div class="image-upload">
+                                <label for="file-input">
+                                        <img class="img-thumbnail" id = "thumbnail" src="/images/blank-profile-picture.jpg"alt="photo" style="width:15%" data-toggle="tooltip" data-placement="bottom" title="Change Photo"/>
+                                    </label>
+
+                                <input id="file-input" type="file" hidden/>
+                            </div>
+                        <br/>
+                        <h1 class="display-4 text-white"><%= user.firstName %> <%= user.lastName %></h1>
+
+                        <% if (user.account.role == 0) { %>
+                            <p class="text-white"><%= user.schoolName %></p>
+                        <% } %>
+                        <p class="text-white"><%= user.account.email %></p>
+                            <div class= "card-header">
+                                <p><button class="btn btn-primary" id="edit">Edit Profile</button></p>
+
+                                <% if (user.account.role === 1) { %>
+                                    <p><button class="btn btn-primary" id="subscription">Subscription Details</button></p>
+                                <% } %>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="update" class="collapse ">
+                <form method="POST" action="/" id="updateProfile">
+                    <div class="row justify-content-center text-center mt-5">
+                        <div class="col-8 col-md-6 col-lg-5 col-xl-4 formFields">
+                            <input type="text" class="form-control bg-transparent" placeholder="First Name" name="firstName">
+                            <div class="mb-3"></div>
+                            <input type="text" class="form-control bg-transparent" placeholder="Last Name" name="lastName">
+                            <div class="mb-3"></div>
+                            <input type="text" class="form-control bg-transparent" placeholder="School Name" name="schoolName" id="schoolNameInput">
+                            <div class="mb-3"></div>
+                            <input type="password" class="form-control bg-transparent" placeholder="Old Password" name="password" id="signupPassword" >
+                            <div class="mb-3"></div>
+                            <input type="password" class="form-control mb-3 bg-transparent" placeholder="New Password" name="newPassword" >
+                            <input type="password" class="form-control mb-3 bg-transparent" placeholder="Confirm New Password" name="confirmNewPassword" >
+                            <button type="submit" class="btn btn-sm btn-primary px-4">Update Profile</button>
+                            <button type="button" id="back" class="btn btn-sm btn-primary px-4">Back</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <% if (user.account.role === 1) { %>
+                <div id="sub-details" class="collapse ">
+                    <div class="row justify-content-center mt-5">
+                        <div class="card bg-transparent">
+                            <div class="image-upload">
+                                <img class="img-thumbnail" id = "thumbnail" src="images/blank-profile-picture.jpg"alt="photo" style="width:15%" ALIGN="left"/>
+                                <div class="text-center">
+                                    <h1 class="display-4 text-white">FName LName </h1>
+                                    <p class="text-white">email@email.com</p>
+                                </div> 
+                            </div>
+                            <div class="text-left text-white">
+                                <p>You have been subscribed for : 000 month/s</p>
+                                <p>Via Credit Card: Visa</p>
+                                <p>PRC Verification: Pending</p>
+                                <p><button class="btn btn-primary" id = "update-sub">Update Credit Card Details</button></p>
+                                <p><button class="btn btn-primary" id = "cancel-sub">Cancel Subscription</button></p>
+                                <p><button type="button" id="back2" class="btn btn-primary">Back</button></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </main>
+
+        <!-- Footer Component -->
+        <% include ../public/components/footer.ejs %>
+ 
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <!-- Bootstrap JS + Popper.js Bundle -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
+    <script>
+
+        $("main").animate({ opacity: 1 }, 1000) // fade-in
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+
+        $("#edit, #back").click(function() {
+            $("#profile").collapse("toggle");
+            $("#update").collapse("toggle");
+        })
+
+        $("#subscription, #back2").click(function(){
+            $("#profile").collapse("toggle");
+            $("#sub-details").collapse("toggle");
+        })
+
+    </script> 
+</body>
+</html>
