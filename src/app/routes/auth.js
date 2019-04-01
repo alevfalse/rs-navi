@@ -122,10 +122,12 @@ function isAuthenticated(req, res, next) {
 // GET rsnavigation.com/auth/
 authRouter.get('/', isAuthenticated, (req, res, next) => {
 
+    console.log(req.query);
+
     const options = {
         user: req.user,
         message: req.flash('message'),
-        placeowner: req.query.placeowner ? 1 : null
+        placeowner: parseInt(req.query.placeowner) === 1 ? 1 : null
     }
 
     res.render('auth', options, (err, html) => {
