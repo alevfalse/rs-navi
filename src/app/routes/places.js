@@ -8,9 +8,7 @@ function isAuthorized(req, res, next) {
         console.log('Authenticated! ' + req.url);
         return next();
     } else {
-        const err = new Error('Unauthorized');
-        err.status = 401;
-        return next(err);
+        return res.redirect('/auth?placeowner=1');
     }
 }
 
