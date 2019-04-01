@@ -1,1 +1,125 @@
-m
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    <style>
+        #thumbnail:hover {
+            cursor: pointer;
+        }
+
+        body {
+            font-family: 'Roboto Condensed', sans-serif;
+            background: 
+                linear-gradient(
+                rgba(0, 0, 0, 0.7), 
+                rgba(0, 0, 0, 0.7)
+                ),
+                url("images/background.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        textarea{
+            resize: none;
+        }
+    </style>
+    <title>RS Navi - Property List</title> 
+</head> 
+    <body>
+
+        <div class="container">
+            <div class="row justify-content-center mt-5">
+                <h1><font color="white">Your Place Listings</font></h1>
+            </div>
+            
+
+            <form method="POST" action="/places/add" id="addPlace">
+                <div class="row">
+                    <div class="col">
+                        <!-- Place Name -->
+                        <div class="form-group">
+                                <label for="exampleFormControlInput1"><font color="white">Place Name: </font></label>
+                                <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="placeName" required>
+                        </div>
+                    </div>
+                    <!-- Place Type (Top Right)-->
+                    <div class="form-group">
+                        <div class="col">
+                            <label for="exampleFormControlSelect1"><font color="white">Place Type: </font></label>
+                                <select class="form-control bg-transparent" id="exampleFormControlSelect1" name="type" required>
+                                <option value="0">Boarding House</option>
+                                <option value="1">Dormitory</option>
+                                <option value="2">Apartment</option>
+                                <option value="3">Condominium</option>
+                                </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                      <!-- Place Address -->
+                        <div class="form-group">
+                            <label for="exampleFormControlInput1"><font color="white">Lot Number: </font></label>
+                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="lotNumber" required>
+                            <label for="exampleFormControlInput1"><font color="white">Street Name: </font></label>
+                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="streetName" required>
+                            <label for="exampleFormControlInput1"><font color="white">Subdivision: </font></label>
+                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="subdivision" required>
+                            <label for="exampleFormControlInput1"><font color="white">Barangay: </font></label>
+                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="barangay" required>
+                            <label for="exampleFormControlInput1"><font color="white">City: </font></label>
+                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="city" required>
+                            <label for="exampleFormControlInput1"><font color="white">Province: </font></label>
+                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="province" required>
+                            <label for="exampleFormControlInput1"><font color="white">ZIP Code: </font></label>
+                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="zipCode" required>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <!-- Place Info (Add Image)-->
+                        <div class="form-group">
+                            <label for="exampleFormControlTextarea1"><font color="white">Place Information: </font></label>
+                            <textarea class="form-control bg-transparent" id="exampleFormControlTextarea1" rows="3" name="placeInfo" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary mb-2">Add Image</button>
+                    </div>
+                </div>
+
+                <!-- Place Contact Info -->
+                <div class="form-group">
+                    <label for="exampleFormControlTextarea1"><font color="white">Place Contact Information: </font></label>
+                    <textarea class="form-control bg-transparent" id="exampleFormControlTextarea1" rows="3" name="contactInfo" required></textarea>
+                  </div>
+               
+                <!-- Add Place to Listing -->
+                <button type="submit" class="btn btn-primary mb-2">Add Place Listing</button>
+            </form>
+        </div>
+
+    <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <!-- Bootstrap JS + Popper.js Bundle -->
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
+<script>
+
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+
+$("#edit, #back").click(function() {
+    $("#profile").collapse("toggle");
+    $("#update").collapse("toggle");
+})
+
+</script> 
+</body>
+</html>
