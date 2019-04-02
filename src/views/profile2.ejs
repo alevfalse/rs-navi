@@ -7,7 +7,9 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
-    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css" integrity="sha256-7rF6RaSKyh16288E3hVdzQtHyzatA2MQRGu0cf6pqqM=" crossorigin="anonymous" />
+
     <link rel="stylesheet" type="text/css" href="/css/index.css">
     
     <style>
@@ -65,7 +67,7 @@
                         <div class="text-center">
                             <div class="image-upload">
                                 <label for="file-input">
-                                        <img class="img-thumbnail" id = "thumbnail" src="/images/blank-profile-picture.jpg"alt="photo" style="width:15%" data-toggle="tooltip" data-placement="bottom" title="Change Photo"/>
+                                        <img class="img-thumbnail mt-3" id="thumbnail" src="/images/blank-profile-picture.jpg"alt="photo" style="width:15%" data-toggle="tooltip" data-placement="bottom" title="Change Photo"/>
                                     </label>
 
                                 <input id="file-input" type="file" hidden/>
@@ -111,22 +113,20 @@
             </div>
 
             <% if (user.account.role === 1) { %>
-                <div id="sub-details" class="collapse ">
+                <div id="sub-details" class="collapse">
                     <div class="row justify-content-center mt-5">
-                        <div class="card bg-transparent">
+                        <div class="card bg-transparent px-5">
                             <div class="image-upload">
-                                <img class="img-thumbnail" id = "thumbnail" src="images/blank-profile-picture.jpg"alt="photo" style="width:15%" ALIGN="left"/>
                                 <div class="text-center">
-                                    <h1 class="display-4 text-white">FName LName </h1>
-                                    <p class="text-white">email@email.com</p>
+                                    <h1 class="display-4 text-white"><%= user.firstName %> <%= user.lastName %> </h1>
+                                    <p class="text-white"><%= user.account.email %></p>
                                 </div> 
                             </div>
-                            <div class="text-left text-white">
-                                <p>You have been subscribed for : 000 month/s</p>
-                                <p>Via Credit Card: Visa</p>
-                                <p>PRC Verification: Pending</p>
+                            <div class="text-center text-white justify-content-center">
+                                <p>Subscription Status: Unsubscribed</p>
+                                <p>PRC License: None</p>
                                 <p><button class="btn btn-primary" id = "update-sub">Update Credit Card Details</button></p>
-                                <p><button class="btn btn-primary" id = "cancel-sub">Cancel Subscription</button></p>
+                                <% if (user.license.status == 1) { %> <p><button class="btn btn-primary" id = "cancel-sub">Cancel Subscription</button></p> <% } %>
                                 <p><button type="button" id="back2" class="btn btn-primary">Back</button></p>
                             </div>
                         </div>

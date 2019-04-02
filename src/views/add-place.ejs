@@ -7,6 +7,8 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css" integrity="sha256-7rF6RaSKyh16288E3hVdzQtHyzatA2MQRGu0cf6pqqM=" crossorigin="anonymous" />
     
     <link rel="stylesheet" href="/css/auth.css">
     <style>
@@ -28,12 +30,18 @@
             background-attachment: fixed;
         }
 
-        input.form-control {
+        .form-control, .form-control:focus {
             color: skyblue;
+            font-weight: 500;
+            background: rgba(144, 144, 144, 0.075);
         }
 
         textarea{
             resize: none;
+        }
+
+        label {
+            color: white;
         }
     </style>
     <title>RS Navi - Property List</title> 

@@ -22,9 +22,4 @@ const StudentSchema = new mongoose.Schema({
 5 - deleted
 */
 
-StudentSchema.methods.updatePassword = function(req, res) {
-
-}
-
-
 module.exports = mongoose.model('Student', StudentSchema);
