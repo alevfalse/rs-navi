@@ -5,16 +5,11 @@ const PlaceSchema = new mongoose.Schema({
     name: String,
     type: Number,
     status: { type: Number, default: 0 },
-    address: {
-        lotNumber: String,
-        streetName: String,
-        subdivision: String,
-        barangay: String,
-        city: String,
-        province: String,
-        zipCode: String
-    },
+    added: { type: Date, default: new Date() },
+    lastUpdated: { type: Date, default: null },
+    address: String,
     description: String,
+    coordinates: [Number],
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }]
 })
 

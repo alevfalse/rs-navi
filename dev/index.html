@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css" integrity="sha256-7rF6RaSKyh16288E3hVdzQtHyzatA2MQRGu0cf6pqqM=" crossorigin="anonymous" />
+    
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+        
+        body {
+            background: linear-gradient(
+              rgba(0, 0, 0, 0.7), 
+              rgba(0, 0, 0, 0.7)
+            ), url("./background.jpg");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+        
+        #searchBox {
+            width: 50%;
+            margin: 15px;
+            height: 30px;
+            font-size: 16px;
+            background: rgba(144, 144, 144, 0.1);
+            border: solid 2px rgba(50, 153, 204, 0.50);
+            color: skyblue;
+        }
+        
+        main {
+            height: 100%;
+        }
+        
+        .form-control, .form-control:focus {
+            color: skyblue;
+            background: rgba(144, 144, 144, 0.075);
+            border: solid 1px rgba(144, 144, 144, 0.25);
+        }
+    </style>
+    
+    <title>My Google Map</title>
+  </head>
+  <body>
+    <main class="container">
+        <h1 class="display-4 text-center text-white mt-5">RS Navigation</h1>
+        <section class="row justify-content-center">
+           
+            <div class="col-10 col-lg-5 text-center">
+               
+                <form class="collapse show" id="form">
+                    <input type="text" class="form-control mb-3" name="name" placeholder="Name" id="placeName" required>
+                    <select class="form-control" name="type" id="type" required>
+                        <option value="-1">Select Place Type</option>
+                        <option value="0">Boarding House</option>
+                        <option value="1">Dormitory</option>
+                        <option value="2">Apartment</option>
+                        <option value="3">Condominium</option>
+                    </select>
+                </form>
+                
+                <button type="button" class="btn btn-primary my-3" id="mapToggler">Toggle Map</button>
+            </div>
+            <div class="col-10 text-center">
+                <input type="text" placeholder="Search" id="searchBox">
+                <div id="map" class="collapse show border border-primary"></div>
+            </div>
+        </section>
+    </main>
+    
+    
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <!-- Boostrap Bundle (Bootstrap JS + Popper.js) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
+    <!-- Devbridge's Autocomplete -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.devbridge-autocomplete/1.4.9/jquery.autocomplete.js" integrity="sha256-AU6mjGKtdyPqKOpEqQm/UCFmQ9UqrP1QH0EZVvpoAnQ=" crossorigin="anonymous"></script> 
+    
+    <script>
+        var i = 0;
+        function initMap() {
+            const options = {
+                zoom: 12,
+                minZoom: 10,
+                center: { lat: 14.6091, lng: 121.0223 },
+                disableDefaultUI: true,
+                backgroundColor: 'rgba(0, 0, 0, 0)',
+                draggableCursor: 'url(https://i.imgur.com/WLRVS45.png), auto', // cursor
+                styles: [
+                  {
+                    "elementType": "geometry.fill",
+                    "stylers": [
+                      {
+                        "color": "#1d2c4d"
+                      }
+                    ]
+                  },
+                  {
+                    "elementType": "geometry.stroke",
+                    "stylers": [
+                      {
+                        "color": "#808080"
+                      }
+                    ]
+                  },
+                  {
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                      {
+                        "color": "#8ec3b9"
+                      }
+                    ]
+                  },
+                  {
+                    "elementType": "labels.text.stroke",
+                    "stylers": [
+                      {
+                        "color": "#1a3646"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "administrative.country",
+                    "elementType": "geometry.stroke",
+                    "stylers": [
+                      {
+                        "color": "#4b6878"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "administrative.land_parcel",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                      {
+                        "color": "#64779e"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "administrative.province",
+                    "elementType": "geometry.stroke",
+                    "stylers": [
+                      {
+                        "color": "#4b6878"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "landscape.natural",
+                    "elementType": "geometry",
+                    "stylers": [
+                      {
+                        "color": "#023e58"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "poi",
+                    "elementType": "geometry",
+                    "stylers": [
+                      {
+                        "color": "#283d6a"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "poi",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                      {
+                        "color": "#6f9ba5"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "poi",
+                    "elementType": "labels.text.stroke",
+                    "stylers": [
+                      {
+                        "color": "#1d2c4d"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "poi.park",
+                    "elementType": "geometry.fill",
+                    "stylers": [
+                      {
+                        "color": "#023e58"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "poi.park",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                      {
+                        "color": "#3C7680"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "road",
+                    "elementType": "geometry",
+                    "stylers": [
+                      {
+                        "color": "#304a7d"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "road",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                      {
+                        "color": "#98a5be"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "road",
+                    "elementType": "labels.text.stroke",
+                    "stylers": [
+                      {
+                        "color": "#1d2c4d"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "road.highway",
+                    "elementType": "geometry",
+                    "stylers": [
+                      {
+                        "color": "#2c6675"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "road.highway",
+                    "elementType": "geometry.stroke",
+                    "stylers": [
+                      {
+                        "color": "#255763"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "road.highway",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                      {
+                        "color": "#b0d5ce"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "road.highway",
+                    "elementType": "labels.text.stroke",
+                    "stylers": [
+                      {
+                        "color": "#023e58"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "transit",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                      {
+                        "color": "#98a5be"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "transit",
+                    "elementType": "labels.text.stroke",
+                    "stylers": [
+                      {
+                        "color": "#1d2c4d"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "transit.line",
+                    "elementType": "geometry.fill",
+                    "stylers": [
+                      {
+                        "color": "#283d6a"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "transit.station",
+                    "elementType": "geometry",
+                    "stylers": [
+                      {
+                        "color": "#3a4762"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "water",
+                    "elementType": "geometry",
+                    "stylers": [
+                      {
+                        "color": "#0e1626"
+                      }
+                    ]
+                  },
+                  {
+                    "featureType": "water",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                      {
+                        "color": "#4e6d70"
+                      }
+                    ]
+                  }
+                ]
+            }
+            
+            const map = new google.maps.Map(document.getElementById('map'), options);
+            
+            const input = document.getElementById('searchBox');
+            map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+            
+            let customMarker;
+            
+            map.addListener('click', function(event) {
+                console.log(event);
+                if (event.placeId) { return; }
+                
+                if (customMarker) { customMarker.setMap(null); }
+                
+                const data = {
+                    coordinates: event.latLng,
+                    name: $("#placeName").val(),
+                    type: $("#type").val(),
+                    address: $("#searchBox").val()
+                }
+                
+                if (!data.coordinates || !data.name || data.type == -1) {
+                    alert("Fill out required place details first before pinning it on the map.");
+                    event.stop();
+                    return null;
+                }
+                
+                if (map.getZoom() < 19) {
+                    alert("Zoom in the map or use the search box for a more accurate pin.");
+                    event.stop();
+                    return null;
+                }
+                
+                map.panTo(data.coordinates);
+                map.setZoom(21);
+                customMarker = addMarker(data);
+            });
+            
+            const autocomplete = new google.maps.places.Autocomplete(input, { componentRestrictions: { country: 'ph' }});
+            
+            autocomplete.addListener('place_changed', function() {
+                const place = this.getPlace();
+                console.log(place);
+                
+                map.panTo(place.geometry.location);
+                map.setZoom(19);
+            });
+            
+            
+            function addMarker(data) {
+                
+                const marker = new google.maps.Marker({
+                    position: data.coordinates,
+                    map: map,
+                    icon: 'https://i.imgur.com/0f9XMvH.png'
+                });
+                
+                switch (data.type)
+                {
+                    case "0": data.type = "Boarding House"; break;  
+                    case "1": data.type = "Dormitory"; break;
+                    case "2": data.type = "Apartment"; break; 
+                    case "3": data.type = "Condiminium"; break;
+                    default: data.type = null;
+                }
+                
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `<h4><strong>${data.name}</strong></h4><p>${data.type}</p><p>${data.address}</p>` // sanitize
+                });
+                
+                infoWindow.open(map, marker);
+                marker.addListener('click', function() {
+                    infoWindow.open(map, marker);
+                });
+                return marker;
+            }
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDREAoaQ27rc3JvRN_lyipAak9eT7C3tqQ&libraries=places&callback=initMap"
+    type="text/javascript"></script>
+    
+    <script>
+        $("#mapToggler").click(function() {
+            $("#map").collapse("toggle");
+            $("#form").collapse("toggle");
+        });
+        
+        $("#searchBox").focus(function() {
+            $(this).select();
+        })
+    </script>
+  </body>
+</html>
