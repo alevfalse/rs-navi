@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    <style>
+        #thumbnail:hover {
+            cursor: pointer;
+        }
+
+        body {
+            font-family: 'Roboto Condensed', sans-serif;
+            background: 
+                linear-gradient(
+                rgba(0, 0, 0, 0.7), 
+                rgba(0, 0, 0, 0.7)
+                ),
+                url("images/background.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+    </style>
+    <title>RS Navi - Place Details</title> 
+</head> 
+    <body>
+        <div class="container collapse show" id="profile">
+            <div class="row justify-content-center mt-5">
+                <div class="card bg-transparent">
+                    <div class="text-center">
+                        <div class="image-upload">
+                              <label for="file-input">
+                                    <img class="img-thumbnail" id = "thumbnail" src="images/blank-profile-picture.jpg"alt="photo" style="width:15%" data-toggle="tooltip" data-placement="bottom" title="Change Photo"/>
+                                </label>
+
+                             <input id="file-input" type="file" hidden/>
+                         </div>
+                    <br/>
+                    <h1 class="display-4 text-white">FName LName </h1>
+                    <p class="text-white">email@email.com</p>
+                    <div class= "card-header">
+                        <p><button class="btn btn-primary" id = "edit">Edit Profile</button></p>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+ 
+     <!-- jQuery -->
+     <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+     <!-- Bootstrap JS + Popper.js Bundle -->
+     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
+ <script>
