@@ -10,62 +10,21 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css" integrity="sha256-7rF6RaSKyh16288E3hVdzQtHyzatA2MQRGu0cf6pqqM=" crossorigin="anonymous" />
 
-    <link rel="stylesheet" type="text/css" href="/css/index.css">
+    <link rel="stylesheet" type="text/css" href="/css/profile.css">
     
-    <style>
-        #thumbnail:hover {
-            cursor: pointer;
-        }
-
-        body {
-            font-family: 'Roboto Condensed', sans-serif;
-            background: 
-                linear-gradient(
-                rgba(0, 0, 0, 0.7), 
-                rgba(0, 0, 0, 0.7)
-                ),
-                url("images/background.jpg");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }
-
-        main {
-            height: 100%;
-        }
-        
-    </style>
     <title>RS Navi - Profile Placeowner</title> 
 </head> 
     <body>
 
-        <!-- Navbar -->
-        <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
-            <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
-            <button class="navbar-toggler" data-toggle="collapse" data-target="#navLinks" aria-label="Toggle navigation links">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-    
-            <div class="collapse navbar-collapse" id="navLinks">
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item"><a href="/profile" class="nav-link"><%= user.firstName %> <%= user.lastName %> <i class="fas fa-user"></i></a></li>
-    
-                    <% if (user.account.role === 1) { %>
-                        <li class="nav-item"><a href="/places/add" class="nav-link">Add A Place <i class="fas fa-home"></i> </a></li>
-                    <% } %>
-    
-                    <li class="nav-item"><a href="/auth/logout" class="nav-link">Logout</a></li>
-                </ul>
-            </div>
-        </nav>
+        <!-- Navbar Component -->
+        <% include ../public/components/navbar.ejs %>
 
-        <main>
-            <div class="container collapse show" id="profile">
-                <div class="row justify-content-center mt-5">
-                    <div class="card bg-transparent">
+        <main class="container">
+            <div class="collapse show" id="profile">
+                <div class="row justify-content-center">
+                    <div class="card bg-transparent border border-0">
                         <div class="text-center">
-                            <div class="image-upload">
+                            <div class="image-upload mt-5">
                                 <label for="file-input">
                                         <img class="img-thumbnail mt-3" id="thumbnail" src="/images/blank-profile-picture.jpg"alt="photo" style="width:15%" data-toggle="tooltip" data-placement="bottom" title="Change Photo"/>
                                     </label>
@@ -143,7 +102,6 @@
     <!-- Bootstrap JS + Popper.js Bundle -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
     <script>
-
         $("main").animate({ opacity: 1 }, 1000) // fade-in
 
         $(function () {

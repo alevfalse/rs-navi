@@ -56,7 +56,7 @@ openRouter.get('/search', (req, res, next) => {
 })
 
 openRouter.get('/profile', isAuthenticated, (req, res, next) => {
-    res.render('profile2', { user: req.user, message: req.flash('message') },
+    res.render('profile', { user: req.user, message: req.flash('message') },
     (err, html) => {
         if (err) { return next(err); }
         res.send(html);

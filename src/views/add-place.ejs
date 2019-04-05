@@ -1,158 +1,140 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css" integrity="sha256-7rF6RaSKyh16288E3hVdzQtHyzatA2MQRGu0cf6pqqM=" crossorigin="anonymous" />
-    
-    <link rel="stylesheet" href="/css/auth.css">
-    <style>
-        #thumbnail:hover {
-            cursor: pointer;
-        }
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css"
+        integrity="sha256-7rF6RaSKyh16288E3hVdzQtHyzatA2MQRGu0cf6pqqM=" crossorigin="anonymous" />
 
-        body {
-            font-family: 'Roboto Condensed', sans-serif;
-            background: 
-                linear-gradient(
-                rgba(0, 0, 0, 0.7), 
-                rgba(0, 0, 0, 0.7)
-                ),
-                url("/images/background.jpg");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }
+    <link rel="stylesheet" href="/css/add-place.css" type="text/css">
 
-        .form-control, .form-control:focus {
-            color: skyblue;
-            font-weight: 500;
-            background: rgba(144, 144, 144, 0.075);
-        }
+    <title>My Google Map</title>
+</head>
 
-        textarea{
-            resize: none;
-        }
+<body>
 
-        label {
-            color: white;
-        }
-    </style>
-    <title>RS Navi - Property List</title> 
-</head> 
-    <body>
+    <!-- Navbar Component -->
+    <% include ../public/components/navbar.ejs %>
 
-        <!-- Navbar -->
-        <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
-            <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
-            <button class="navbar-toggler" data-toggle="collapse" data-target="#navLinks" aria-label="Toggle navigation links">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-    
-            <div class="collapse navbar-collapse" id="navLinks">
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item"><a href="/profile" class="nav-link"><%= user.firstName %> <%= user.lastName %> <i class="fas fa-user"></i></a></li>
-                    <li class="nav-item"><a href="/auth/logout" class="nav-link">Logout</a></li>
-                </ul>
-            </div>
-        </nav>
+    <main class="container">
+        <div class="row justify-content-center">
+            <h1 class="display-4 text-center text-white my-5">Add A Place</h1>
+        </div>
+        <section class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-8 col-xl-6 text-center">
 
-        <div class="container">
-            <div class="row justify-content-center mt-5">
-                <h1><font color="white">Your Place Listings</font></h1>
-            </div>
-            
-
-            <form method="POST" action="/places/add" id="addPlace">
-
-                <div class="row">
-                    <div class="col">
-
-                        <!-- Place Name -->
-                        <div class="form-group text-white">
-                                <label for="exampleFormControlInput1"><font color="white">Place Name: </font></label>
-                                <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="placeName" required>
-                        </div>
-                    </div>
-
-                    <!-- Place Type (Top Right)-->
-                    <div class="form-group">
+                <form class="collapse show" id="form">
+                    <div class="form-row mb-3">
                         <div class="col">
-                            <label for="exampleFormControlSelect1"><font color="white">Place Type: </font></label>
-                                <select class="form-control bg-transparent" id="exampleFormControlSelect1" name="type" required>
+                            <input type="text" class="form-control" name="name" placeholder="Place Name" id="name" required>
+                        </div>
+                        <div class="col">
+                            <select class="form-control select_box" name="placeType" id="placeType" required>
+                                <option value="" disabled selected hidden>Place Type</option>
                                 <option value="0">Boarding House</option>
                                 <option value="1">Dormitory</option>
                                 <option value="2">Apartment</option>
                                 <option value="3">Condominium</option>
-                                </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col">
-                      <!-- Place Address -->
-                        <div class="form-group">
-                            <label>Lot Number: </font></label>
-                            <input type="text" class="form-control bg-transparent" placeholder="" name="lotNumber" required>
-                            <label>Street Name: </font></label>
-                            <input type="text" class="form-control bg-transparent" placeholder="" name="streetName" required>
-                            <label>Subdivision: </font></label>
-                            <input type="text" class="form-control bg-transparent" placeholder="" name="subdivision" required>
-                            <label>Barangay: </font></label>
-                            <input type="text" class="form-control bg-transparent" placeholder="" name="barangay" required>
-                            <label>City: </font></label>
-                            <input type="text" class="form-control bg-transparent" placeholder="" name="city" required>
-                            <label>Province: </font></label>
-                            <input type="text" class="form-control bg-transparent" placeholder="" name="province" required>
-                            <label>ZIP Code: </font></label>
-                            <input type="text" class="form-control bg-transparent" placeholder="" name="zipCode" required>
+                            </select>
                         </div>
                     </div>
 
-                    <div class="col">
-                        <!-- Place Info (Add Image)-->
-                        <div class="form-group">
-                            <label for="exampleFormControlTextarea1"><font color="white">Place Information: </font></label>
-                            <textarea class="form-control bg-transparent" id="exampleFormControlTextarea1" rows="3" name="placeInfo" required></textarea>
+                    <div class="form-row mb-3">
+                        <div class="col-2">
+                            <input type="text" class="form-control" name="number" placeholder="No." id="number" required>
                         </div>
-                        <input type="file" class="btn btn-primary mb-2" name="file"> 
+                        <div class="col">
+                            <input type="text" class="form-control" name="street" placeholder="Street" id="street" required>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Place Contact Info -->
-                <div class="form-group">
-                    <label for="exampleFormControlTextarea1"><font color="white">Place Contact Information: </font></label>
-                    <textarea class="form-control bg-transparent" id="exampleFormControlTextarea1" rows="3" name="contactInfo" required></textarea>
-                  </div>
-               
-                <!-- Add Place to Listing -->
-                <button type="submit" class="btn btn-primary mb-5">Add Place Listing</button>
-            </form>
-        </div>
+                    <div class="form-row mb-3">
+                        <div class="col">
+                            <input type="text" class="form-control" name="subdivision" placeholder="Subdivision" id="subdivision" required>
+                        </div>
+                        <div class="col">
+                            <input type="text" class="form-control" name="barangay" placeholder="Barangay" id="barangay" required>
+                        </div>
+                    </div>
 
-        <% include ../public/components/footer.ejs %>
-        <!-- jQuery -->
-            <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
-        <!-- Bootstrap JS + Popper.js Bundle -->
-            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
-        <script>
+                    <div class="form-row mb-3">
+                        <div class="col">
+                            <input type="text" class="form-control" name="city" placeholder="City" id="city" required>
+                        </div>
+                        <div class="col-2">
+                            <input type="text" class="form-control" name="zipCode" placeholder="Zip Code" id="zipCode" required>
+                        </div>
+                        <div class="col">
+                            <input type="text" class="form-control" name="province" placeholder="Province" id="province" required>
+                        </div>
+                    </div>
 
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        })
+                    <div class="form-row mb-3">
+                        <div class="col">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text" id="pesos">₱</div>
+                                </div>
+                                <input type="number" class="form-control" placeholder="Price" name="price" id="price" required>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <select class="form-control select_box" name="listType" id="listType" required>
+                                <option value="0" selected>Rent/Sell</option>
+                                <option value="1">Rent</option>
+                                <option value="2">Sell</option>
+                            </select>
+                        </div>
+                    </div>
 
-        $("#edit, #back").click(function() {
-            $("#profile").collapse("toggle");
-            $("#update").collapse("toggle");
-        })
+                    <div class="form-row mb-3">
+                        <div class="col">
+                            <textarea rows="8" class="form-control" name="description" placeholder="Description" id="description" required></textarea>
+                        </div>
+                        <div></div>
+                    </div>
 
-        </script> 
-    </body>
+                    <button type="submit" class="btn btn-primary mb-3">Add Place</button>
+                </form>
+
+                <button type="button" class="btn btn-dark" id="mapToggler">Pin Onto The Map</button>
+            </div>
+
+            <section class="col-12 col-md-10 text-center mt-3 collapse" data-toggle="tooltip" data-placement="bottom"
+                title="Pin your place on the map" id="mapSection">
+                <input type="text" placeholder="Search" id="searchBox">
+                <div id="map" class="border border-primary"></div>
+            </section>
+
+        </section>
+    </main>
+
+
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.js"
+        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <!-- Boostrap Bundle (Bootstrap JS + Popper.js) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"
+        integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous">
+    </script>
+    <!-- Devbridge's Autocomplete -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.devbridge-autocomplete/1.4.9/jquery.autocomplete.js"
+        integrity="sha256-AU6mjGKtdyPqKOpEqQm/UCFmQ9UqrP1QH0EZVvpoAnQ=" crossorigin="anonymous"></script>
+
+    <!-- Map Configuration -->
+    <script src="/js/add-place.js"></script>
+
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDREAoaQ27rc3JvRN_lyipAak9eT7C3tqQ&libraries=places&callback=initMap"
+        type="text/javascript"></script>
+</body>
+
 </html>

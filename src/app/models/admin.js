@@ -4,12 +4,21 @@ const AdminSchema = new mongoose.Schema({
     firstName: String,
     lastName: String,
     account: {
-        email:    String,
+        email: String,
         password: String,
         passcode: Number,
-        role:         { type: Number, default: 7 },
-        created:      { type: Date, default: new Date() },
-        lastLoggedIn: { type: Date, default: null }
+        role: {
+            type: Number,
+            default: 7
+        },
+        created: {
+            type: Date,
+            default: new Date()
+        },
+        lastLoggedIn: {
+            type: Date,
+            default: null
+        }
     }
 })
 

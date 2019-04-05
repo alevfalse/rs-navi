@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito|Roboto+Condensed');
+
+html, body {
+    height: 100%;
+}
+
+body {
+    font-family: 'Roboto Condensed', sans-serif;
+    background: 
+        linear-gradient(
+        rgba(0, 0, 0, 0.7), 
+        rgba(0, 0, 0, 0.7)
+        ),
+        url("../images/background.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+main {
+    height: 100%;
+}
+
+#thumbnail:hover {
+    cursor: pointer;
+}

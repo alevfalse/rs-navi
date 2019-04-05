@@ -1,10 +1,16 @@
 const mongoose = require('mongoose');
 
 const AuditSchema = new mongoose.Schema({
-    executor: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+    executor: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Admin'
+    },
     target: mongoose.Schema.Types.ObjectId,
     action: Number,
-    date: { type: Date, default: new Date() }
+    date: {
+        type: Date,
+        default: new Date()
+    }
 })
 
 /* action:

@@ -28,16 +28,18 @@ placesRouter.post('/add', isAuthorized, upload.single('file'), (req, res, next) 
 
     const ownerId = req.user.id;
 
-    const placeName   = req.body.placeName;
-    const lotNumber   = req.body.lotNumber;
-    const streetName  = req.body.streetName;
+    const name   = req.body.name;
+    const number   = req.body.number;
+    const street  = req.body.street;
     const subdivision = req.body.subdivision;
     const barangay    = req.body.barangay;
     const city        = req.body.city;
-    const province    = req.body.province;
     const zipCode     = req.body.zipCode;
+    const province    = req.body.province;
 
-    const type        = req.body.type;
+    const placeType   = req.body.placeType;
+    const price       = req.body.price;
+    const listType    = req.body.listType;
     const description = req.body.description;
 
     if (!ownerId || !placeName || !streetName || !subdivision || !barangay 
