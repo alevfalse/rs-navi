@@ -14,7 +14,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="/css/index.css" >
     
-    <title>RS Navi - Home</title>
+    <title>Home - RS Navi</title>
 </head>
 <body>
 
@@ -28,7 +28,7 @@
                 <div class="row justify-content-center">
                     <div class="alert alert-primary alert-dismissible fade show mt-5" role="alert">
                         <%= locals.message %>
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <button type="button" class="close" place-dismiss="alert" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -39,16 +39,17 @@
 
     <!-- Search -->
     <main class="container">
-
-        <div class="row justify-content-center">
+        
+        <section class="row justify-content-center collapse show" id="logoSection">
             <div class="col-5 col-md-4 col-lg-3">
                 <a href="/"><img class="img-fluid" src="/images/logo_no_title.png" id="logo"></a>
             </div>
-        </div>
+        </section>
+
         <form method="GET" action="/search">
-            <div class="row justify-content-center mt-5">
+            <div class="row justify-content-center">
                 <div class="col-10 col-md-8 col-lg-6">
-                    <div class="input-group mb-5">
+                    <div class="input-group mt-5 mb-3">
                         <input type="text" class="form-control" placeholder="Enter school name..." name="schoolName"  id="searchField" required>
                         <div class="input-group-append">
                             <button class="btn btn-primary" type="submit"> <i class="fas fa-search"></i> </button>
@@ -56,7 +57,13 @@
                     </div>
                 </div>
             </div>
-        </form>
+        </form> 
+        
+        <section class="container collapse text-center" id="mapSection">
+            <div id="map"></div>
+        </section>
+        
+
     </main>
 
     <!-- Footer Component -->
@@ -70,15 +77,95 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.devbridge-autocomplete/1.4.9/jquery.autocomplete.js" integrity="sha256-AU6mjGKtdyPqKOpEqQm/UCFmQ9UqrP1QH0EZVvpoAnQ=" crossorigin="anonymous"></script> 
 
     <!-- Custom Script -->
+    <script src="/js/index.js"></script>
     <script>
-        $(document).ready(() => {
-            $('form').attr('autocomplete', 'off');  // disable default autocomplete
-            $("main").animate({ opacity: 1 }, 1000) // fade-in
+
+        let map;
+
+        $("form").submit(function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            $.ajax({
+                url: '/search',
+                data: { schoolName: $("#searchField").val() },
+                success: function(places) {
+
+                    if (!map) return;
+
+                    for (let i=0; i<places.length; i++) {
+                        addMarker(places[i]);
+                    }
+
+                    $("#logoSection, #mapSection").collapse("toggle");
+                }
+            });
         });
 
-        $('#searchField').autocomplete({
-            serviceUrl: '/autocomplete/schools'
-        });
+        function initMap() {
+            const options = {
+                zoom: 11,
+                minZoom: 10,
+                center: {
+                    lat: 14.6091,
+                    lng: 121.0223
+                },
+                disableDefaultUI: true,
+                gestureHandling: 'greedy',
+                backgroundColor: 'rgba(0, 0, 0, 0)'
+            }
+
+            map = new google.maps.Map(document.getElementById('map'), options);
+        }
+
+        function addMarker(place) {
+
+            const marker = new google.maps.Marker({
+                position: { 
+                    lat: place.coordinates[0],
+                    lng: place.coordinates[1]
+                },
+                map: map,
+                icon: 'https://i.imgur.com/0f9XMvH.png'
+            });
+
+            let placeType;
+            switch (place.placeType) {
+                case 0:
+                    placeType = "Boarding House";
+                    break;
+                case 1:
+                    placeType = "Dormitory";
+                    break;
+                case 2:
+                    placeType = "Apartment";
+                    break;
+                case 3:
+                    placeType = "Condiminium";
+                    break;
+                default:
+                    placeType = null;
+            }
+
+            const adr = place.address;
+            const address = `${adr.number} ${adr.street}, ${adr.subdivision}`
+                + `<br>Bgy. ${adr.barangay}, ${adr.city}`
+                + `<br>${adr.zipCode} ${adr.province}`;
+
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<h4><strong>${place.name}</strong></h4><p>₱${place.price} - ${placeType}</p><p>${address}</p>` // sanitize
+            });
+
+            marker.addListener('click', function () {
+                infoWindow.open(map, marker);
+            });
+        }
+        
     </script>
+
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDREAoaQ27rc3JvRN_lyipAak9eT7C3tqQ&libraries=places&callback=initMap"
+type="text/javascript">
+</script>
 </body>
 </html>

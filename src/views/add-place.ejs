@@ -15,7 +15,7 @@
 
     <link rel="stylesheet" href="/css/add-place.css" type="text/css">
 
-    <title>My Google Map</title>
+    <title>Add A Place - RS Navi</title>
 </head>
 
 <body>
@@ -30,7 +30,7 @@
         <section class="row justify-content-center">
             <div class="col-12 col-md-10 col-lg-8 col-xl-6 text-center">
 
-                <form class="collapse show" id="form">
+                <form class="collapse show" id="form" autocomplete="off" method="POST" action="/places/add">
                     <div class="form-row mb-3">
                         <div class="col">
                             <input type="text" class="form-control" name="name" placeholder="Place Name" id="name" required>
@@ -101,6 +101,7 @@
                         <div></div>
                     </div>
 
+                    <input type="text" class="form-control mb-3" name="coordinates" id="coordinates" required>
                     <button type="submit" class="btn btn-primary mb-3">Add Place</button>
                 </form>
 
@@ -134,7 +135,8 @@
 
     <script async defer
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDREAoaQ27rc3JvRN_lyipAak9eT7C3tqQ&libraries=places&callback=initMap"
-        type="text/javascript"></script>
+        type="text/javascript">
+    </script>
 </body>
 
 </html>

@@ -1,5 +1,5 @@
+$('form').attr('autocomplete', 'off');  // disable default autocomplete
 $(document).ready(function() {
-    $('form').attr('autocomplete', 'off');  // disable default autocomplete
     $("main").animate({ opacity: 1 }, 1000) // fade-in
     $(function () {
         $('[data-toggle="tooltip"]').tooltip()
@@ -255,6 +255,8 @@ function initMap() {
             return null;
         }
 
+        $("#coordinates").val(event.latLng.lat() + ", " + event.latLng.lng());
+        
         map.panTo(data.coordinates);
         map.setZoom(21);
         customMarker = addMarker(data);
@@ -273,7 +275,6 @@ function initMap() {
         map.panTo(place.geometry.location);
         map.setZoom(19);
     });
-
 
     function addMarker(data) {
 

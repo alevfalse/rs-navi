@@ -1,6 +1,7 @@
 const openRouter = require('express').Router();
-const request = require('request-promise');
 // const argon2 = require('argon2');
+
+const Place = require('../models/place');
 
 // a middleware to check if a user is logged in
 function isAuthenticated(req, res, next) {
@@ -27,6 +28,8 @@ openRouter.get('/search', (req, res, next) => {
 
     const query = req.query.schoolName;
 
+    console.log(`Query: ${query}`);
+
     if (!query) {
         req.flash('message', 'Please provide a school name.');
         return req.session.save((err) => { 
@@ -42,17 +45,12 @@ openRouter.get('/search', (req, res, next) => {
         });
     }
 
-    const uri = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json`
-    + `?access_token=${process.env.MAPBOX_ACCESS_TOKEN}&autocomplete=true&country=ph`;
-
-    request(uri).then(response => {
-        const data = JSON.parse(response);
-        res.json(data.features); // TODO: update to user friendly format
-    })
-    .catch(err => { 
-        if (err) { return next(err); }
-        res.redirect('/');
+    Place.find((err, places) => {
+        if (err) { res.send(null); }
+        console.log(places);
+        res.send(places);
     });
+
 })
 
 openRouter.get('/profile', isAuthenticated, (req, res, next) => {

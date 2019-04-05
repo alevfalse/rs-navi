@@ -14,7 +14,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="/css/auth.css">
 
-    <title>RS Navi - Login</title>
+    <title>RS Navi</title>
 </head>
 <body>
     <!-- Authentication Navbar -->
@@ -70,7 +70,7 @@
     
                 <form method="POST" action="/auth/login" id="loginForm">
                     <div class="row justify-content-center text-center">
-                        <div class="col-8 col-md-6 col-lg-5 col-xl-4 formFields">
+                        <div class="col-10 col-md-6 col-lg-5 col-xl-4 formFields">
                             <input type="email" class="form-control" placeholder="Email" name="email" id="loginEmail" required>
                             <div class="mb-3"></div>
                             <input type="password" class="form-control mb-3" placeholder="Password" name="password" required>
@@ -90,15 +90,16 @@
             </div>
 
             <div class="collapse row justify-content-center text-center mt-3" id="forgotPasswordForm">
-                <div class="col-8 col-md-6 col-lg-5 col-xl-4">
+                <div class="col-10 col-md-6 col-lg-5 col-xl-4">
                     <form method="POST" action="/auth/forgot">
-                        <div class="formFields">
-                                <input type="email" class="form-control" name="email" placeholder="Email" id="forgotPasswordEmail" required>
-                                <div></div>
-                                <button type="button" class="btn btn-sm btn-info mt-3" id="forgotPasswordRoleButton">Student</button><br>
+                        <div class="formFields input-group mb-3">
+                            <input type="email" class="form-control" name="email" placeholder="Email" id="forgotPasswordEmail" required>
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-sm btn-info" id="forgotPasswordRoleButton">Student</button><br>
+                            </div>
                             <input type="text" value="student" id="forgotPasswordRoleInput" name="role" required hidden>
-                            <button type="submit" class="btn btn-sm btn-primary mt-3 mb-5">Reset Password</button>
                         </div>
+                        <button type="submit" class="btn btn-sm btn-primary mt-3 mb-5">Reset Password</button>
                     </form>
                 </div>
             </div>
@@ -111,7 +112,7 @@
                     <h2 class="display-5 text-white collapse show" id ="signupRoleTitle">Sign up as <%= locals.placeowner ? "Placeowner" : "Student" %></span></h2>
                 </div>
                 <div class="row justify-content-center text-center">
-                    <div class="col-8 col-md-6 col-lg-5 col-xl-4 formFields">
+                    <div class="col-10 col-md-6 col-lg-5 col-xl-4 formFields">
                         <input type="text" class="form-control" placeholder="First Name" name="firstName" required>
                         <div class="mb-3"></div>
                         <input type="text" class="form-control" placeholder="Last Name" name="lastName" required>
@@ -124,7 +125,7 @@
                         <div class="mb-3"></div>
                         <input type="password" class="form-control" placeholder="Confirm Password" name="confirmPassword" id="confirmSignupPassword" required>
                         <div class="mb-3"></div>
-                        <input type="text" name="role" value=<%= locals.placeowner ? "placeowner" : "student" %> id="signupRoleInput" required hidden>
+                        <input type="text" name="role" id="signupRoleInput" required hidden value=<%= locals.placeowner ? "placeowner" : "student" %> >
                         <button type="submit" class="btn btn-sm btn-primary px-4">Signup</button>
                     </div>
                 </div>

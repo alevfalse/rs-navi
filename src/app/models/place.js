@@ -13,7 +13,7 @@ const PlaceSchema = new mongoose.Schema({
         subdivision: String,
         barangay: String,
         city: String,
-        zip: Number,
+        zipCode: Number,
         province: String
     },
     price: Number,

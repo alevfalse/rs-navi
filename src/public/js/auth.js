@@ -256,12 +256,6 @@ $("#forgotPasswordButton").click(function() {
 })
 
 $("#forgotPasswordRoleButton").click(function() {
-
-    const forgotPasswordEmail = $("#forgotPasswordEmail");
-    forgotPasswordEmail.val('');
-    forgotPasswordEmail.removeClass('is-valid is-invalid');
-    forgotPasswordEmail.next().removeClass('invalid-feedback').text('');
-
     const button = $(this);
     const role = $("#forgotPasswordRoleInput");
 
