@@ -85,6 +85,18 @@ function initMap() {
                 }]
             },
             {
+                featureType: "poi",
+                stylers: [{    
+                    visibility: "off"
+                }]   
+            },
+            {
+                featureType: "poi.school",
+                stylers: [{    
+                    visibility: "on"
+                }]   
+            },
+            {
                 "featureType": "poi",
                 "elementType": "geometry",
                 "stylers": [{
