@@ -82,9 +82,9 @@ placesRouter.post('/add', isAuthorized, upload.single('file'), (req, res, next) 
         if (err) { return next(err); }
 
         req.flash('message', `${newPlace.name} has been listed.`);
-        return req.session.save((err) => {
+        req.session.save((err) => {
             if (err) { return next(err); }
-            res.redirect('/profile');
+            res.redirect('/index');
         });
     }); 
 });

@@ -3,6 +3,8 @@ $(document).ready(() => {
     $("main").animate({ opacity: 1 }, 1000) // fade-in
 });
 
+/*
 $('#searchField').autocomplete({
     serviceUrl: '/autocomplete/schools'
 });
+*/
