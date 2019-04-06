@@ -29,6 +29,12 @@
         textarea{
             resize: none;
         }
+
+        input.form-control{
+            color: skyblue;
+        }
+
+        
     </style>
     <title>RS Navi - Property List</title> 
 </head> 
@@ -45,15 +51,13 @@
                     <div class="col">
                         <!-- Place Name -->
                         <div class="form-group">
-                                <label for="exampleFormControlInput1"><font color="white">Place Name: </font></label>
-                                <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="placeName" required>
+                            <input type="text" class="form-control bg-transparent" placeholder="Place Name" name="placeName" required>
                         </div>
                     </div>
                     <!-- Place Type (Top Right)-->
                     <div class="form-group">
                         <div class="col">
-                            <label for="exampleFormControlSelect1"><font color="white">Place Type: </font></label>
-                                <select class="form-control bg-transparent" id="exampleFormControlSelect1" name="type" required>
+                                <select class="form-control bg-transparent" name="type" placeholder="Place Type" required>
                                 <option value="0">Boarding House</option>
                                 <option value="1">Dormitory</option>
                                 <option value="2">Apartment</option>
@@ -66,29 +70,22 @@
                 <div class="row">
                     <div class="col">
                       <!-- Place Address -->
-                        <div class="form-group">
-                            <label for="exampleFormControlInput1"><font color="white">Lot Number: </font></label>
-                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="lotNumber" required>
-                            <label for="exampleFormControlInput1"><font color="white">Street Name: </font></label>
-                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="streetName" required>
-                            <label for="exampleFormControlInput1"><font color="white">Subdivision: </font></label>
-                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="subdivision" required>
-                            <label for="exampleFormControlInput1"><font color="white">Barangay: </font></label>
-                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="barangay" required>
-                            <label for="exampleFormControlInput1"><font color="white">City: </font></label>
-                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="city" required>
-                            <label for="exampleFormControlInput1"><font color="white">Province: </font></label>
-                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="province" required>
-                            <label for="exampleFormControlInput1"><font color="white">ZIP Code: </font></label>
-                            <input type="text" class="form-control bg-transparent" id="exampleFormControlInput1" placeholder="" name="zipCode" required>
+                      <div class="form-group">
+                            <input type="text" class="form-control bg-transparent" name="lotNumber" placeholder="Lot Number" required>
+                            <input type="text" class="form-control bg-transparent" name="streetName" placeholder="Street Name" required>
+                            <input type="text" class="form-control bg-transparent" name="subdivision" placeholder="Subdivision" required>
+                            <input type="text" class="form-control bg-transparent" name="barangay" placeholder="Barangay" required>
+                            <input type="text" class="form-control bg-transparent" name="city" placeholder="City" required>
+                            <input type="text" class="form-control bg-transparent" name="province" placeholder="Province" required>
+                            <input type="text" class="form-control bg-transparent" name="zipCode" placeholder="ZIP Code" required>
                         </div>
                     </div>
 
                     <div class="col">
                         <!-- Place Info (Add Image)-->
                         <div class="form-group">
-                            <label for="exampleFormControlTextarea1"><font color="white">Place Information: </font></label>
-                            <textarea class="form-control bg-transparent" id="exampleFormControlTextarea1" rows="3" name="placeInfo" required></textarea>
+                            <label ><font color="white">Place Information: </font></label>
+                            <textarea class="form-control bg-transparent" rows="3" name="placeInfo" required></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary mb-2">Add Image</button>
                     </div>
@@ -96,8 +93,8 @@
 
                 <!-- Place Contact Info -->
                 <div class="form-group">
-                    <label for="exampleFormControlTextarea1"><font color="white">Place Contact Information: </font></label>
-                    <textarea class="form-control bg-transparent" id="exampleFormControlTextarea1" rows="3" name="contactInfo" required></textarea>
+                    <label><font color="white">Place Contact Information: </font></label>
+                    <textarea class="form-control bg-transparent" rows="3" name="contactInfo" required></textarea>
                   </div>
                
                 <!-- Add Place to Listing -->
