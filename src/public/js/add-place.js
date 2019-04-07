@@ -256,7 +256,7 @@ function initMap() {
         const data = {
             coordinates: event.latLng,
             name: $("#name").val(),
-            price: $("#price").val(),
+            price: $("#price").val() || 0,
             placeType: $("#placeType").val(),
             address: address
         }
@@ -310,11 +310,11 @@ function initMap() {
                 data.placeType = "Condiminium";
                 break;
             default:
-                data.placeType = null;
+                data.placeType = "";
         }
 
         const infoWindow = new google.maps.InfoWindow({
-            content: `<h4><strong>${data.name}</strong></h4><p>₱${data.price} - ${data.placeType}</p><p>${data.address}</p>` // sanitize
+            content: `<h4><strong>${data.name}</strong></h4><p>₱ ${data.price}</p><p>${data.placeType}</p><p>${data.address}</p>` // sanitize
         });
 
         infoWindow.open(map, marker);
