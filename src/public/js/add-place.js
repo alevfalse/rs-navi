@@ -307,10 +307,10 @@ function initMap() {
                 data.placeType = "Apartment";
                 break;
             case "3":
-                data.placeType = "Condiminium";
+                data.placeType = "Condominium";
                 break;
             default:
-                data.placeType = "";
+                data.placeType = "RS Navi Place";
         }
 
         const infoWindow = new google.maps.InfoWindow({

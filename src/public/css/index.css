@@ -60,16 +60,32 @@ main {
 }
 
 #map {
-    height: 500px;
+    height: 700px;
 }
 
 @media (max-width: 600px) {
     #logo {
         margin-top: 100px;
     }
+
+    #map {
+        height: 600px;
+    }
     
     h3 {
         font-size: 1.0rem;
+    }
+}
+
+@media (max-width: 400px) {
+    #map {
+        height: 500px;
+    }
+}
+
+@media (max-height: 600px) {
+    #map {
+        height: 400px;
     }
 }
 

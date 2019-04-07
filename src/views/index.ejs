@@ -63,7 +63,7 @@
         </form> 
         
         <section class="container collapse text-center" id="mapSection">
-            <div id="map"></div>
+            <div id="map" class="border border-primary"></div>
         </section>
         
 
@@ -232,10 +232,10 @@
                     placeType = "Apartment";
                     break;
                 case 3:
-                    placeType = "Condiminium";
+                    placeType = "Condominium";
                     break;
                 default:
-                    placeType = "";
+                    placeType = "RS Navi Place";
             }
 
             const adr = place.address;
