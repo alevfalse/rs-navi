@@ -240,9 +240,12 @@
             }
 
             const adr = place.address;
-            const address = `${adr.number} ${adr.street}, ${adr.subdivision}`
-                + `<br>Bgy. ${adr.barangay}, ${adr.city}`
-                + `<br>${adr.zipCode} ${adr.province}`;
+            
+            let address = `${adr.number} ${adr.street}`
+            if (adr.subdivision) address += `, ${adr.subdivision}`;
+            address += `<br>Bgy. ${adr.barangay}, ${adr.city}<br>`;
+            if (adr.zipCode) address += `${adr.zipCode} `
+            address += `${adr.province}`;
 
             marker.addListener('click', function () {
 
