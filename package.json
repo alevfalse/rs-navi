@@ -1,6 +1,6 @@
 {
   "name": "rs-navi",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "A web application that helps students find a place to live near their school.",
   "main": "src/server.js",
   "scripts": {
