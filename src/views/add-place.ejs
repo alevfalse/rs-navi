@@ -23,6 +23,22 @@
     <!-- Navbar Component -->
     <% include ../public/components/navbar.ejs %>
 
+    <% if (locals.message) { 
+        if (message.length > 0) { %>
+            <!-- Alert Message From Server -->
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="alert alert-primary alert-dismissible fade show mt-5" role="alert">
+                        <%= locals.message %>
+                        <button type="button" class="close" place-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+    <% } %>
+
     <main class="container">
         <div class="row justify-content-center">
             <h1 class="display-4 text-center text-white my-5">Add A Place</h1>
@@ -69,7 +85,7 @@
                             <input type="text" class="form-control" name="city" placeholder="City" id="city" required>
                         </div>
                         <div class="col-2">
-                            <input type="text" class="form-control" name="zipCode" placeholder="Zip Code" id="zipCode" required>
+                            <input type="text" class="form-control" name="zipCode" placeholder="Zip Code" id="zipCode">
                         </div>
                         <div class="col">
                             <input type="text" class="form-control" name="province" placeholder="Province" id="province" required>

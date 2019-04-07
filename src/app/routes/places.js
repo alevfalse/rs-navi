@@ -45,8 +45,8 @@ placesRouter.post('/add', isAuthorized, upload.single('file'), (req, res, next) 
     const description = req.body.description;
     const coordinates = req.body.coordinates.split(',');
 
-    if (!ownerId || !name || !placeType || !number || !street || !subdivision || !barangay 
-        || !city || !zipCode || !province || !price || !listType || !description || !coordinates)
+    if (!ownerId || !name || !placeType || !number || !street || !barangay 
+        || !city || !province || !price || !listType || !description || !coordinates)
     {
         req.flash('message', 'Missing required input field(s).');
         return req.session.save((err) => {
