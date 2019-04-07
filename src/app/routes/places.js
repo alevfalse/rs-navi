@@ -14,7 +14,7 @@ function isAuthorized(req, res, next) {
 
 // GET rsnavigation.com/places/add
 placesRouter.get('/add', isAuthorized, (req, res, next) => {
-    return res.render('add-place', { user: req.user }, 
+    return res.render('add-place', { user: req.user, message: req.flash('message') }, 
     (err, html) => {
         if (err) { return next (err); }
         res.send(html);
