@@ -30,6 +30,7 @@ const validateRouter = require('./app/routes/validate');
 const autocompleteRouter = require('./app/routes/autocomplete');
 const placesRouter = require('./app/routes/places');
 const adminRouter = require('./app/routes/admin');
+const newsletteRouter = require('./app/routes/newsletter');
 const rootRouter = require('./app/routes/root');
 
 // APPLICATION ===========================================================================
@@ -78,6 +79,7 @@ app.use('/places', placesRouter);
 app.use('/admin', adminRouter);
 app.use('/validate', validateRouter);
 app.use('/autocomplete', autocompleteRouter);
+app.use('/newsletter', newsletteRouter);
 app.use('/', rootRouter);
 
 // ERROR HANDLERS ======================================================
