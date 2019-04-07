@@ -49,14 +49,14 @@
             </div>
         </section>
 
-        <form method="GET" action="/search">
+        <form>
             <div class="row justify-content-center">
                 <div class="col-10 col-md-8 col-lg-6">
                     <div class="input-group mt-5 mb-3">
                         <input type="text" class="form-control" placeholder="Enter school name..." name="schoolName"  id="searchField" required>
                         <div class="input-group-append">
-                            <button class="btn btn-primary" type="submit"> <i class="fas fa-search"></i> </button>
-                        </div>
+                            <span class="btn btn-primary"> <i class="fas fa-search"></i> </button>
+                       </div>    
                     </div>
                 </div>
             </div>
@@ -83,9 +83,7 @@
     <script src="/js/index.js"></script>
     <script>
 
-        let map;
-        let searchMarker;
-
+        /*
         $("form").submit(function(event) {
             event.preventDefault();
             event.stopPropagation();
@@ -94,6 +92,8 @@
                 url: '/search',
                 data: { schoolName: $("#searchField").val() },
                 success: function(places) {
+
+                    console.log(places);
 
                     if (!map) return;
 
@@ -107,6 +107,22 @@
                 }
             });
         });
+        */
+       
+        let map;
+        let mapStyles;
+        let searchMarker;
+        let directionsService;
+        let directionsRenderer;
+        let distanceMatrixService;
+        let ginfoWindow;
+
+        function loapMapStyles() {
+            $.getJSON("/js/mapStyles.json", function(data) {
+                mapStyles = data;
+                initMap();
+            });
+        }
 
         function initMap() {
             const options = {
@@ -119,201 +135,24 @@
                 disableDefaultUI: true,
                 gestureHandling: 'greedy',
                 backgroundColor: 'rgba(0, 0, 0, 0)',
-                styles: [
-                    {
-                    "elementType": "geometry.fill",
-                    "stylers": [{
-                        "color": "#1d2c4d"
-                        }]
-                    },
-                    {
-                        "elementType": "geometry.stroke",
-                        "stylers": [{
-                            "color": "#808080"
-                        }]
-                    },
-                    {
-                        "elementType": "labels.text.fill",
-                        "stylers": [{
-                            "color": "#8ec3b9"
-                        }]
-                    },
-                    {
-                        "elementType": "labels.text.stroke",
-                        "stylers": [{
-                            "color": "#1a3646"
-                        }]
-                    },
-                    {
-                        "featureType": "administrative.country",
-                        "elementType": "geometry.stroke",
-                        "stylers": [{
-                            "color": "#4b6878"
-                        }]
-                    },
-                    {
-                        "featureType": "administrative.land_parcel",
-                        "elementType": "labels.text.fill",
-                        "stylers": [{
-                            "color": "#64779e"
-                        }]
-                    },
-                    {
-                        "featureType": "administrative.province",
-                        "elementType": "geometry.stroke",
-                        "stylers": [{
-                            "color": "#4b6878"
-                        }]
-                    },
-                    {
-                        "featureType": "landscape.natural",
-                        "elementType": "geometry",
-                        "stylers": [{
-                            "color": "#023e58"
-                        }]
-                    },
-                    {
-                        featureType: "poi",
-                        stylers: [{    
-                            visibility: "off"
-                        }]   
-                    },
-                    {
-                        featureType: "poi.school",
-                        stylers: [{    
-                            visibility: "on"
-                        }]   
-                    },
-                    {
-                        "featureType": "poi",
-                        "elementType": "geometry",
-                        "stylers": [{
-                            "color": "#283d6a"
-                        }]
-                    },
-                    {
-                        "featureType": "poi",
-                        "elementType": "labels.text.fill",
-                        "stylers": [{
-                            "color": "#6f9ba5"
-                        }]
-                    },
-                    {
-                        "featureType": "poi",
-                        "elementType": "labels.text.stroke",
-                        "stylers": [{
-                            "color": "#1d2c4d"
-                        }]
-                    },
-                    {
-                        "featureType": "poi.park",
-                        "elementType": "geometry.fill",
-                        "stylers": [{
-                            "color": "#023e58"
-                        }]
-                    },
-                    {
-                        "featureType": "poi.park",
-                        "elementType": "labels.text.fill",
-                        "stylers": [{
-                            "color": "#3C7680"
-                        }]
-                    },
-                    {
-                        "featureType": "road",
-                        "elementType": "geometry",
-                        "stylers": [{
-                            "color": "#304a7d"
-                        }]
-                    },
-                    {
-                        "featureType": "road",
-                        "elementType": "labels.text.fill",
-                        "stylers": [{
-                            "color": "#98a5be"
-                        }]
-                    },
-                    {
-                        "featureType": "road",
-                        "elementType": "labels.text.stroke",
-                        "stylers": [{
-                            "color": "#1d2c4d"
-                        }]
-                    },
-                    {
-                        "featureType": "road.highway",
-                        "elementType": "geometry",
-                        "stylers": [{
-                            "color": "#2c6675"
-                        }]
-                    },
-                    {
-                        "featureType": "road.highway",
-                        "elementType": "geometry.stroke",
-                        "stylers": [{
-                            "color": "#255763"
-                        }]
-                    },
-                    {
-                        "featureType": "road.highway",
-                        "elementType": "labels.text.fill",
-                        "stylers": [{
-                            "color": "#b0d5ce"
-                        }]
-                    },
-                    {
-                        "featureType": "road.highway",
-                        "elementType": "labels.text.stroke",
-                        "stylers": [{
-                            "color": "#023e58"
-                        }]
-                    },
-                    {
-                        "featureType": "transit",
-                        "elementType": "labels.text.fill",
-                        "stylers": [{
-                            "color": "#98a5be"
-                        }]
-                    },
-                    {
-                        "featureType": "transit",
-                        "elementType": "labels.text.stroke",
-                        "stylers": [{
-                            "color": "#1d2c4d"
-                        }]
-                    },
-                    {
-                        "featureType": "transit.line",
-                        "elementType": "geometry.fill",
-                        "stylers": [{
-                            "color": "#283d6a"
-                        }]
-                    },
-                    {
-                        "featureType": "transit.station",
-                        "elementType": "geometry",
-                        "stylers": [{
-                            "color": "#3a4762"
-                        }]
-                    },
-                    {
-                        "featureType": "water",
-                        "elementType": "geometry",
-                        "stylers": [{
-                            "color": "#0e1626"
-                        }]
-                    },
-                    {
-                        "featureType": "water",
-                        "elementType": "labels.text.fill",
-                        "stylers": [{
-                            "color": "#4e6d70"
-                        }]
-                    }
-                ]
+                styles: mapStyles
             }
 
+            console.log(options.styles);
+
             map = new google.maps.Map(document.getElementById('map'), options);
+
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                suppressMarkers: true,
+                polylineOptions: {
+                    strokeColor: 'red'
+                }
+            });
+
+            distanceMatrixService = new google.maps.DistanceMatrixService();
+
+            ginfoWindow = new google.maps.InfoWindow();
 
             const input = document.getElementById('searchField');
 
@@ -325,6 +164,8 @@
 
             autocomplete.addListener('place_changed', function () {
 
+                ginfoWindow.close();
+                directionsRenderer.setMap(null);
                 const place = this.getPlace();
 
                 $.ajax({
@@ -350,7 +191,7 @@
                         });
 
                         const infoWindow = new google.maps.InfoWindow({
-                            content: `<p>${place.name}</p>` // sanitize
+                            content: `<p><strong>${place.name}</strong></p>` // sanitize
                         });
 
                         infoWindow.open(map, searchMarker);
@@ -402,21 +243,66 @@
                 + `<br>Bgy. ${adr.barangay}, ${adr.city}`
                 + `<br>${adr.zipCode} ${adr.province}`;
 
-            const infoWindow = new google.maps.InfoWindow({
-                content: `<h4><strong>${place.name}</strong></h4><p>${placeType}</p><p>₱${place.price}</p><p>${address}</p>` // TODO: sanitize?
-            });
-
             marker.addListener('click', function () {
-                infoWindow.open(map, marker);
-                map.panTo(marker.position);
-                map.setZoom(20);
+
+                ginfoWindow.close();
+                
+                if (!marker.infoWindow) { 
+                    marker.infoWindow = new google.maps.InfoWindow();
+                } else {
+                    ginfoWindow = marker.infoWindow;
+                    ginfoWindow.open(map, marker);
+                    directionsRenderer.setMap(map);
+                    return directionsRenderer.setDirections(marker.directionsResult);
+                }
+
+                directionsService.route({
+                    origin: marker.position,
+                    destination: searchMarker.position,
+                    travelMode: 'WALKING'
+
+                }, function(result, status) {
+                    console.log(status);
+                    if (status !== 'OK') {
+                        return alert('Directions Service request failed.');
+                    }
+
+                    marker.directionsResult = result;
+                    directionsRenderer.setMap(map);
+                    directionsRenderer.setDirections(result);
+                });
+
+                distanceMatrixService.getDistanceMatrix({
+                    origins: [marker.position],
+                    destinations: [searchMarker.position],
+                    travelMode: 'WALKING'
+
+                }, function(response, status) {
+
+                    console.log(status);
+
+                    if (status !== 'OK') { return alert('Failed to retrieve distance.'); }
+
+                    const rows = response.rows;
+
+                    for (let element of rows[0].elements) {
+                        if (element.status !== 'OK') { return alert('Failed to retrieve distance 2.'); }
+
+                        marker.infoWindow.setContent(
+                            `<h5>${place.name}</strong></h5><p>${placeType}</p><p>₱ ${place.price.toLocaleString('en')}</p><p>${address}</p>` +
+                            `<p>Distance: ${element.distance.text} (${element.duration.text} Walk)</p>`
+                        )
+                    }
+                    ginfoWindow = marker.infoWindow;
+                    ginfoWindow.open(map, marker);
+                })
             });
         }
         
     </script>
 
 <script async defer
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDREAoaQ27rc3JvRN_lyipAak9eT7C3tqQ&libraries=places&callback=initMap"
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDREAoaQ27rc3JvRN_lyipAak9eT7C3tqQ&libraries=places&callback=loapMapStyles"
 type="text/javascript">
 </script>
 </body>
