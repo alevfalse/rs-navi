@@ -146,7 +146,7 @@
             directionsRenderer = new google.maps.DirectionsRenderer({
                 suppressMarkers: true,
                 polylineOptions: {
-                    strokeColor: 'red'
+                    strokeColor: 'skyblue'
                 }
             });
 
@@ -188,7 +188,7 @@
                         searchMarker = new google.maps.Marker({
                             position: place.geometry.location,
                             map: map,
-                            icon: 'https://i.imgur.com/RFgtRMN.png'
+                            icon: 'https://i.imgur.com/vTsgRCa.png'
                         });
 
                         const infoWindow = new google.maps.InfoWindow({
@@ -294,6 +294,7 @@
                             `<p>Distance: ${element.distance.text} (${element.duration.text} Walk)</p>`
                         )
                     }
+
                     ginfoWindow = marker.infoWindow;
                     ginfoWindow.open(map, marker);
                 })
