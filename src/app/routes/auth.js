@@ -144,7 +144,7 @@ authRouter.get('/logout', (req, res) => {
     // redirect to auth page regardless if client is logged in or not
     req.session.save((err) => {
         if (err) { return next(err); }
-        res.redirect('/auth');
+        res.redirect('/');
     });
 })
 
