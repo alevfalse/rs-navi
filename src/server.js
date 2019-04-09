@@ -99,18 +99,23 @@ app.use(require('./bin/error-handler'));
 console.log('Application configured.');
 
 connection.once('connected', () => {
+
+    console.log(`Application successfully connected to ${mode} database.`);
+
     if (mode === 'prod') {
+
         const sslOptions = {
             key: fs.readFileSync('/etc/letsencrypt/live/rsnavigation.com/privkey.pem'),
             cert: fs.readFileSync('/etc/letsencrypt/live/rsnavigation.com/fullchain.pem')
         };
 
         https.createServer(sslOptions, app).listen(port, () => {
-            console.log(`RS Navi is now live with SSL certificate!.`);
-        })
+            console.log(sslOptions.key);
+            console.log(sslOptions.cert);
+            console.log(`RS Navi is now live with SSL certificate!`);
+        });
 
     } else {
-        console.log(`Application successfully connected to ${mode} database.`);
         app.listen(port, () => {
             console.log(`Application is now listening to port ${port}.`);
         });
