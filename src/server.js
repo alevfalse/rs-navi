@@ -17,6 +17,7 @@ const bodyParser = require('body-parser');
 const mongoose   = require('mongoose');
 const MongoStore = require('connect-mongo')(session);
 const morgan     = require('morgan');
+const https      = require('https');
 
 // AUTHENTHICATION =======================================================================
 const passport   = require('./config/passport');
@@ -98,8 +99,20 @@ app.use(require('./bin/error-handler'));
 console.log('Application configured.');
 
 connection.once('connected', () => {
-    console.log(`Application successfully connected to ${mode} database.`);
-    app.listen(port, () => {
-        console.log(`${mode === 'prod' ? 'rsnavigation.com is now live and' : 'RS Navi (Dev) is now'} listening to port ${port}!`);
-    });
-})
+    if (mode === 'prod') {
+        const sslOptions = {
+            key: fs.readFileSync('/etc/letsencrypt/live/rsnavigation.com/privkey.pem'),
+            cert: fs.readFileSync('/etc/letsencrypt/live/rsnavigation.com/fullchain.pem')
+        };
+
+        https.createServer(sslOptions, app).listen(port, () => {
+            console.log(`RS Navi is now live with SSL certificate!.`);
+        })
+
+    } else {
+        console.log(`Application successfully connected to ${mode} database.`);
+        app.listen(port, () => {
+            console.log(`Application is now listening to port ${port}.`);
+        });
+    }
+});
