@@ -60,19 +60,19 @@ app.set('view engine', 'ejs'); // templating engine for rendering pages
 app.set('views', __dirname + '/views'); // folder containing the pages to be rendered
 
 // session
-const cookie = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 3 days
+const cookieOptions = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 3 days
 
 // set cookie's domain to the main domain at production
 if (mode === 'prod') {
-    cookie.domain = '.rsnavigation.com';
-    console.log(`Cookie domain set to: ${cookie.domain}`);
-    cookie.secure = true
+    cookieOptions.domain = '.rsnavigation.com';
+    console.log(`Cookie domain set to: ${cookieOptions.domain}`);
+    cookieOptions.secure = true
     console.log(`Cookie set to HTTPS only.`);
 }
 
 app.use(session({
     secret: process.env.SESSION_SECRET,
-    cookie: cookie,
+    cookie: cookieOptions,
     saveUninitialized: true, // save the session immediately even if not modified
     resave: true, // resave the session in every request
     store: new MongoStore({ mongooseConnection: mongoose.connection })
@@ -110,8 +110,6 @@ connection.once('connected', () => {
         };
 
         https.createServer(sslOptions, app).listen(port, () => {
-            console.log(sslOptions.key);
-            console.log(sslOptions.cert);
             console.log(`RS Navi is now live with SSL certificate!`);
         });
 
