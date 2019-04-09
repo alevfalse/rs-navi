@@ -11,7 +11,8 @@ const StudentSchema = new mongoose.Schema({
         status:   { type: Number, default: 0 },
         role:     { type: Number, default: 0 },
         created:  { type: Date, default: new Date() },
-        lastLoggedIn: { type: Date, default: null }
+        lastLoggedIn: { type: Date, default: null },
+        profileImage: { type: String, default: null }
     }
 })
 /* account status:    account roles

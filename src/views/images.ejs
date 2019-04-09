@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css" integrity="sha256-7rF6RaSKyh16288E3hVdzQtHyzatA2MQRGu0cf6pqqM=" crossorigin="anonymous" />
+
+    <style>
+        img {
+            width: 100%;
+        }
+    </style>
+    <title>Files</title>
+</head>
+<body>
+
+    <% if (locals.message) { 
+        if (message.length > 0) { %>
+            <!-- Alert Message From Server -->
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="alert alert-primary alert-dismissible fade show mt-5" role="alert">
+                        <%= locals.message %>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+    <% } %>
+
+    <div class="container">
+        
+        <div class="row">
+            <div class="col-md-6 m-auto">
+            <h1 class="text-center display-4 my-5">File Uploads</h1>
+            <form action="/images" method="POST" enctype="multipart/form-data">
+                <div class="custom-file mb-3">
+                <input type="file" name="file" id="file" class="custom-file-input" onchange="previewImages()" required multiple>
+                <label for="file" class="custom-file-label" id="labelForFile">Choose File</label>
+                </div>
+                <input type="submit" value="Upload" class="btn btn-primary btn-block">
+            </form>
+
+            <hr>
+
+            <% if(locals.files){ %>
+                <% files.forEach(function(file) { %>
+                    <div class="card mb-3 border text-center border-primary">
+                        <% if(file.isImage) { %>
+                            <a href="/images/<%= file.filename %>">
+                                <img class="card-img-top" src="/images/<%= file.filename %>" alt="Missing <%= file.filename %>">
+                            </a>
+                            <div class="card-body">
+                                <%= file.filename %>
+                            </div>
+                        <% } else { %>
+                            <div class="card-body">
+                                <a href="/images/<%= file.filename %>"><%= file.filename %></a>
+                            </div>
+                        <% } %>
+                        <form method="POST" action="/images/<%= file._id %>?_method=DELETE">
+                        <button class="btn btn-danger btn-block">Delete</button>
+                        </form>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <p>No files to show</p>
+            <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <!-- Boostrap Bundle (Bootstrap JS + Popper.js) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
+
+    <script>
+        function previewImages() {
+            console.log($("#file").get(0).files)
+            const files = Array.from($("#file").get(0).files);
+            const height = files.length * 30;
+            const text = files.reduce((str, file, index) => {
+                return str + file.name + (index != files.length-1 ? ', ' : '');
+            }, '');
+            $("#labelForFile").text(text).css('height', `auto`);
+        }
+    </script>
+</body>
+</html>

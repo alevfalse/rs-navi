@@ -2,28 +2,25 @@ console.log('Configuring application...');
 
 // ENVIRONMENT VARIABLES
 require('dotenv').config();
-if (!require('./check.env')()) { process.exit(1); }
+if (!require('./bin/env-checker')()) { process.exit(1); }
 const port = process.env.PORT || 5000;
 const mode = process.env.MODE;
 
 // REQUIRED MODULES ======================================================================
 const path       = require('path');
-const rfs        = require('rotating-file-stream');
 const fs         = require('fs');
 const express    = require('express');
+const https      = require('https');
 const session    = require('express-session');
 const flash      = require('connect-flash');
 const bodyParser = require('body-parser');
 const mongoose   = require('mongoose');
 const MongoStore = require('connect-mongo')(session);
 const morgan     = require('morgan');
-const https      = require('https');
+const override = require('method-override');
 
 // AUTHENTHICATION =======================================================================
 const passport   = require('./config/passport');
-
-// DATABASE CONNECTION ===================================================================
-const connection = require('./config/connection');
 
 // ROUTERS ===============================================================================
 const authRouter = require('./app/routes/auth');
@@ -32,6 +29,7 @@ const autocompleteRouter = require('./app/routes/autocomplete');
 const placesRouter = require('./app/routes/places');
 const adminRouter = require('./app/routes/admin');
 const newsletteRouter = require('./app/routes/newsletter');
+const imagesRouter = require('./app/routes/images');
 const rootRouter = require('./app/routes/root');
 
 // APPLICATION ===========================================================================
@@ -55,6 +53,8 @@ app.use(morgan('common', { stream: fs.createWriteStream(path.join(logDirectory, 
 // for parsing request body
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+app.use(override('_method')); 
 
 app.set('view engine', 'ejs'); // templating engine for rendering pages
 app.set('views', __dirname + '/views'); // folder containing the pages to be rendered
@@ -86,6 +86,7 @@ app.use(flash()); // for flashing messages between requests
 app.use('/auth', authRouter);
 app.use('/places', placesRouter);
 app.use('/admin', adminRouter);
+app.use('/images', imagesRouter);
 app.use('/validate', validateRouter);
 app.use('/autocomplete', autocompleteRouter);
 app.use('/newsletter', newsletteRouter);
@@ -97,6 +98,9 @@ app.use(require('./bin/404-handler'));
 app.use(require('./bin/error-handler'));
 
 console.log('Application configured.');
+
+// DATABASE CONNECTION ===================================================================
+const connection = require('./config/connection');
 
 connection.once('connected', () => {
 

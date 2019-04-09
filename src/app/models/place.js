@@ -20,6 +20,7 @@ const PlaceSchema = new mongoose.Schema({
     listType: Number,
     description: String,
     coordinates: [Number],
+    images: [String],
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }]
 })
 

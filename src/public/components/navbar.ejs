@@ -27,6 +27,9 @@
 
             <% } %>
 
+            <% if (process.env.MODE === 'dev' || process.env.MODE === 'local') { %>
+                <li class="nav-item"><a href="/images" class="nav-link">Images (Dev)</a></li>
+            <% } %>
         </ul>
     </div>
     

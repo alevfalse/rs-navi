@@ -1,8 +1,8 @@
 const placesRouter = require('express').Router();
-const upload = require('../../config/upload');
-
+const upload = require('../../config/grid-fs-storage');
 const Place = require('../models/place');
 
+// Middleware Functions
 function isAuthorized(req, res, next) {
     if (req.isAuthenticated() && req.user.account.role == 1) {
         console.log('Authenticated! ' + req.url);
@@ -24,13 +24,11 @@ placesRouter.get('/add', isAuthorized, (req, res, next) => {
 // POST rsnavigation.com/places/add
 placesRouter.post('/add', isAuthorized, upload.single('file'), (req, res, next) => {
 
-    console.log(req.body);
-
-    const ownerId = req.user.id;
-
+    const ownerId     = req.user.id;
     const name        = req.body.name;
     const placeType   = req.body.placeType;
 
+    // address
     const number      = req.body.number;
     const street      = req.body.street;
     const subdivision = req.body.subdivision;
@@ -41,7 +39,6 @@ placesRouter.post('/add', isAuthorized, upload.single('file'), (req, res, next) 
 
     const price       = req.body.price;
     const listType    = req.body.listType;
-
     const description = req.body.description;
     const coordinates = req.body.coordinates.split(',');
 
