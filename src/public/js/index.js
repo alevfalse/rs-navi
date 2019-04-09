@@ -32,8 +32,6 @@ function initMap() {
         styles: mapStyles
     }
 
-    console.log(options.styles);
-
     map = new google.maps.Map(document.getElementById('map'), options);
 
     directionsService = new google.maps.DirectionsService();
@@ -160,7 +158,6 @@ function addMarker(place) {
             travelMode: 'WALKING'
 
         }, function(result, status) {
-            console.log(status);
             if (status !== 'OK') {
                 return alert('Directions Service request failed.');
             }
@@ -176,9 +173,6 @@ function addMarker(place) {
             travelMode: 'WALKING'
 
         }, function(response, status) {
-
-            console.log(status);
-
             if (status !== 'OK') { return alert('Failed to retrieve distance.'); }
 
             const rows = response.rows;
