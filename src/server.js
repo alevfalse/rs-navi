@@ -60,7 +60,15 @@ app.set('views', __dirname + '/views'); // folder containing the pages to be ren
 
 // session
 const cookie = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 3 days
-if (mode === 'prod') cookie.domain = '.rsnavigation.com'; // set cookie's domain to the main domain at production
+
+// set cookie's domain to the main domain at production
+if (mode === 'prod') {
+    cookie.domain = '.rsnavigation.com';
+    console.log(`Cookie domain set to: ${cookie.domain}`);
+    cookie.secure = true
+    console.log(`Cookie set to HTTPS only.`);
+}
+
 app.use(session({
     secret: process.env.SESSION_SECRET,
     cookie: cookie,
@@ -82,41 +90,10 @@ app.use('/autocomplete', autocompleteRouter);
 app.use('/newsletter', newsletteRouter);
 app.use('/', rootRouter);
 
-// ERROR HANDLERS ======================================================
-app.use((req, res, next) => {
-    const err = new Error('Not Found');
-    err.status = 404;
-    next(err);
-});
-
-// This is invoked when next is called with an error
-app.use((err, req, res, next) => {
-    res.status(err.status || 500);
-    let title, message;
-
-    console.log('ERROR: ' + res.statusCode);
-
-    switch (res.statusCode)
-    {
-        case 401: {
-            title = '401 Unauthorized';
-            message = 'Not for your eyes.';
-        } break;
-
-        case 404: {
-            title = '404 Not Found';
-            message = 'Sorry, we could\'t find the page you are looking for.';
-        } break;
-
-        default: { // status 500
-            console.error(err); // TODO: Write server errors to a log file
-            title = '500 Internal Server Error T_T';
-            message = 'Something went wrong. Our lazy devs are onto it.';
-        }
-    }
-
-    res.render('error', { title: title, message: message });
-});
+// This is called when no route was able handle the request
+app.use(require('./bin/404-handler'));
+// This is called when next is called with an error
+app.use(require('./bin/error-handler'));
 
 console.log('Application configured.');
 
