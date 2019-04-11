@@ -47,7 +47,6 @@ openRouter.get('/search', (req, res, next) => {
 
     Place.find((err, places) => {
         if (err) { res.send(null); }
-        console.log(places);
         res.send(places);
     });
 
