@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
+const generate = require('nanoid/generate');
+const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 const StudentSchema = new mongoose.Schema({
+    _id: { type: String, default: () => generate(alpha, 8) },
     firstName: String,
     lastName: String,
     schoolName: String,
@@ -12,9 +15,10 @@ const StudentSchema = new mongoose.Schema({
         role:     { type: Number, default: 0 },
         created:  { type: Date, default: new Date() },
         lastLoggedIn: { type: Date, default: null },
-        profileImage: { type: String, default: null }
+        profileImage: { type: String, ref: 'Image' }
     }
 })
+
 /* account status:    account roles
 0 - unverified        0 - Student
 1 - verified          1 - Placeowner
