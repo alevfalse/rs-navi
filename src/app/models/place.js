@@ -1,11 +1,14 @@
 const mongoose = require('mongoose');
+const generate = require('nanoid/generate');
+const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 const PlaceSchema = new mongoose.Schema({
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'Placeowner' },
+    _id: { type: String, default: () => generate(alpha, 8) },
+    owner: { type: String, ref: 'Placeowner' },
     name: String,
     placeType: Number,
     status: { type: Number, default: 0 },
-    added: { type: Date, default: new Date() },
+    created: { type: Date, default: new Date() },
     lastUpdated: { type: Date, default: null },
     address: {
         number: String,
@@ -19,9 +22,12 @@ const PlaceSchema = new mongoose.Schema({
     price: Number,
     listType: Number,
     description: String,
-    coordinates: [Number],
-    images: [String],
-    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }]
+    coordinates: {
+        lat: Number,
+        lng: Number
+    },
+    images: [{ type: String, ref: 'Image' }],
+    reviews: [{ type: String, ref: 'Review' }]
 })
 
 /* status:      /* types:
