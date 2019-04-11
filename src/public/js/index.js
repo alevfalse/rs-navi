@@ -11,7 +11,7 @@ let directionsRenderer;
 let distanceMatrixService;
 let ginfoWindow;
 
-function loapMapStyles() {
+function loadMapStyles() {
     $.getJSON("/js/mapStyles.json", function(data) {
         mapStyles = data;
         initMap();
@@ -37,21 +37,14 @@ function initMap() {
     directionsService = new google.maps.DirectionsService();
     directionsRenderer = new google.maps.DirectionsRenderer({
         suppressMarkers: true,
-        polylineOptions: {
-            strokeColor: 'skyblue'
-        }
+        polylineOptions: { strokeColor: 'skyblue' }
     });
 
     distanceMatrixService = new google.maps.DistanceMatrixService();
-
     ginfoWindow = new google.maps.InfoWindow();
-
     const input = document.getElementById('searchField');
-
     const autocomplete = new google.maps.places.Autocomplete(input, { 
-        componentRestrictions: { 
-            country: 'ph' 
-        } 
+        componentRestrictions: { country: 'ph' } 
     });
 
     autocomplete.addListener('place_changed', function () {
@@ -65,8 +58,9 @@ function initMap() {
             data: { schoolName: $("#searchField").val() },
             success: function(places) {
 
-                if (!map) return;
+                if (!map) { return; }
 
+                // add a marker for each place given by the server
                 for (let i=0; i<places.length; i++) {
                     addMarker(places[i]);
                 }
@@ -88,13 +82,11 @@ function initMap() {
                 });
 
                 infoWindow.open(map, searchMarker);
-
                 searchMarker.addListener('click', function () {
                     map.panTo(searchMarker.position);
                     map.setZoom(18);
                     infoWindow.open(map, searchMarker);
                 });
-
                 map.panTo(place.geometry.location);
                 map.setZoom(18);
             }
@@ -105,37 +97,26 @@ function initMap() {
 function addMarker(place) {
 
     const marker = new google.maps.Marker({
-        position: { 
-            lat: place.coordinates[0],
-            lng: place.coordinates[1]
-        },
+        position: place.coordinates,
         map: map,
         icon: 'https://i.imgur.com/0f9XMvH.png'
     });
 
     let placeType;
     switch (place.placeType) {
-        case 0:
-            placeType = "Boarding House";
-            break;
-        case 1:
-            placeType = "Dormitory";
-            break;
-        case 2:
-            placeType = "Apartment";
-            break;
-        case 3:
-            placeType = "Condominium";
-            break;
-        default:
-            placeType = "RS Navi Place";
+        case 0: placeType = "Boarding House"; break;
+        case 1: placeType = "Dormitory"; break;
+        case 2: placeType = "Apartment"; break;
+        case 3: placeType = "Condominium"; break;
+        default: placeType = "RS Navi Place";
     }
 
     const adr = place.address;
-
     let address = `${adr.number} ${adr.street}`
     if (adr.subdivision) address += `, ${adr.subdivision}`;
-    address += `<br>Bgy. ${adr.barangay}, ${adr.city}<br>`;
+    address += '<br>';
+    if (adr.barangay) address += `Bgy. ${adr.barangay}, `;
+    address += `${adr.city}<br>`;
     if (adr.zipCode) address += `${adr.zipCode} `
     address += `${adr.province}`;
 
@@ -182,7 +163,10 @@ function addMarker(place) {
 
                 marker.infoWindow.setContent(
                     `<h5>${place.name}</strong></h5><p>${placeType}</p><p>₱ ${place.price.toLocaleString('en')}</p><p>${address}</p>` +
-                    `<p>Distance: ${element.distance.text} (${element.duration.text} Walk)</p>`
+                    `<p>Distance: ${element.distance.text} (${element.duration.text} Walk)</p>` +
+                    `<p><a href='/places/${place._id}' target='_blank'>Visit Page<a/>` +
+                    `<p><a href='/places/${place._id}/images' target='_blank'>Images<a/>`
+
                 )
             }
 

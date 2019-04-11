@@ -8,29 +8,16 @@
 
     <div class="collapse navbar-collapse" id="navLinks">
         <ul class="navbar-nav ml-auto">
-
             <% if (locals.user) { %>
-
-                <li class="nav-item"><a href="/profile" class="nav-link"><%= user.firstName %> <i class="fas fa-user"></i></a></li>
-
+            <li class="nav-item"><a href="/profile" class="nav-link"><%= user.firstName %> <i class="fas fa-user"></i></a></li>
                 <% if (user.account.role === 1) { %>
-                    <li class="nav-item"><a href="/places/add" class="nav-link">Add A Place <i class="fas fa-home"></i></a></li>
+            <li class="nav-item"><a href="/places/add" class="nav-link">Add A Place <i class="fas fa-home"></i></a></li>
                 <% } %>
-
-                <li class="nav-item"><a href="/auth/logout" class="nav-link">Logout</a></li>
-
+            <li class="nav-item"><a href="/auth/logout" class="nav-link">Logout</a></li>
             <% } else { %>
-
-                <li class="nav-item"><a href="/auth" class="nav-link">Login <i class="fas fa-user"></i></a></li>
-                
-                <li class="nav-item"><a href="/auth?placeowner=1" class="nav-link">Add A Place <i class="fas fa-home"></i></a></li>
-
-            <% } %>
-
-            <% if (process.env.MODE === 'dev' || process.env.MODE === 'local') { %>
-                <li class="nav-item"><a href="/images" class="nav-link">Images (Dev)</a></li>
+            <li class="nav-item"><a href="/auth" class="nav-link">Login <i class="fas fa-user"></i></a></li>
+            <li class="nav-item"><a href="/auth?placeowner=1" class="nav-link">Add A Place <i class="fas fa-home"></i></a></li>
             <% } %>
         </ul>
     </div>
-    
 </nav>
