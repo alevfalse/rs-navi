@@ -25,11 +25,9 @@ const passport   = require('./config/passport');
 // ROUTERS ===============================================================================
 const authRouter = require('./app/routes/auth');
 const validateRouter = require('./app/routes/validate');
-const autocompleteRouter = require('./app/routes/autocomplete');
 const placesRouter = require('./app/routes/places');
 const adminRouter = require('./app/routes/admin');
 const newsletteRouter = require('./app/routes/newsletter');
-const imagesRouter = require('./app/routes/images');
 const rootRouter = require('./app/routes/root');
 
 // APPLICATION ===========================================================================
@@ -86,9 +84,7 @@ app.use(flash()); // for flashing messages between requests
 app.use('/auth', authRouter);
 app.use('/places', placesRouter);
 app.use('/admin', adminRouter);
-app.use('/images', imagesRouter);
 app.use('/validate', validateRouter);
-app.use('/autocomplete', autocompleteRouter);
 app.use('/newsletter', newsletteRouter);
 app.use('/', rootRouter);
 

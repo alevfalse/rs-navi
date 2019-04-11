@@ -14,6 +14,9 @@ switch (mode)
 
 const connection = mongoose.createConnection(uri, { useNewUrlParser: true });
 
+// create a default mongoose connection
+mongoose.connect(uri, { useNewUrlParser: true });
+
 connection.on('disconnected', () => { console.error(`Disconnected from ${mode} database.`)});
 connection.on('close', () => { console.error(`Database connection closed.`)});
 connection.on('reconnected', () => { console.log(`Reconnected to ${mode} database.`)});
