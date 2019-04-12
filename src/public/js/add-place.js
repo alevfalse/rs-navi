@@ -58,14 +58,15 @@ $("#files").change(function(event) {
 
     const files = event.target.files;
 
-    if (files.length == 0) { return; }
+    if (files.length === 0) { 
+        return; 
+    } else if (files.length > 10) {
+        return alert('Exceeded maximum number of 10 images allowed.');
+    }
 
     $("#submit-button").css('display', 'block');
     
     for (let i=0; i<files.length; i++) {
-
-
-        if (i == 5) break;
 
         const reader = new FileReader();
 
