@@ -3,6 +3,8 @@ const Subscriber = require('../models/subscriber');
 
 newsletterRouter.post('/', (req, res, next) => {
 
+    //TODO: validate and sanitize email address
+
     process.nextTick(() => {
 
         Subscriber.findOne({ 'email': req.body.email }, '_id',
