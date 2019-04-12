@@ -4,7 +4,7 @@ const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 // model for emails subscribed in our mailing list
 const SubscriberSchema = new mongoose.Schema({
-    _id: { type: String, default: () => generate(alpha, 8) },
+    _id: { type: String, default: () => generate(alpha, 10) },
     email: String,
     created: { type: Date, default: new Date() },
     status: { type: Number, default: 1 }
