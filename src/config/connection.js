@@ -14,6 +14,9 @@ switch (mode)
 
 const connection = mongoose.createConnection(uri, { useNewUrlParser: true });
 
+//use native findOneAndUpdate() rather than deprecated findAndModify()
+mongoose.set('useFindAndModify', false);
+
 // create a default mongoose connection
 mongoose.connect(uri, { useNewUrlParser: true });
 
