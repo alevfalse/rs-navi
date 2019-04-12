@@ -45,7 +45,7 @@ app.use('/favicon.ico', express.static(__dirname + '/public/images/favicon.ico')
 // logging
 const logDirectory = path.join(__dirname + '/logs');
 fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory); // create logs folder if it does not exist
-app.use(morgan(mode === 'dev' ? 'dev' : 'common'));
+app.use(morgan(mode === 'prod' ? 'common' : 'dev'));
 app.use(morgan('common', { stream: fs.createWriteStream(path.join(logDirectory, 'access.log'), { flags: 'a' }) }));
 
 // for parsing request body
