@@ -1,32 +1,14 @@
-const placesRouter = require('express').Router();
-const Place = require('../models/place')
-const Image = require('../models/image');
-
-const generate = require('nanoid/generate');
-const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-
 const fs = require('fs');
 const path = require('path');
-const multer = require('multer');
-const rootDir = path.join(__dirname, '../../uploads/');
 
-// Multer Storage
-const storage = multer.diskStorage({
-    destination: function(req, file, callback) {
-        if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/png' && file.mimetype !== 'image/gif') {
-            return callback(new Error('Invalid file type.'), null);
-        }
-        callback(null, rootDir);
-    },
-    filename: function(req, file, callback) {
-        const filename = generate(alpha, 6) + path.extname(file.originalname);
-        callback(null, filename);
-    }
-});
+const placesRouter = require('express').Router();
+const Image = require('../models/image');
+const Place = require('../models/place')
 
-const upload = multer({ storage: storage });
+const upload = require('../../config/upload');
+const uploadDir = path.join(__dirname, '../../uploads/');
 
-// Middleware Functions
+// middleware
 function isAuthorized(req, res, next) {
     if (req.isAuthenticated() && req.user.account.role == 1) {
         return next();
@@ -36,8 +18,24 @@ function isAuthorized(req, res, next) {
 }
 
 // GET rsnavigation.com/places/add
+placesRouter.get('/', (req, res, next) => {
+    process.nextTick(() => {
+        Place.find({ 'status': 1 }, (err, places) => {
+            if (err) { return next(err); }
+    
+            console.log(places);
+            res.render('places', { 'user': req.user, 'places': places, message: req.flash('message') }, 
+            (err, html) => {
+                if (err) { return next (err); }
+                res.send(html);
+            });
+        });
+    });
+});
+
+// GET rsnavigation.com/places/add
 placesRouter.get('/add', isAuthorized, (req, res, next) => {
-    return res.render('add-place', { user: req.user, message: req.flash('message') }, 
+    res.render('add-place', { 'user': req.user, 'message': req.flash('message') }, 
     (err, html) => {
         if (err) { return next (err); }
         res.send(html);
@@ -72,15 +70,38 @@ placesRouter.get('/:id/images/', (req, res, next) => {
 // GET rsnavigation.com/places/:id/images/:filename
 placesRouter.get('/:id/images/:filename', (req, res, next) => {
 
-    Image.findOne({ filename: req.params.filename, status: 1 }, { filename: 1 },(err, image) => {
+    // find the place that has the provided id then populate and return its images
+    Place.findById(req.params.id, { 'images': 1 })
+    .populate({ 
+        path: 'images',
+        model: 'Image',
+        match: { filename: req.params.filename, status: 1 }
+    })
+    .exec((err, place) => {
         if (err) { return next(err); }
-        if (!image) { return next(); } 
+        if (!place || place.images.length == 0) { return next(); } 
+
+        const image = place.images[0];
 
         // if the file exists in the server's file system
-        if (fs.existsSync(rootDir + image.filename)) {
-            res.sendFile(image.filename, { root: rootDir });
+        if (fs.existsSync(uploadDir + image.filename)) {
+            return res.sendFile(image.filename, { root: uploadDir });
+
+        // if the file is not found in the server's file system
         } else {
-            next(); // 404
+
+            // remove the image from the place's images array
+            place.images.pull(image._id);
+            place.save((err) => { 
+                if (err) { return next(err); } 
+
+                // set the image image's status to deleted
+                Image.findByIdAndUpdate(image._id, { 'status': 0 },
+                (err, updatedImage) => {
+                    if (err) { return next(err); }
+                    return next(); // 404
+                });
+            });
         }
     });
 });
@@ -89,20 +110,23 @@ placesRouter.get('/:id/images/:filename', (req, res, next) => {
 placesRouter.delete('/:placeId/images/:imageId', (req, res, next) => {
 
     // find the place with the provided id whose owner's id is the same as the user
-    Place.findOne({ '_id': req.params.placeId, 'owner': req.user.id },
-    (err, place) => {
+    Place.findOne(
+    { '_id': req.params.placeId, 'owner': req.user.id }, 'images', (err, place) => {
         if (err) { return next(err); }
         if (!place) { return next(); }
 
+        // return 404 if the place doesn't have the image
         if (!place.images.includes(req.params.imageId)) {
             console.log(`${place.name} does not contain an image with that id.`);
             return next();
         }
 
+        // remove the image from the place's images array
         place.images.pull(req.params.imageId);
         place.save((err) => {
             if (err) { return next(err); }
 
+            // set the image document's status to deleted
             Image.findOneAndUpdate(
                 { '_id': req.params.imageId, 'status': 1 },
                 { 'status': 0 }, 
@@ -119,7 +143,19 @@ placesRouter.delete('/:placeId/images/:imageId', (req, res, next) => {
 });
 
 // POST rsnavigation.com/places/add
-placesRouter.post('/add', isAuthorized, upload.array('images', 10), (req, res, next) => {
+placesRouter.post('/add', isAuthorized, upload.array('images', 10),
+(err, req, res, next) => {
+    if (err) {
+        req.flash('message', err.message);
+        req.session.save((err) => {
+            if (err) { return next(err); }
+            res.redirect('/places/add');
+        });
+    } else {
+        next();
+    }
+},
+(req, res, next) => {
 
     const ownerId     = req.user.id;
     const name        = req.body.name;
@@ -180,11 +216,11 @@ placesRouter.post('/add', isAuthorized, upload.array('images', 10), (req, res, n
 
         const image = new Image({
             filename: file.filename,
-            url: `/places/${newPlace.id}/images/` + file.filename,
+            url: `/places/${newPlace._id}/images/` + file.filename,
             contentType: file.mimetype
         })
 
-        newPlace.images.push(image.id);
+        newPlace.images.push(image._id);
         
         image.save((err) => {
             if (err) { return next(err); }
