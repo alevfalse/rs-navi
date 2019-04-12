@@ -74,41 +74,46 @@ passport.serializeUser((user, done) => {
 // using their id that is stored in session
 passport.deserializeUser((id, done) => {
 
-    process.nextTick(() => {
-        Student.findById(id, (err, student) => {
-            if (err) { return done(err, false); }
-    
-            if (student) {
-                return done(null, student)
-
-            } else {
-                process.nextTick(() => {
-
-                    Placeowner.findById(id, (err, placeowner) => {
-                        if (err) { return done(err, false); }
-        
-                        if (placeowner) {
-                            return done(null, placeowner);
-                            
-                        } else {
-                            process.nextTick(() => {
-
-                                Admin.findById(id, (err, admin) => {
-                                    if (err) { return done(err, false); }
-
-                                    if (!admin) {
-                                        return done(null, false)
-                                    }
-
-                                    return done(null, admin);
-                                });
-                            });
-                        }
-                    });
-                });
-            }
+    if (id.startsWith('0')) {
+        process.nextTick(() => {
+            Student.findById(id)
+            .populate({
+                'path': 'image',
+                'model': 'Image'
+            })
+            .exec((err, student) => {
+                if (err) { return done(err, false); }
+                if (!student) { return done(null, false); }
+                done(null, student);
+            });
         });
-    });
+
+    } else if (id.startsWith('1')) {
+        process.nextTick(() => {
+            Placeowner.findById(id)
+            .populate({
+                'path': 'image',
+                'model': 'Image'
+            })
+            .exec((err, placeowner) => {
+                if (err) { return done(err, false); }
+                if (!placeowner) { return done(null, false); }
+                done(null, placeowner);
+            });
+        });
+
+    } else if (id.startsWith('7')) {
+        process.nextTick(() => {
+            Admin.findById(id, (err, admin) => {
+                if (err) { return done(err, false); }
+                if (!admin) { return done(null, false) }
+                done(null, admin);
+            });
+        });
+        
+    } else {
+        return done(null, false);
+    }
 });
 
 
