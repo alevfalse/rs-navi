@@ -3,25 +3,16 @@ const generate = require('nanoid/generate');
 const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 const AdminSchema = new mongoose.Schema({
-    _id: { type: String, default: () => generate(alpha, 8) },
+    _id: { type: String, default: () => '7' + generate(alpha, 9) },
     firstName: String,
     lastName: String,
     account: {
         email: String,
         password: String,
         passcode: Number,
-        role: {
-            type: Number,
-            default: 7
-        },
-        created: {
-            type: Date,
-            default: new Date()
-        },
-        lastLoggedIn: {
-            type: Date,
-            default: null
-        }
+        role: { type: Number, default: 7 },
+        created: { type: Date, default: new Date() },
+        lastLoggedIn: { type: Date, default: null }
     }
 })
 
@@ -30,10 +21,5 @@ const AdminSchema = new mongoose.Schema({
 1 - Placeowner
 7 - Admin
 */
-
-function generateHex() {
-    return crypto.randomBytes(4).toString('hex');
-}
-
 
 module.exports = mongoose.model('Admin', AdminSchema);

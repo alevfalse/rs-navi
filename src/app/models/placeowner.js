@@ -3,9 +3,10 @@ const generate = require('nanoid/generate');
 const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 const PlaceownerSchema = new mongoose.Schema({
-    _id: { type: String, default: () => generate(alpha, 8) },
+    _id: { type: String, default: () => '1' + generate(alpha, 9) },
     firstName: String,
     lastName: String,
+    image: { type: String, ref: 'Image', default: null },
     account: { 
         email: String,
         password: String,
@@ -14,7 +15,6 @@ const PlaceownerSchema = new mongoose.Schema({
         role:     { type: Number, default: 1 },
         created:  { type: Date, default: new Date() },
         lastLoggedIn: { type: Date, default: null },
-        profileImage: { type: String, ref: 'Image' }
     },
     license: {
         status: { type: Number, default: 0 },
