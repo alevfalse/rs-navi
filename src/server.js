@@ -98,9 +98,8 @@ console.log('Application configured.');
 // DATABASE CONNECTION ===================================================================
 const connection = require('./config/connection');
 
-connection.once('connected', () => {
-
-    console.log(`Application successfully connected to ${mode} database.`);
+connection.then((client) => {
+    console.log(`Application successfully connected to ${client.connection.db.databaseName}.`);
 
     if (mode === 'prod') {
 

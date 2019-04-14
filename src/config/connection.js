@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const mode = process.env.MODE;
 
 let uri;
+
 switch (mode)
 {
     case 'dev':   uri = database.devURI;   break;
@@ -12,17 +13,12 @@ switch (mode)
     default: return console.error('Invalid MODE environment variable value.');
 }
 
-const connection = mongoose.createConnection(uri, { useNewUrlParser: true });
+// TODO: https://mongoosejs.com/docs/guide.html#options
 
 //use native findOneAndUpdate() rather than deprecated findAndModify()
 mongoose.set('useFindAndModify', false);
 
 // create a default mongoose connection
-mongoose.connect(uri, { useNewUrlParser: true });
-
-connection.on('disconnected', () => { console.error(`Disconnected from ${mode} database.`)});
-connection.on('close', () => { console.error(`Database connection closed.`)});
-connection.on('reconnected', () => { console.log(`Reconnected to ${mode} database.`)});
-connection.on('error', (err) => { console.error(`Database ERROR:\n${err}`) } );
+const connection = mongoose.connect(uri, { useNewUrlParser: true });
 
 module.exports = connection;
