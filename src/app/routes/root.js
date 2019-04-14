@@ -6,6 +6,7 @@ const Place = require('../models/place');
 const Image = require('../models/image');
 const Student = require('../models/student');
 const Placeowner = require('../models/placeowner');
+const Admin = require('../models/admin');
 
 const upload = require('../../config/upload');
 const uploadDir = path.join(__dirname, '../../uploads/');
@@ -34,8 +35,6 @@ openRouter.get('/', (req, res, next) => {
 openRouter.get('/search', (req, res, next) => {
 
     const query = req.query.schoolName;
-
-    console.log(`Query: ${query}`);
 
     if (!query) {
         req.flash('message', 'Please provide a school name.');
@@ -76,7 +75,8 @@ openRouter.get('/profile/:id', (req, res, next) => {
         return res.redirect('/profile');
     }
 
-    // TODO: Create visited profile page
+    // TODO: Create visited profile page and refactor to to switch (id[0]) and shorten
+    // you know what to do
     return next(); //temp
 
     if (req.params.id.startsWith('0')) {
@@ -128,112 +128,53 @@ openRouter.get('/profile/:id', (req, res, next) => {
     }
 });
 
+
 // TODO: Imitate this algorithm to other routes
-openRouter.get('/profile/:id/image/:filename', (req, res, next) => {
+openRouter.get('/profile/:id/image', (req, res, next) => {
 
-    if (req.params.id.startsWith('0')) {
-        process.nextTick(() => {
+    let query;
 
-            Student.findById(req.params.id, 'image')
-            .populate({ 
-                path: 'image',
-                model: 'Image',
-                match: { filename: req.params.filename }
-            })
-            .exec((err, student) => {
-                if (err) { return next(err); }
-                if (!student || !student.image) { return next(); }
-
-                if (fs.existsSync(uploadDir + student.image.filename)) {
-                    return res.sendFile(student.image.filename, { root: uploadDir });
-                } else {
-                    return next();
-                }
-            });
-        });
-
-    } else if (req.params.id.startsWith('1')) {
-        process.nextTick(() => {
-
-            Placeowner.findById(req.params.id, 'image')
-            .populate({ 
-                path: 'image',
-                model: 'Image',
-                match: { filename: req.params.filename },
-            })
-            .exec((err, placeowner) => {
-                if (err) { return next(err); }
-                if (!placeowner || !placeowner.image) { return next(); }
-
-                if (fs.existsSync(uploadDir + placeowner.image.filename)) {
-                    return res.sendFile(placeowner.image.filename, { root: uploadDir });
-                } else {
-                    return next();
-                }
-            });
-        });
-
-    } else {
-        return next();
+    switch(req.params.id[0])
+    {
+        case '0': query = Student.findById(req.params.id, 'image');    break;
+        case '1': query = Placeowner.findById(req.params.id, 'image'); break;
+        case '7': query = Admin.findById(req.params.id, 'image');      break;
+        default: return next();
     }
+
+    query.populate({ 
+        path: 'image',
+        model: 'Image',
+        match: { 'status': 1 }
+    })
+    .exec((err, user) => {
+        if (err || !user || !user.image) { return next(err); }
+
+        // check if the image exists in the file system
+        if (fs.existsSync(uploadDir + user.image.filename)) {
+            return res.sendFile(user.image.filename, { root: uploadDir });
+        } else {
+            user.image.delete();
+            // TODO: update profile image of user
+            return next();
+        }
+    });
 });
 
-openRouter.post('/profile/update', isAuthenticated, upload.single('image'), 
+openRouter.post('/profile/image/update', isAuthenticated, upload.single('image'),
+(err, req, res, next) => {
+    req.flash('message', err.message);
+    req.session.save((err) => {
+        if (err) { return next(err); }
+        res.redirect('/profile');
+    });
+},   
 (req, res, next) => {
-
     if (req.file) {
-
-        const file = req.file;
-        const image = new Image({
-            filename: file.filename,
-            url: `/profile/${req.user.id}/image/` + file.filename,
-            contentType: file.mimetype
-        });
-
-        image.save((err) => {
+        req.user.updateProfileImage(req.file, (err) => {
             if (err) { return next(err); }
-
-            switch (req.user.account.role)
-            {
-                case 0: {
-                    process.nextTick(() => {
-
-                        Student.findByIdAndUpdate(req.user.id, 
-                        { 'image': image._id }, 
-                        (err, student) => {
-                            if (err) { return next(err); }
-                            if (!student) { return next(); }
-
-                            req.flash('message', 'Updated profile picture.');
-                            req.session.save((err) => { 
-                                if (err) { return next(err); }
-                                res.redirect('/profile');
-                            });
-                        });
-                    });
-                } break;
-        
-                case 1: {
-                    process.nextTick(() => {
-                        Placeowner.findByIdAndUpdate(req.user.id, 
-                        { 'image': image._id }, 
-                        (err, placeowner) => {
-                            if (err) { return next(err); }
-                            if (!placeowner) { return next(); }
-
-                            req.flash('message', 'Updated profile picture.');
-                            req.session.save((err) => { 
-                                if (err) { return next(err); }
-                                res.redirect('/profile');
-                            });
-                        });
-                    });
-                } break;
-
-                default: return next();
-            }
+            res.redirect('/profile');
         });
-        
     } else {
         res.redirect('/profile');
     }
