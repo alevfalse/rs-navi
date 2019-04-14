@@ -6,7 +6,7 @@ const Image = require('../models/image');
 const Place = require('../models/place')
 
 const upload = require('../../config/upload');
-const uploadDir = path.join(__dirname, '../../uploads/');
+const uploadsDirectory = path.join(__dirname, '../../uploads/');
 
 // middleware
 function isAuthorized(req, res, next) {
@@ -17,127 +17,83 @@ function isAuthorized(req, res, next) {
     }
 }
 
-// GET rsnavigation.com/places/add
+// GET rsnavigation.com/places
 placesRouter.get('/', (req, res, next) => {
-    process.nextTick(() => {
-        Place.find({ 'status': 1 }, (err, places) => {
-            if (err) { return next(err); }
-    
-            console.log(places);
-            res.render('places', { 'user': req.user, 'places': places, message: req.flash('message') }, 
-            (err, html) => {
-                if (err) { return next (err); }
-                res.send(html);
-            });
-        });
+    Place.find({ 'status': 1 })
+    .populate('owner images')
+    .exec((err, places) => {
+        if (err) { return next(err); }
+        res.render('places', { user: req.user, places: places, message: req.flash('message') }, 
+        (err, html) => err ? next(err) : res.send(html));
     });
 });
 
 // GET rsnavigation.com/places/add
 placesRouter.get('/add', isAuthorized, (req, res, next) => {
-    res.render('add-place', { 'user': req.user, 'message': req.flash('message') }, 
-    (err, html) => {
-        if (err) { return next (err); }
-        res.send(html);
-    });
+    res.render('add-place', { user: req.user, message: req.flash('message') }, 
+    (err, html) => err ? next(err) : res.send(html));
 });
 
 // GET rsnavigation.com/places/:id
 placesRouter.get('/:id', (req, res, next) => {
-    Place.findById(req.params.id, (err, place) => {
-        if (err) { return next(err); }
-        if (!place) { return next(); }
-        res.json(place);
-    })
+    Place.findById(req.params.id, (err, place) => err ? next(err) : place ? res.json(place) : next());
 });
-
 
 // GET rsnavigation.com/places/:id/images/
 placesRouter.get('/:id/images/', (req, res, next) => {
-
-    Place.findById(req.params.id, { 'name': 1, 'images': 1 })
-    .populate({
-        path: 'images',
-        model: 'Image',
-        match: { status: 1 }
-    }).exec((err, place) => {
-        if (err) { return next(err); } 
-        if (!place) { return next(); }
-        res.render('images', { message: req.flash('message'), place: place, images: place.images });
+    Place.findById(req.params.id, 'name images')
+    .populate('images')
+    .exec((err, place) => {
+        if (err || !place) { return next (err); }
+        res.render('images', { message: req.flash('message'), place: place }, 
+        (err, html) => err ? next(err) : res.send(html));
     });
 });
 
 // GET rsnavigation.com/places/:id/images/:filename
 placesRouter.get('/:id/images/:filename', (req, res, next) => {
-
-    // find the place that has the provided id then populate and return its images
-    Place.findById(req.params.id, { 'images': 1 })
-    .populate({ 
+    Place.findById(req.params.id, 'images')
+    .populate({
         path: 'images',
-        model: 'Image',
-        match: { filename: req.params.filename, status: 1 }
+        select: '_id filename',
+        match: { 'filename': req.params.filename, 'status': 1 }
     })
     .exec((err, place) => {
-        if (err) { return next(err); }
-        if (!place || place.images.length == 0) { return next(); } 
+        if (err || !place || place.images.length == 0) { return next(err); }
 
         const image = place.images[0];
 
         // if the file exists in the server's file system
-        if (fs.existsSync(uploadDir + image.filename)) {
-            return res.sendFile(image.filename, { root: uploadDir });
+        if (fs.existsSync(uploadsDirectory + image.filename)) {
+            return res.sendFile(image.filename, { root: uploadsDirectory });
 
         // if the file is not found in the server's file system
         } else {
-
-            // remove the image from the place's images array
-            place.images.pull(image._id);
-            place.save((err) => { 
-                if (err) { return next(err); } 
-
-                // set the image image's status to deleted
-                Image.findByIdAndUpdate(image._id, { 'status': 0 },
-                (err, updatedImage) => {
-                    if (err) { return next(err); }
-                    return next(); // 404
-                });
-            });
+            image.delete(); 
+            place.removeImage(image._id, (err) => err ? next(err) : next());
         }
     });
 });
 
 // DELETE rsnavigation.com/places/:id/images/:filename
-placesRouter.delete('/:placeId/images/:imageId', (req, res, next) => {
+placesRouter.delete('/:placeId/images/:filename', isAuthorized, (req, res, next) => {
+    
+    Place.findOne({ '_id': req.params.placeId, 'owner': req.user.id }, 'images')
+    .populate({
+        path: 'images',
+        select: '_id filename',
+        match: { filename: req.params.filename, status: 1 }
+    })
+    .exec((err, place) => {
+        if (err || !place || place.images.length === 0) { return next(err); }
 
-    // find the place with the provided id whose owner's id is the same as the user
-    Place.findOne(
-    { '_id': req.params.placeId, 'owner': req.user.id }, 'images', (err, place) => {
-        if (err) { return next(err); }
-        if (!place) { return next(); }
+        const image = place.images[0];
 
-        // return 404 if the place doesn't have the image
-        if (!place.images.includes(req.params.imageId)) {
-            console.log(`${place.name} does not contain an image with that id.`);
-            return next();
-        }
+        image.delete(); // set the image's status to deleted
 
-        // remove the image from the place's images array
-        place.images.pull(req.params.imageId);
-        place.save((err) => {
+        place.removeImage(image._id, (err) => {
             if (err) { return next(err); }
-
-            // set the image document's status to deleted
-            Image.findOneAndUpdate(
-                { '_id': req.params.imageId, 'status': 1 },
-                { 'status': 0 }, 
-
-                (err, image) => {
-                    if (err) { return next(err); }
-                    if (!image) { return next(); }
-
-                    return res.redirect(`/places/${req.params.placeId}/images`);
-                }
-            );
+            res.redirect(`/places/${req.params.placeId}/images`);
         });
     });
 });
@@ -194,10 +150,10 @@ placesRouter.post('/add', isAuthorized, upload.array('images', 10),
         address: {
             number: number,
             street: street,
-            subdivision: subdivision,
-            barangay: barangay,
+            subdivision: subdivision || null,
+            barangay: barangay || null,
             city: city,
-            zipCode: zipCode,
+            zipCode: zipCode || null,
             province: province
         },
 
@@ -230,7 +186,7 @@ placesRouter.post('/add', isAuthorized, upload.array('images', 10),
     newPlace.save((err) => {
         if (err) { return next(err); }
 
-        req.flash('message', `${newPlace.name} has been listed.`);
+        req.flash('message', `${newPlace.name} has been added.`);
         req.session.save((err) => {
             if (err) { return next(err); }
             res.redirect('/places/add');
