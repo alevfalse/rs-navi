@@ -9,46 +9,26 @@ validateRouter.get('/email', (req, res) => {
     const inputEmail = req.query.email;
     const role = req.query.role;
 
-    if (!inputEmail || !role) {
-        console.log('Missing required field(s) in Email Validation.');
-        return res.send(false);
-    }
+    if (!inputEmail || !role) { return res.send(false); }
+    
+    let query;
 
     switch (role.toLowerCase())
     {
-    case 'student':
-        process.nextTick(() => {
-
-            Student.findOne({ 'account.email': inputEmail }, { 'email': 1}, (err, foundEmail) => {
-                if (err) {
-                    console.error(err);
-                    return res.send(false);
-                }
-    
-                if (foundEmail) { res.send(false); }
-                else { res.send(true); }
-            });
-        });
-        break;
-
-    case 'placeowner':
-        process.nextTick(() => {
-
-            Placeowner.findOne({ 'account.email': inputEmail }, { 'email': 1}, (err, foundEmail) => {
-                if (err) {
-                    console.error(err);
-                    return res.send(false);
-                }
-    
-                if (foundEmail) { return res.send(false); }
-                else { return res.send(true); }
-            });
-        });
-        break;
-
-    default:
-        return res.send(false);
+        case 'student':    query = Student.findOne();    break;
+        case 'placeowner': query = Placeowner.findOne(); break;
+        default: return res.send(false);
     }
+
+    query.where({ 'account.email': inputEmail }).select('_id')
+    .exec((err, found) => {
+        if (err) {
+            console.error(err);
+            return res.send(false);
+        }
+        
+        res.send(!found);
+    });
 });
 
 module.exports = validateRouter;
