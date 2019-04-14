@@ -1,3 +1,9 @@
+// TODO: Refactor this module:
+// use schema methods
+// remove process.nextTick()
+// use switch(id[0])
+
+
 const authRouter = require('express').Router();
 const mailer = require('../../config/mailer');
 const passport = require('../../config/passport');
@@ -162,42 +168,40 @@ authRouter.get('/verify/:role/:hashCode', (req, res, next) => {
     const hashCode = req.params.hashCode;
     if (!role || !hashCode) { return next(); } // status 404
 
+    // TODO: Use schema methods
     switch (role.toLowerCase())
     {
     case 'student': {
-        process.nextTick(() => {
+        // Find one student with the provided hash code, has a status of unverified and a role of student
+        Student.findOne({ 'account.hashCode': hashCode, 'account.status': 0, 'account.role': 0 }, (err, student) => {
+            if (err) { return next(err); } // status 500
 
-            // Find one student with the provided hash code, has a status of unverified and a role of student
-            Student.findOne({ 'account.hashCode': hashCode, 'account.status': 0, 'account.role': 0 }, (err, student) => {
+            // if no student was found with the given hash code
+            if (!student) {
+                req.flash('message', 'Invalid verification link.');
+                return req.session.save((err) => {
+                    if (err) { return next(err); }
+                    res.redirect('/auth');
+                });
+            }
+
+            // If the student exists, set their hash code to null and status to verified
+            student.account.hashCode = null;
+            student.account.status = 1;
+            student.account.lastLoggedIn = new Date();
+
+            // Update student in the database
+            student.save((err) => {
                 if (err) { return next(err); } // status 500
 
-                // if no student was found with the given hash code
-                if (!student) {
-                    req.flash('message', 'Invalid verification link.');
-                    return req.session.save((err) => {
-                        if (err) { return next(err); }
-                        res.redirect('/auth');
-                    });
-                }
-
-                // If the student exists, set their hash code to null and status to verified
-                student.account.hashCode = null;
-                student.account.status = 1;
-                student.account.lastLoggedIn = new Date();
-
-                // Update student in the database
-                student.save((err) => {
+                // Authenticate the student and bind it to request as req.user
+                req.login(student, (err) => {
                     if (err) { return next(err); } // status 500
 
-                    // Authenticate the student and bind it to request as req.user
-                    req.login(student, (err) => {
+                    req.flash('message', 'Email address verified.')
+                    req.session.save((err) => {
                         if (err) { return next(err); } // status 500
-
-                        req.flash('message', 'Email address verified.')
-                        req.session.save((err) => {
-                            if (err) { return next(err); } // status 500
-                            res.redirect('/profile');
-                        });
+                        res.redirect('/profile');
                     });
                 });
             });
