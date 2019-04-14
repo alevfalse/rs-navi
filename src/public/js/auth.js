@@ -271,4 +271,4 @@ $("#forgotPasswordRoleButton").click(function() {
         button.text('Student');
         role.val('student');
     }
-})
+});
