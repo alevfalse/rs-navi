@@ -17,4 +17,12 @@ const ImageSchema = new mongoose.Schema({
 1 - visible
 */
 
+ImageSchema.methods.delete = function() {
+    this.status = 0;
+    this.save((err) => {
+        if (err) { console.error(err); }
+        console.log(`Deleted: ${this.filename}`);
+    });
+}
+
 module.exports = mongoose.model('Image', ImageSchema);
