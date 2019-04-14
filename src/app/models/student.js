@@ -27,4 +27,29 @@ const StudentSchema = new mongoose.Schema({
 5 - deleted
 */
 
+StudentSchema.methods.updateProfileImage = function(file, callback) {
+    // set old image's status to deleted
+    Image.findByIdAndUpdate(this.image._id, { 'status': 0 }, function(err, deleted) {
+        if (err) { return callback(err); }
+
+        // create new image document
+        const image = new Image({
+            filename: file.filename,
+            url: `/profile/${this._id}/image`,
+            contentType: file.mimetype
+        });
+
+        // save image to database
+        image.save((err) => {
+            if (err) { return callback(err); }
+
+            // set user's image to the newly saved image
+            this.image = image._id;
+
+            // save changes to user to database
+            this.save((err) => callback(err));
+        });
+    });
+}
+
 module.exports = mongoose.model('Student', StudentSchema);

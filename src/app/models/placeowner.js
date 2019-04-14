@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const generate = require('nanoid/generate');
 const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
+const Image = require('./image');
+
 const PlaceownerSchema = new mongoose.Schema({
     _id: { type: String, default: () => '1' + generate(alpha, 9) },
     firstName: String,
@@ -20,7 +22,7 @@ const PlaceownerSchema = new mongoose.Schema({
         status: { type: Number, default: 0 },
         type:   { type: Number, default: null },
     }
-})
+});
 
 /* 
 account status:         license type:                    
@@ -37,5 +39,28 @@ license status:         2 - expired
 2 - verified
 3 - revoked
 */
+
+PlaceownerSchema.methods.updateProfileImage = function(file, callback) {
+
+    if (this.image) {
+        Image.findByIdAndUpdate(this.image._id, { 'status': 0 },
+        (err, deleted) => {
+            if (err) { console.error(err); }
+        });
+    }
+
+    const image = new Image({
+        filename: file.filename,
+        url: `/profile/${this._id}/image`,
+        contentType: file.mimetype
+    });
+
+    // save image to database
+    image.save((err) => {
+        if (err) { return callback(err); }
+        this.image = image._id; // set the placeowner's image to the newly saved image
+        this.save((err) => callback(err)); // save changes to database
+    });
+}
 
 module.exports = mongoose.model('Placeowner', PlaceownerSchema);
