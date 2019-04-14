@@ -8,6 +8,8 @@ const Student = require('../models/student');
 const Placeowner = require('../models/placeowner');
 
 // FUNCTIONS ============================================================================
+
+// TODO: Refactor: Use callback, don't handle request/response here
 function sendResetPasswordEmail(req, res, next, user, hashCode) {
 
     const role = user.account.role === 0 ? 'student' : 'placeowner';
@@ -38,6 +40,7 @@ function sendResetPasswordEmail(req, res, next, user, hashCode) {
     });
 }
 
+// TODO: Refactor: Use callback, don't handle request/response here
 function sendEmailVerification(req, res, next, user, hashCode) {
 
     const role = user.account.role === 0 ? 'student' : 'placeowner';
@@ -89,11 +92,7 @@ function validateForgotPasswordForm(inputEmail, role) {
         errorMessage += 'Invalid email address.\n';
     }
 
-    if (errorMessage.length > 0) {
-        return new Error(errorMessage);
-    } else {
-        return null;
-    }
+    return (errorMessage.length > 0 ? new Error(errorMessage) : null);
 }
 
 
