@@ -15,6 +15,12 @@
         body {
             background: rgb(0, 0, 0);
         }
+
+        .card {
+            background: none;
+            color: skyblue;
+        }
+        
         .card-img-top {
             height: 20rem;
             object-fit: cover;
@@ -48,18 +54,18 @@
         </div>
         <div class="row justify-content-around text-center mt-3">
             
-            <% if(locals.images.length > 0){ %>
-                <% images.forEach(function(image) { %>
+            <% if(place.images.length > 0){ %>
+                <% for (let image of place.images) { %>
                     <div class="card col-10 col-md-6 col-lg-4 px-0 mb-3 border border-primary">
                         <a href="<%= image.url %>" target="_blank">
                             <img class="card-img-top" src="<%= image.url %>" alt="Missing <%= image.filename %>">
                         </a>
                         <p class="my-1"><%= image.filename %></p>
-                        <form method="POST" action="/places/<%= place.id %>/images/<%= image.id %>?_method=DELETE">
+                        <form method="POST" action="<%= image.url %>?_method=DELETE">
                         <button class="btn btn-danger btn-block">Delete</button>
                         </form>
                     </div>
-                <% }) %>
+                <% } %>
             <% } else { %>
                 <h1 class="display-4 text-white" style="margin-top: 100px;">No images to show.</h1>
             <% } %>
