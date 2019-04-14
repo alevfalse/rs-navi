@@ -44,8 +44,7 @@ $("#name, #placeType").change(function() {
     }
 })
 
-$("#files").change(function(event) {
-
+function resetImageGallery() {
     const carouselInner = document.getElementById('carousel-inner');
     while (carouselInner.firstChild) {
         carouselInner.removeChild(carouselInner.firstChild);
@@ -55,8 +54,14 @@ $("#files").change(function(event) {
     while (carouselIndicators.firstChild) {
         carouselIndicators.removeChild(carouselIndicators.firstChild);
     }
+}
+$("#files").change(function(event) {
+
+    resetImageGallery();
 
     const files = event.target.files;
+
+    // TODO: reset input file
 
     if (files.length === 0) { 
         return; 
@@ -134,6 +139,7 @@ function initMap() {
         },
         disableDefaultUI: true,
         backgroundColor: 'rgba(0, 0, 0, 0)',
+        gestureHandling: 'greedy',
         draggableCursor: 'url(https://i.imgur.com/WLRVS45.png), auto', // cursor
         styles: mapStyles
     }
