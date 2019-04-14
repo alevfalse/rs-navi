@@ -26,6 +26,16 @@ hr {
     color: white;
 }
 
+.btn.custom-button {
+    color: skyblue;
+    background: rgb(14, 22, 38, 0.75);
+    border: solid 1px rgb(135, 206, 235, 0.25);
+}
+
+.btn.custom-button:hover {
+    background: rgb(14, 22, 38, 0);
+}
+
 .modal-content h1, .modal-content h2 {
     color: skyblue;
 }

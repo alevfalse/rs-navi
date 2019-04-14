@@ -24,7 +24,7 @@
     <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
         <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
         <button class="navbar-toggler" data-toggle="collapse" data-target="#navLinks" aria-label="Toggle navigation links">
-            <span class="navbar-toggler-icon"></span>
+            <span class="text-white"><i class="fas fa-bars"></i></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navLinks">
@@ -78,7 +78,7 @@
                             <div class="mb-3"></div>
                             <input type="password" class="form-control mb-3" placeholder="Password" name="password" required>
                                 <input type="text" value=<%= locals.placeowner ? "placeowner" : "student" %> id="loginRoleInput" name="role" required hidden>
-                            <button type="submit" class="btn btn-sm btn-primary px-4">Login</button>
+                            <button type="submit" class="btn btn-sm custom-button px-4">Login</button>
                         </div>
                     </div>
                     <div class="row justify-content-center text-center mt-3 text-white">
@@ -89,7 +89,7 @@
 
             <!-- Forgot Password (inside login div) -->
             <div class="row justify-content-center text-center text-white">
-                <button type="button" class="btn text-white bg-transparent mb-5" id="forgotPasswordButton">Forgot Password</button>
+                <button type="button" class="btn text-white bg-transparent" id="forgotPasswordButton">Forgot Password</button>
             </div>
 
             <div class="collapse row justify-content-center text-center mt-3" id="forgotPasswordForm">
@@ -98,11 +98,11 @@
                         <div class="formFields input-group mb-3">
                             <input type="email" class="form-control" name="email" placeholder="Email" id="forgotPasswordEmail" required>
                             <div class="input-group-append">
-                                <button type="button" class="btn btn-sm btn-info" id="forgotPasswordRoleButton">Student</button><br>
+                                <button type="button" class="btn btn-sm custom-button" id="forgotPasswordRoleButton">Student</button><br>
                             </div>
                             <input type="text" value="student" id="forgotPasswordRoleInput" name="role" required hidden>
                         </div>
-                        <button type="submit" class="btn btn-sm btn-primary mt-3 mb-5">Reset Password</button>
+                        <button type="submit" class="btn btn-sm custom-button mt-3 mb-5">Reset Password</button>
                     </form>
                 </div>
             </div>
@@ -129,7 +129,7 @@
                         <input type="password" class="form-control" placeholder="Confirm Password" name="confirmPassword" id="confirmSignupPassword" required>
                         <div class="mb-3"></div>
                         <input type="text" name="role" id="signupRoleInput" required hidden value=<%= locals.placeowner ? "placeowner" : "student" %> >
-                        <button type="submit" class="btn btn-sm btn-primary px-4">Signup</button>
+                        <button type="submit" class="btn btn-sm custom-button px-4">Signup</button>
                     </div>
                 </div>
                 <div class="row justify-content-center text-center mt-3 text-white">

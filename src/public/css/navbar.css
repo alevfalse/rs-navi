@@ -1,3 +1,7 @@
+#mainNavbar {
+    transition: background 1000ms;
+}
+
 #mainNavbar .navbar-brand {
     color: white;
     letter-spacing: 2px;
@@ -20,8 +24,19 @@
     color: #328CC1;
 }
 
+#mainNavbar.scrolled {
+    background:rgb(14, 22, 38, 0.8);
+}
+
+@media (max-width: 800px) {
+    #mainNavbar {
+        background:rgb(14, 22, 38, 0.8);
+    }
+}
+
 @media (max-width: 600px) {
     #mainNavbar .navbar-brand, #mainNavbar .nav-link {
         font-size: 1.0rem;
     }
 }
+
