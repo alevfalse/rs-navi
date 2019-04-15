@@ -6,7 +6,6 @@ const AdminSchema = new mongoose.Schema({
     _id: { type: String, default: () => '7' + generate(alpha, 9) },
     firstName: String,
     lastName: String,
-    image: { type: String, ref: 'Image' },
     account: {
         email: String,
         password: String,
