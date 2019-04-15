@@ -27,6 +27,25 @@ const StudentSchema = new mongoose.Schema({
 5 - deleted
 */
 
+StudentSchema.methods.verifyEmail = function(callback) {
+    this.account.hashCode = null;
+    this.account.status = 1;
+    this.account.lastLoggedIn = new Date();
+
+    // Update student in the database
+    this.save((err) => {
+        if (err) { return callback(err); } // status 500
+
+        // Authenticate the student and bind it to request as req.user
+        req.login(this, (err) => {
+            if (err) { return callback(err); } // status 500
+
+            req.flash('message', 'Email address verified.')
+            req.session.save((err) => callback(err));
+        });
+    });
+}
+
 StudentSchema.methods.updateProfileImage = function(file, callback) {
     // set old image's status to deleted
     Image.findByIdAndUpdate(this.image._id, { 'status': 0 }, function(err, deleted) {
@@ -43,10 +62,10 @@ StudentSchema.methods.updateProfileImage = function(file, callback) {
         image.save((err) => {
             if (err) { return callback(err); }
 
-            // set user's image to the newly saved image
+            // set  this's image to the newly saved image
             this.image = image._id;
 
-            // save changes to user to database
+            // save changes to  this to database
             this.save((err) => callback(err));
         });
     });

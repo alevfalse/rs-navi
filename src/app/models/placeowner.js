@@ -39,6 +39,24 @@ license status:         2 - expired
 2 - verified
 3 - revoked
 */
+PlaceownerSchema.methods.verifyEmail = function(callback) {
+    this.account.hashCode = null;
+    this.account.status = 1;
+    this.account.lastLoggedIn = new Date();
+
+    // Update student in the database
+    this.save((err) => {
+        if (err) { return callback(err); } // status 500
+
+        // Authenticate the student and bind it to request as req.user
+        req.login(this, (err) => {
+            if (err) { return callback(err); } // status 500
+
+            req.flash('message', 'Email address verified.')
+            req.session.save((err) => callback(err));
+        });
+    });
+}
 
 PlaceownerSchema.methods.updateProfileImage = function(file, callback) {
 
