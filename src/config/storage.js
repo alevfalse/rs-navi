@@ -14,7 +14,7 @@ class CustomStorage {
         this.uploadsDirectory = opts.directory;
     }
 
-    async _handleFile(req, file, callback) {
+    _handleFile(req, file, callback) {
         fs.existsSync(this.uploadsDirectory) || fs.mkdirSync(this.uploadsDirectory);
 
         const filename = this.generateFilename()
