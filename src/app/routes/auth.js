@@ -1,6 +1,5 @@
 // TODO: Refactor this module:
 // use schema methods
-// remove process.nextTick()
 // use switch(id[0])
 
 const authRouter = require('express').Router();
@@ -12,9 +11,9 @@ const Student = require('../models/student');
 const Placeowner = require('../models/placeowner');
 
 // FUNCTIONS ============================================================================
-
 const sendVerificationLink = require('../../bin/verification-email');
 const sendResetPasswordEmail = require('../../bin/password-reset-email');
+const validateForgotPasswordForm = require('../../bin/forgot-validation');
 
 // MIDDLEWARES ===========================================================================
 
@@ -223,94 +222,57 @@ authRouter.post('/forgot', (req, res, next) => {
         });
     }
 
+    // TODO: shorten code
+
+    let query;
+
     switch (inputRole.toLowerCase())
     {
-    case 'student': {
-        process.nextTick(() => {
-
-            Student.findOne({ 'account.email': inputEmail, 'account.role': 0 }, (err, student) => {
-
-                if (err) { return next(err); } // status 500
-
-                // if no student account with such email was found
-                if (!student) { 
-                    req.flash('message', 'Student email does not exist.');
-                    return req.session.save((err) => {
-                        if (err) { return next(err); } // status 500
-                        res.redirect('/auth');
-                    });
-                }
-
-                // if the student account is still unverified
-                if (student.account.status === 0) {
-                    req.flash('message', 'Your email address is still unverified. Check your email for the verification link.');
-                    return req.session.save((err) => {
-                        if (err) { return next(err); } // status 500
-                        res.redirect('/auth');
-                    });
-                }
-
-                // generate hash code and save to student's account
-                crypto.randomBytes(6, (err, buffer) => {
-                    if (err) { return next(err); } // status 500
-
-                    const hashCode = buffer.toString('hex');
-                    student.account.hashCode = hashCode;
-                    student.save((err) => {
-                        if (err) { return next(err); } // status 500
-                        sendResetPasswordEmail(req, res, next, student, hashCode);
-                    });
-                });
+        case 'student': query = Student.findOne(); break;
+        case 'placeowner': query = Placeowner.findOne(); break;
+        default: {
+            req.flash('message', 'Invalid credentials provided.'); // invalid role
+            return req.session.save((err) => {
+                if (err) { return next(err); }
+                res.redirect('/auth');
             });
-        });
-    } break;
-
-    case 'placeowner':
-        process.nextTick(() => {
-
-            Placeowner.findOne({ 'account.email': inputEmail, 'account.role': 1 }, (err, placeowner) => {
-
-                if (err) { return next(err); } // status 500
-
-                // if no placeowner with such email was found
-                if (!placeowner) {
-                    req.flash('message', 'Placeowner email does not exist.');
-                    return req.session.save((err) => {
-                        if (err) { return next(err); } // status 500
-                        res.redirect('/auth');
-                    });
-                }
-
-                // if the placeowner account is still unverefied
-                if (placeowner.account.status === 0) {
-                    req.flash('message', 'Your email address is still unverified. Check your email for the verification link.');
-                    return req.session.save((err) => {
-                        if (err) { return next(err); } // status 500
-                        res.redirect('/auth');
-                    });
-                }
-
-                crypto.randomBytes(6, (err, buffer) => {
-                    if (err) { return next(err); } // status 500
-
-                    const hashCode = buffer.toString('hex');
-                    placeowner.account.hashCode = hashCode;
-                    placeowner.save((err) => {
-                        if (err) { return next(err); } // status 500
-                        sendResetPasswordEmail(req, res, placeowner, hashCode);
-                    });
-                });
-            });
-        });
-        break;
-
-    default:
-        req.flash('message', 'Invalid credentials provided.'); // invalid role
-        req.session.save((err) => {
-            if (err) { return next(err); }
-            res.redirect('/auth');
-        });
+        }
     }
+
+    query.where({ 'account.email': inputEmail, 'account.role': 0 })
+    .exec((err, user) => {
+        if (err) { return next(err); } // status 500
+
+        // if no student account with such email was found
+        if (!user) { 
+            req.flash('message', 'Student email does not exist.');
+            return req.session.save((err) => {
+                if (err) { return next(err); } // status 500
+                res.redirect('/auth');
+            });
+        }
+
+        // if the student account is still unverified
+        if (user.account.status === 0) {
+            req.flash('message', 'Your email address is still unverified. Check your email for the verification link.');
+            return req.session.save((err) => {
+                if (err) { return next(err); } // status 500
+                res.redirect('/auth');
+            });
+        }
+
+        // generate hash code and save to student's account
+        crypto.randomBytes(6, (err, buffer) => {
+            if (err) { return next(err); } // status 500
+
+            const hashCode = buffer.toString('hex');
+            user.account.hashCode = hashCode;
+            user.save((err) => {
+                if (err) { return next(err); } // status 500
+                sendResetPasswordEmail(req, res, next, user, hashCode);
+            });
+        });
+    });
 });
 
 // POST rsnavigation.com/auth/reset
