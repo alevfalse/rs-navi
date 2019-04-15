@@ -49,7 +49,7 @@
                             <label for="profile-image-input">
                                 <img id="thumbnail" src="<%= user.image ? user.image.url : '/images/blank-profile-picture.jpg' %>" alt="photo" data-toggle="tooltip" data-placement="bottom" title="Change Photo"/>
                             </label>
-                            <input id="profile-image-input" type="file" name="image" hidden><br>
+                            <input id="profile-image-input" type="file" name="image" hidden accept=".jpg, .jpeg, .png"> <br>
                             <button type="submit" class="btn custom-button" id="update-image-button">Update Profile Picture</button>
                         </form>
                     </div>
@@ -64,11 +64,13 @@
                         <% } %>
     
                         <p class="text-white"><%= user.account.email %></p>
+                        <p><a href="profile/<%= user.id %>/places" target="_blank"><button class="btn custom-button">Your Places</button></a></p>
                         <p><button class="btn custom-button" id="edit">Edit Profile</button></p>
-
+                    <!--
                         <% if (user.account.role === 1) { %>
                             <p><button class="btn custom-button" id="subscription">Subscription Details</button></p>
                         <% } %>
+                    -->    
                     </div>
                 </div>
             </div>
@@ -80,31 +82,58 @@
                 <div class="row justify-content-center text-center">
                     <div class="col-10 col-md-6 col-lg-5 col-xl-4" id="update-inner">
 
-                        <input type="text" class="form-control" placeholder="First Name" name="firstName" required disabled>
-                        <div class="mb-3"></div>
-                        <input type="text" class="form-control" placeholder="Last Name" name="lastName" required disabled>
-                        <div class="mb-3"></div>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" placeholder="<%= user.firstName %>" name="firstName"  id="fn" required disabled>
+                            <div class="input-group-append">
+                                <button type="button" class="btn input-group-text" onclick="enable(this, 'fn')">Edit</button>
+                            </div>
+                        </div>
+
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" placeholder="<%= user.lastName %>" name="lastName" id="ln" required disabled>
+                            <div class="input-group-append">
+                                <button type="button" class="btn input-group-text" onclick="enable(this, 'ln')">Edit</button>
+                            </div>
+                        </div>
 
                         <% if (user.account.role === 0) { %>
-                            <input type="text" class="form-control" placeholder="School Name" name="schoolName" required disabled>
-                            <div class="mb-3"></div>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" placeholder="<%= user.schoolName %>" name="schoolName" id="sn" required disabled>
+                                <div class="input-group-append">
+                                    <button type="button" class="btn input-group-text" onclick="enable(this, 'sn')">Edit</button>
+                                </div>
+                            </div>
                         <% } %>
 
-                        <input type="password" class="form-control mb-3" placeholder="New Password" name="newPassword" required disabled>
-                        <div class="mb-3"></div>
-                        <input type="password" class="form-control mb-3" placeholder="Confirm New Password" name="confirmNewPassword" required disabled>
-                        <div class="mb-3"></div>
+                        <div class="input-group mb-3">
+                            <input type="email" class="form-control" placeholder="<%= user.account.email %>" name="email" id="em" required disabled>
+                            <div class="input-group-append">
+                                <button type="button" class="btn input-group-text" onclick="enable(this, 'em')">Edit</button>
+                            </div>
+                        </div>
+
+                        <div class="input-group mb-3">
+                            <input type="password" class="form-control" placeholder="New Password" name="newPassword" id="np" required disabled>
+                            <div class="input-group-append">
+                                <button type="button" class="btn input-group-text" id="edit-password">Edit</button>
+                            </div>
+                        </div>
+
+                        <div id="cp-div" class="collapse">
+                            <input type="password" class="form-control mb-3" placeholder="Confirm New Password" name="confirmNewPassword" id="cp" required disabled>
+                        </div>
                         
-                        <input type="password" class="form-control mb-3" placeholder="Old Password" name="password" required disabled>
                         
-                        <button type="submit" class="btn btn-sm custom-button mb-3 px-4">Update Profile</button><br>
+                        <input type="password" class="form-control mb-3" placeholder="Current Password" name="oldPassword" id="op" required>
+                        
+                        <button type="submit" class="btn custom-button mb-3 px-4">Update Profile</button><br>
                         <button type="button" id="back" class="btn btn-sm custom-button px-4">Back</button>
                     </div>
                 </div>
             </form>
             
         </div>
-
+    <!--
         <% if (user.account.role === 1) { %>
             <div id="sub-details" class="collapse">
                 <div class="row justify-content-center mt-5">
@@ -126,6 +155,8 @@
                 </div>
             </div>
         <% } %>
+    -->
+
     </main>
 
     <!-- Footer Component -->
@@ -137,6 +168,6 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
     
     <!-- Custom Script -->
-    <script src="/js/profile.js"></script> 
+    <script src="/js/profile.js"></script>
 </body>
 </html>
