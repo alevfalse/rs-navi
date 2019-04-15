@@ -23,12 +23,13 @@ const override = require('method-override');
 const passport   = require('./config/passport');
 
 // ROUTERS ===============================================================================
-const authRouter = require('./app/routes/auth');
-const validateRouter = require('./app/routes/validate');
-const placesRouter = require('./app/routes/places');
 const adminRouter = require('./app/routes/admin');
-const newsletteRouter = require('./app/routes/newsletter');
+const authRouter = require('./app/routes/auth');
+const newsletterRouter = require('./app/routes/newsletter');
+const placesRouter = require('./app/routes/places');
+const profileRouter = require('./app/routes/profile');
 const rootRouter = require('./app/routes/root');
+const validateRouter = require('./app/routes/validate');
 
 // APPLICATION ===========================================================================
 const app = express();
@@ -80,12 +81,13 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash()); // for flashing messages between requests
 
-// bind the routes to the application
+// bind the routes to the application; the order is important
 app.use('/auth', authRouter);
 app.use('/places', placesRouter);
-app.use('/admin', adminRouter);
+app.use('/profile', profileRouter);
 app.use('/validate', validateRouter);
-app.use('/newsletter', newsletteRouter);
+app.use('/newsletter', newsletterRouter);
+app.use('/admin', adminRouter);
 app.use('/', rootRouter);
 
 // This is called when no route was able handle the request
