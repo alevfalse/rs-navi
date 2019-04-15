@@ -1,4 +1,4 @@
-const mailer = require('../../config/mailer');
+const mailer = require('../config/mailer');
 
 // TODO: Refactor: Use callback, don't handle request/response here
 module.exports = function (req, user, hashCode, callback) {
