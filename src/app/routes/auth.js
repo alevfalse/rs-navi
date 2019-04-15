@@ -3,104 +3,18 @@
 // remove process.nextTick()
 // use switch(id[0])
 
-
 const authRouter = require('express').Router();
-const mailer = require('../../config/mailer');
 const passport = require('../../config/passport');
-const crypto     = require('crypto');
+const crypto = require('crypto');
 
-// Models
+// models
 const Student = require('../models/student');
 const Placeowner = require('../models/placeowner');
 
 // FUNCTIONS ============================================================================
 
-// TODO: Refactor: Use callback, don't handle request/response here
-function sendResetPasswordEmail(req, res, next, user, hashCode) {
-
-    const role = user.account.role === 0 ? 'student' : 'placeowner';
-    let url = `${process.env.MODE === 'prod' ? 'http://rsnavigation.com' : `localhost:${process.env.PORT}`}/auth/reset/${role}/${hashCode}`;
-
-    const text = `Good day! We have received a password reset request from your ${role} account.\n\n`
-        + `You can click this link to reset your password:\n${url}\n\n`
-        + `If you did not send this request, we suggest you secure your account by clicking this link anyway or requesting a new one\n`
-        + `at http://rsnavigation.com/auth and select Forgot Password. You may also update your password on your account's profile page\n`
-        + `if you still have access to it (which we hope that you do). \n\n`
-        + `Thank you for using RS Navi.\n- RS Navi Team`;
-
-    const mailOptions = {
-        from: "roomstayin.navigation@gmail.com",
-        to: user.account.email,
-        subject: "RS Navigation - Reset Password",
-        text: text
-    };
-    
-    mailer.sendMail(mailOptions, (err, info) => {
-        if (err) { return next(err); } // status 500
-
-        req.flash('message', 'Password reset link has been sent to your email.');
-        req.session.save((err) => {
-            if (err) { return next(err); } // status 500
-            res.redirect('/auth');
-        });
-    });
-}
-
-// TODO: Refactor: Use callback, don't handle request/response here
-function sendEmailVerification(req, res, next, user, hashCode) {
-
-    const role = user.account.role === 0 ? 'student' : 'placeowner';
-    let url = `${process.env.MODE === 'prod' ? 'http://rsnavigation.com' : `localhost:${process.env.PORT}`}/auth/verify/${role}/${hashCode}`;
-
-    const text = `Congratulations! You have successfully created an RS Navigation ${role} account and you are just one step away from acessing it.\n\n`
-        + `You can click this link to verify that this is indeed your email address:\n${url}\n\n`
-        + `If you do not remember signing up to http://rsnavigation.com, calm down. Don't panic.\n`
-        + `Just ignore this email and we will handle the rest.\n\n`
-        + `- RS Navi Team`;
-
-    const mailOptions = {
-        from: "roomstayin.navigation@gmail.com",
-        to: user.account.email,
-        subject: "RS Navigation - Email Verification",
-        text: text
-    };
-    
-    mailer.sendMail(mailOptions, (err, info) => {
-        if (err) { return next(err); } // status 500
-
-        console.log(`Email sent: ${info.response}`);
-        req.flash('message', 'Verification link has been sent to your email.');
-        req.session.save((err) => {
-            if (err) { return next(err); } // status 500
-            res.redirect('/auth');
-        });
-    });
-}
-
-function validateForgotPasswordForm(inputEmail, role) {
-
-    let errorMessage = '';
-
-    if (!inputEmail) {
-        errorMessage += 'No email address provided.\n';
-    } else if (!role) {
-        errorMessage += 'No role provided.\n';
-    } else if (inputEmail.startsWith(' ')) {
-        errorMessage += 'Email address must not start with space.\n';
-    } else if (inputEmail.match(/[^a-zA-Z0-9.@_]/)) {
-        errorMessage += 'Email address contains an invalid character.\n';
-    } else if (inputEmail.length == 0) {
-        errorMessage += 'Email address cannot be empty.\n';
-    } else if (inputEmail.length > 50) {
-        errorMessage += 'Email address must not be more than 50 characters.\n';
-    } // regex: if email starts/ends with @ or period || 2 or more @ || an @ is preceded by a period
-    else if (!inputEmail.includes('@') || inputEmail.match(/[@.]$|^[@.]|@[^@]*@|\.@/)) {
-        errorMessage += 'Invalid email address.\n';
-    }
-
-    return (errorMessage.length > 0 ? new Error(errorMessage) : null);
-}
-
+const sendVerificationLink = require('../../bin/verification-email');
+const sendResetPasswordEmail = require('../../bin/password-reset-email');
 
 // MIDDLEWARES ===========================================================================
 
@@ -168,87 +82,33 @@ authRouter.get('/verify/:role/:hashCode', (req, res, next) => {
     const hashCode = req.params.hashCode;
     if (!role || !hashCode) { return next(); } // status 404
 
-    // TODO: Use schema methods
-    switch (role.toLowerCase())
+    let query;
+
+    switch (role)
     {
-    case 'student': {
-        // Find one student with the provided hash code, has a status of unverified and a role of student
-        Student.findOne({ 'account.hashCode': hashCode, 'account.status': 0, 'account.role': 0 }, (err, student) => {
-            if (err) { return next(err); } // status 500
-
-            // if no student was found with the given hash code
-            if (!student) {
-                req.flash('message', 'Invalid verification link.');
-                return req.session.save((err) => {
-                    if (err) { return next(err); }
-                    res.redirect('/auth');
-                });
-            }
-
-            // If the student exists, set their hash code to null and status to verified
-            student.account.hashCode = null;
-            student.account.status = 1;
-            student.account.lastLoggedIn = new Date();
-
-            // Update student in the database
-            student.save((err) => {
-                if (err) { return next(err); } // status 500
-
-                // Authenticate the student and bind it to request as req.user
-                req.login(student, (err) => {
-                    if (err) { return next(err); } // status 500
-
-                    req.flash('message', 'Email address verified.')
-                    req.session.save((err) => {
-                        if (err) { return next(err); } // status 500
-                        res.redirect('/profile');
-                    });
-                });
-            });
-        });
-    } break;
-
-    case 'placeowner': {
-        process.nextTick(() => {
-
-            // Find one placeowner with the provided hash code, has a status of unverified and a role of placeowner
-            Placeowner.findOne({ 'account.hashCode': hashCode, 'account.status': 0, 'account.role': 1 }, (err, placeowner) => {
-                if (err) { return next(err); } // status 500
-
-                if (!placeowner) {
-                    req.flash('message', 'Invalid verification link.');
-                    return req.session.save((err) => {
-                        if (err) { return next(err); }
-                        res.redirect('/auth');
-                    });
-                }
-
-                // If the placeowner exists, set their hash code to null and status to verified
-                placeowner.account.hashCode = null;
-                placeowner.account.status = 1;
-                placeowner.account.lastLoggedIn = new Date();
-
-                // Update placeowner in the database
-                placeowner.save((err) => {
-                    if (err) { return next(err); } // status 500
-
-                    // Authenticate the placeowner and bind it to request as req.user
-                    req.logIn(placeowner, (err) => {
-                        if (err) { return next(err); } // status 500
-
-                        req.flash('message', 'Email address verified.')
-                        return req.session.save((err) => {
-                            if (err) { return next(err); }
-                            res.redirect('/profile');
-                        });
-                    });
-                });
-            });
-        });
-    } break;
-
-    default: return next(); // status 404
+        case '0': query = Student.findOne(); break;
+        case '1': query = Student.findOne(); break;
+        default: return next();
     }
+
+    query.where({ 'account.hashCode': hashCode, 'account.status': 0 })
+    .exec((err, user) => {
+        if (err) { return next(err); } // status 500
+
+        // if no student was found with the given hash code
+        if (!user) {
+            req.flash('message', 'Invalid verification link.');
+            return req.session.save((err) => {
+                if (err) { return next(err); }
+                res.redirect('/auth');
+            });
+        }
+
+        user.verifyEmail((err) => {
+            if (err) { return next(err); }
+            res.redirect('/profile');
+        });
+    });
 })
 
 // GET rsnavigation.com/reset/<role>/<hashCode>
@@ -266,57 +126,28 @@ authRouter.get('/reset/:role/:hashCode', (req, res, next) => {
     const hashCode = req.params.hashCode;
     if (!role || !hashCode) { return next(); } // status 404 
 
-    switch (role.toLowerCase())
+    let query;
+
+    switch (role)
     {
-    case 'student': {
-        process.nextTick(() => {
-
-            Student.findOne({ 'account.hashCode': hashCode, 'account.status': 1, 'account.role': 0 }, (err, student) => {
-
-                if (err) { return next(err); } // status 500
-                if (!student) { return next(); } // status 404
-    
-                req.session.save((err) => {
-                    if (err) { return next(err); } // status 500
-
-                    res.render('reset', 
-                    { message: req.flash('message'), email: student.account.email, role: role, hashCode: hashCode }, 
-                    (err, html) => {
-                        if (err) { return next(err); } // status 500
-                        res.send(html);
-                    });
-                });
-            });
-        });
-    } break;
-
-    case 'placeowner': {
-        process.nextTick(() => {
-
-            Placeowner.findOne({ 'account.hashCode': hashCode, 'account.status': 1, 'account.role': 1 }, (err, placeowner) => {
-
-                if (err) { return next(err); } // status 500
-                if (!student) { return next(); } // status 404
-
-                req.session.save((err) => {
-                    if (err) { return next(err); } // status 500
-
-                    res.render('reset', 
-                    { message: req.flash('message'), email: placeowner.account.email, role: role, hashCode: hashCode },
-                    (err, html) => {
-                        if (err) { return next(err); } // status 500
-                        res.send(html);
-                    });
-                });
-            });
-        });
-    } break;
-        
-
-    default: 
-        return next(); // status 404
+        case '0': query = Student.findOne(); break;
+        case '1': query = Placeowner.findOne(); break;
+        default: return next();
     }
-})
+    
+    query.where({ 'account.hashCode': hashCode, 'account.status': 1 })
+    .exec((err, user) => {
+        if (err || !user) { return next(err); }
+
+        req.session.save((err) => {
+            if (err) { return next(err); } // status 500
+
+            res.render('reset', 
+            { 'message': req.flash('message'), 'email': user.account.email, 'role': role, 'hashCode': hashCode }, 
+            (err, html) => err ? next(err) : res.send(html));
+        });
+    });
+});
 
 // ========================================================================================
 // POST ROUTES ============================================================================
@@ -359,7 +190,8 @@ authRouter.post('/signup', (req, res, next) => {
             });
         }
 
-        crypto.randomBytes(10, (err, buffer) => {
+        // TODO: Refactor use user id on verification link
+        crypto.randomBytes(3, (err, buffer) => {
             if (err) { return next(err); } // status 500
 
             const hashCode = buffer.toString('hex');
@@ -367,7 +199,10 @@ authRouter.post('/signup', (req, res, next) => {
 
             user.save((err) => {
                 if (err) { return next(err); } // status 500
-                sendEmailVerification(req, res, next, user, hashCode);
+                sendVerificationLink(req, user, hashCode, (err) => {
+                    if (err) { return next(err); }
+                    res.redirect('/auth');
+                });
             });
         });
     }) (req, res, next);
