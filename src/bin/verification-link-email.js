@@ -1,13 +1,11 @@
 const mailer = require('../config/mailer');
 
-module.exports = function(userId, account, callback) {
+module.exports = function(account, callback) {
 
     let url = `${process.env.MODE === 'prod' ? 'https://rsnavigation.com' : `localhost:${process.env.PORT}`}`
-            + `/auth/verify/${userId}/${account.hashCode}`;
+            + `/auth/verify/${account._id}/${account.hashCode}`;
 
-    const roleString = account.role === 0 ? 'student' : 'placeowner';
-
-    const message = `Congratulations! You have successfully created an RS Navigation ${roleString} account and `
+    const message = `Congratulations! You have successfully created an RS Navigation ${account.roleString} account and `
         + `you are just one step away from acessing it.\n\n`
         + `You can click this link to verify that this is indeed your email address:\n${url}\n\n`
         + `If you do not remember signing up to https://rsnavigation.com, calm down. Don't panic.\n`
