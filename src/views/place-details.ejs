@@ -44,8 +44,9 @@
         }
 
         #map {
-            height: 500px;
-
+            height: 30rem;
+            width: 100%;
+            border: 5px solid rgb(14, 22, 38, 0.25);
         }
 
         #reviews {
@@ -75,7 +76,7 @@
 
         .card {
             background: rgb(14, 22, 38, 0.5);
-            border: 3px solid rgb(14, 22, 38, 0.25);
+            border: 5px solid rgb(14, 22, 38, 0.25);
             color: white;
         }
 
@@ -103,8 +104,12 @@
         @media (max-width: 600px) {
 
             .card-img-top {
-                height: 15rem;
+                height: 16rem;
                 object-fit: cover;
+            }
+
+            #map {
+                height: 16rem;
             }
         }
 
@@ -120,6 +125,7 @@
     <main class="container">
         <div class="row justify-content-center">
             <div class="col-10 col-lg-8 mb-3">
+
                 <div class="card collapse show" id="images">
                     <div id="carousel" class="carousel slide" data-ride="carousel">
                         <ol class="carousel-indicators">
@@ -151,8 +157,8 @@
                     </div>
                 </div>
 
-                <section id="map-section" class="collapse row mb-5 justify-content-center">
-                    <div id="map" class="col border border-primary text-center"></div>
+                <section id="map-section" class="collapse justify-content-center">
+                    <div id="map" class="text-center"></div>
                 </section>
             </div>
 
@@ -233,6 +239,10 @@
 
             $("#images").collapse("toggle");
             $("#map-section").collapse("toggle");
+
+            $('html, body').animate({
+                scrollTop: 0
+            }, 1000);
         });
 
         let map;
