@@ -20,5 +20,6 @@ mongoose.set('useFindAndModify', false);
 
 // create a default mongoose connection
 const connection = mongoose.connect(uri, { useNewUrlParser: true });
+console.log(`Connecting to database: ${uri}`);
 
 module.exports = connection;
