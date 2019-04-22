@@ -35,21 +35,18 @@ class CustomStorage {
 
             // resize the uploaded file and return it as a buffer
             sharp(filePath).toFormat('jpg')
-                .resize({ width: 200 })
-                .toBuffer((err, buffer, info) => {
-                    if (err) { return callback(err); }
+            .toBuffer((err, buffer, info) => {
+                if (err) { return callback(err); }
 
-                    // replace the uploaded file with the resized version
-                    fs.writeFileSync(filePath, buffer);
+                // replace the uploaded file with the formatted version
+                fs.writeFileSync(filePath, buffer);
 
-                    console.log(info);
-
-                    callback(null, {
-                        filename: filename,
-                        path: filePath,
-                        size: outStream.bytesWritten
-                    });
+                callback(null, {
+                    filename: filename,
+                    path: filePath,
+                    size: outStream.bytesWritten
                 });
+            });
         });
     }
 
