@@ -5,11 +5,11 @@ function enable(button, id) {
     if (input.hasAttribute('disabled')) {
         input.removeAttribute('disabled');
         input.focus();
-        button.innerHTML = 'Cancel';
+        button.innerHTML = '<i class="fas fa-times"></i>';
     } else {
         input.setAttribute('disabled', '');
         input.value = '';
-        button.innerHTML = 'Edit';
+        button.innerHTML = '<i class="far fa-edit"></i>';
     }
     
     button.setAttribute('disabled', '');
@@ -27,7 +27,7 @@ $("#edit-password").click(function() {
         newPassword.removeAttribute('disabled');     // remove the disabled attribute of new password
         confirmPassword.removeAttribute('disabled'); // input field and confirm password input field
         newPassword.focus();     
-        $button.text('Cancel');
+        $button.html('<i class="fas fa-times"></i>');
 
     // cancel is pressed
     } else {
@@ -35,7 +35,7 @@ $("#edit-password").click(function() {
         confirmPassword.setAttribute('disabled', ''); // and confirm password input field
         newPassword.value = '';     
         confirmPassword.value = ''; // clear the value of new and confirm password
-        $button.text('Edit');
+        $button.html('<i class="far fa-edit"></i>');
 
         if ($("#cp-div").hasClass('show')) { // hide the confirm password if it is visible
             $("#cp-div").collapse("toggle"); // and cancel button is pressed on new password

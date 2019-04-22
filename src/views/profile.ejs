@@ -64,7 +64,11 @@
                         <% } %>
     
                         <p class="text-white"><%= user.account.email %></p>
-                        <p><a href="profile/<%= user.id %>/places" target="_blank"><button class="btn custom-button">Your Places</button></a></p>
+
+                        <% if (user.account.role === 1) { %>
+                            <p><a href="profile/<%= user.id %>/places" target="_blank"><button class="btn custom-button">Your Places</button></a></p>
+                        <% } %>
+
                         <p><button class="btn custom-button" id="edit">Edit Profile</button></p>
                     <!--
                         <% if (user.account.role === 1) { %>
@@ -85,14 +89,14 @@
                         <div class="input-group mb-3">
                             <input type="text" class="form-control" placeholder="<%= user.firstName %>" name="firstName"  id="fn" required disabled>
                             <div class="input-group-append">
-                                <button type="button" class="btn input-group-text" onclick="enable(this, 'fn')">Edit</button>
+                                <button type="button" class="btn input-group-text" onclick="enable(this, 'fn')"><i class="far fa-edit"></i></button>
                             </div>
                         </div>
 
                         <div class="input-group mb-3">
                             <input type="text" class="form-control" placeholder="<%= user.lastName %>" name="lastName" id="ln" required disabled>
                             <div class="input-group-append">
-                                <button type="button" class="btn input-group-text" onclick="enable(this, 'ln')">Edit</button>
+                                <button type="button" class="btn input-group-text" onclick="enable(this, 'ln')"><i class="far fa-edit"></i></button>
                             </div>
                         </div>
 
@@ -100,7 +104,7 @@
                             <div class="input-group mb-3">
                                 <input type="text" class="form-control" placeholder="<%= user.schoolName %>" name="schoolName" id="sn" required disabled>
                                 <div class="input-group-append">
-                                    <button type="button" class="btn input-group-text" onclick="enable(this, 'sn')">Edit</button>
+                                    <button type="button" class="btn input-group-text" onclick="enable(this, 'sn')"><i class="far fa-edit"></i></button>
                                 </div>
                             </div>
                         <% } %>
@@ -108,14 +112,14 @@
                         <div class="input-group mb-3">
                             <input type="email" class="form-control" placeholder="<%= user.account.email %>" name="email" id="em" required disabled>
                             <div class="input-group-append">
-                                <button type="button" class="btn input-group-text" onclick="enable(this, 'em')">Edit</button>
+                                <button type="button" class="btn input-group-text" onclick="enable(this, 'em')"><i class="far fa-edit"></i></button>
                             </div>
                         </div>
 
                         <div class="input-group mb-3">
                             <input type="password" class="form-control" placeholder="New Password" name="newPassword" id="np" required disabled>
                             <div class="input-group-append">
-                                <button type="button" class="btn input-group-text" id="edit-password">Edit</button>
+                                <button type="button" class="btn input-group-text" id="edit-password"><i class="far fa-edit"></i></button>
                             </div>
                         </div>
 
