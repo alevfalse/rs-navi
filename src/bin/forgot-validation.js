@@ -5,6 +5,8 @@ module.exports = function(inputEmail, role) {
         errorMessage += 'No email address provided.\n';
     } else if (!role) {
         errorMessage += 'No role provided.\n';
+    } else if (role !== 'student' && role !== 'placeowner') {
+        errorMessage += 'Invalid role provided.\n';
     } else if (inputEmail.startsWith(' ')) {
         errorMessage += 'Email address must not start with space.\n';
     } else if (inputEmail.match(/[^a-zA-Z0-9.@_]/)) {
