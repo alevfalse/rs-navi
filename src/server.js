@@ -111,7 +111,7 @@ connection.then((client) => {
         };
 
         https.createServer(sslOptions, app).listen(port, () => {
-            console.log(`RS Navi is now live with SSL certificate!`);
+            console.log(`RS Navi is now live with secure connection!`);
         });
 
     } else {
