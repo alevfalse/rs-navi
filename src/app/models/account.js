@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 const argon = require('argon2');
-const generate = require('nanoid/generate');
-const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 const AccountSchema = new mongoose.Schema({
     _id: String,
@@ -49,7 +47,9 @@ AccountSchema.methods.verifyEmail = function(callback) {
 }
 
 AccountSchema.methods.updatePassword = async function(password, callback) {
-    this.password = await argon.hash(password, { timeCost: 50})
+    this.password = await argon.hash(password, { timeCost: 50 });
+    this.hashCode = null;
+    this.save(err => callback(err));
 }
 
 
