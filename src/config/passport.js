@@ -33,7 +33,7 @@ passport.deserializeUser((id, done) => {
         case '7': query = Admin.findById(id);      break;
         default : return done(null, false);
     }
-    query.populate('image').populate('account').exec((err, user) => done(err, user));
+    query.populate('image account').exec((err, user) => done(err, user));
 });
 
 
