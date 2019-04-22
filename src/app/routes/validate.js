@@ -1,34 +1,26 @@
 const validateRouter = require('express').Router();
 
-// models
-const Student = require('../models/student');
-const Placeowner = require('../models/placeowner');
+// model
+const Account = require('../models/account');
 
 validateRouter.get('/email', (req, res) => {
 
     const inputEmail = req.query.email;
-    const role = req.query.role;
+    const roleString = req.query.role;
 
-    if (!inputEmail || !role) { return res.send(false); }
-    
-    let query;
+    if (!inputEmail || !roleString) { return res.send('2'); }
 
-    switch (role.toLowerCase())
+    let role;
+
+    switch(roleString)
     {
-        case 'student':    query = Student.findOne();    break;
-        case 'placeowner': query = Placeowner.findOne(); break;
-        default: return res.send(false);
+        case 'student':     role = 0; break;
+        case 'placeowner':  role = 1; break;
+        default: return res.send('2');
     }
-
-    query.where({ 'account.email': inputEmail }).select('_id')
-    .exec((err, found) => {
-        if (err) {
-            console.error(err);
-            return res.send(false);
-        }
-        
-        res.send(!found);
-    });
+    
+    Account.findOne({ 'email': inputEmail, 'role': role }, '_id',
+    (err, account) => { err ? res.send('0') : account ? res.send('0') : res.send('1'); });
 });
 
 module.exports = validateRouter;
