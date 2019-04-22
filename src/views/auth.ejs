@@ -127,8 +127,8 @@
                         <input type="password" class="form-control" placeholder="Password" name="password" id="signupPassword" required>
                         <div class="mb-3"></div>
                         <input type="password" class="form-control" placeholder="Confirm Password" name="confirmPassword" id="confirmSignupPassword" required>
-                        <div class="mb-3"></div>
-                        <input type="text" name="role" id="signupRoleInput" required hidden value=<%= locals.placeowner ? "placeowner" : "student" %> >
+                        <div></div>
+                        <input type="text" class="my-3" name="role" id="signupRoleInput" required hidden value=<%= locals.placeowner ? "placeowner" : "student" %> ><br>
                         <button type="submit" class="btn btn-sm custom-button px-4">Signup</button>
                     </div>
                 </div>

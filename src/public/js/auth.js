@@ -54,7 +54,7 @@ $("#signupPassword, #confirmSignupPassword").keyup(function() {
     }
 })
 
-$("input[type='text']").keyup(function() {
+$("input[type='text']:not(#signupRoleInput)").keyup(function() {
             
     const input = $(this);
     const name = input.val();
@@ -88,16 +88,18 @@ const validateEmailFunction = function(email, role, input, res) {
             email: email,
             role: role
         },
-        success: function(valid) {
-            console.log(valid);
-            valid = valid;
-            console.log(input.attr('id'));
-            if (valid) {
+        success: function(result) {
+
+            if (result === '1') {
                 input.removeClass('is-invalid').addClass('is-valid');
                 res.removeClass('invalid-feedback').text('');
-            } else {
+            } else if (result === '0') {
                 input.removeClass('is-valid').addClass('is-invalid');
                 res.addClass('invalid-feedback').text('Email address is already taken');
+            } else if (result === '2') {
+                input.removeClass('is-valid').addClass('is-invalid');
+                res.addClass('invalid-feedback').text('An error occurred.');
+                $("#signupRoleTitle").text('What are you doing?');
             }
         }
     });
