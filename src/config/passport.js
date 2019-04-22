@@ -143,8 +143,8 @@ passport.use('local-signup', new LocalStrategy({
         const hashedPassword = await argon.hash(password, { timeCost: 50 });
 
         const newAccount = new Account({
-            role: role,
             _id: newUser._id,
+            role: role,
             email: email,
             password: hashedPassword,
             hashCode: generate(alpha, 6)
@@ -154,7 +154,7 @@ passport.use('local-signup', new LocalStrategy({
 
         newUser.save(err => { if (err) { return done(err, false); }
 
-        sendVerificationLinkEmail(newUser._id, newAccount, err => {
+        sendVerificationLinkEmail(newAccount, err => {
             if (err) { return done(err, false); }
 
             req.flash('message', 'Verification email sent.');
