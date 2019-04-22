@@ -1,13 +1,11 @@
 const mailer = require('../config/mailer');
 
-module.exports = function (user, callback) {
+module.exports = function (account, callback) {
 
     let url = `${process.env.MODE === 'prod' ? 'https://rsnavigation.com' : `localhost:${process.env.PORT}`}`
-            + `/auth/reset/${user._id}/${user.account.hashCode}`;
+            + `/auth/reset/${account._id}/${account.hashCode}`;
 
-    const role = user.account.role === 0 ? 'student' : 'placeowner';
-
-    const message = `Good day! We have received a password reset request from your ${role} account.\n\n`
+    const message = `Good day! We have received a password reset request from your ${account.roleString} account.\n\n`
         + `You can click this link to reset your password:\n${url}\n\n`
         + `If you did not send this request, we suggest you secure your account by clicking this link anyway or requesting a new one\n`
         + `at https://rsnavigation.com/auth and select Forgot Password. You may also update your password on your account's profile page\n`
@@ -16,7 +14,7 @@ module.exports = function (user, callback) {
 
     const mailOptions = {
         from: "roomstayin.navigation@gmail.com",
-        to: user.account.email,
+        to: account.email,
         subject: "RS Navigation - Reset Password",
         text: message
     };
