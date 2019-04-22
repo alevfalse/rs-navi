@@ -9,15 +9,6 @@
     <meta name="keywords" content="password, reset">
     <meta name="description" content="Reset your account's forgotten password.">
 
-    <!-- Google AdSense-->
-    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({
-            google_ad_client: "ca-pub-9797256913304236",
-            enable_page_level_ads: true
-        });
-    </script>
-
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- Font Awesome -->
@@ -29,20 +20,9 @@
     <title>Reset Password - RS Navi</title>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
-        <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
-        <button class="navbar-toggler" data-toggle="collapse" data-target="#navLinks" aria-label="Toggle navigation links">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navLinks">
-            <ul class="navbar-nav ml-auto">
-                    <li class="nav-item"><a href="/auth" class="nav-link">Login <i class="fas fa-user"></i></a></li>
-                    <li class="nav-item"><a href="/auth?placeowner=1" class="nav-link">Add A Place <i class="fas fa-home"></i> </a></li>
-            </ul>
-        </div>
-    </nav>
+    
+    <!-- Navbar Component -->
+    <% include ../public/components/navbar.ejs %>
     
     <% if (locals.message) { 
         if (message.length > 0) { %>
@@ -74,18 +54,18 @@
         <div id="resetPassword">
             <div class="row justify-content-center text-center mb-3">
                 <div class="col-8">
-                    <h2 class="display-6 text-white" id=>Reset <%= locals.role %> Password</h2>
+                    <h2 class="display-6 text-white" id=>Reset <%= account.roleString %> Password</h2>
                 </div>
             </div>
 
             <form method="POST" action="/auth/reset">
                 <div class="row justify-content-center text-center">
                     <div class="col-8 col-md-6 col-lg-5 col-xl-4 formFields">
-                        <input type="email" class="form-control mb-3" placeholder="Email" name="email" value="<%= locals.email %>" required>
+                        <input type="email" class="form-control mb-3" placeholder="Email" name="email" value="<%= account.email %>" disabled>
                         <input type="password" class="form-control mb-3" placeholder="New Password" name="newPassword" required>
                         <input type="password" class="form-control mb-3" placeholder="Confirm New Password" name="confirmNewPassword" required>
-                        <input type="text" name="role" value="<%= locals.role %>" required hidden>
-                        <input type="text" name="hashCode" value="<%= locals.hashCode %>" required hidden>
+                        <input type="text" name="id" value="<%= account._id %>" required hidden>
+                        <input type="text" name="hashCode" value="<%= account.hashCode %>" required hidden>
                         <button type="submit" class="btn btn-sm btn-primary px-4">Update Password</button>
                     </div>
                 </div>
@@ -107,10 +87,6 @@
         $(document).ready(() => {
             $('form').attr('autocomplete', 'off');  // disable default autocomplete
             $("main").animate({ opacity: 1 }, 1000) // fade-in
-        });
-
-        $('#searchField').autocomplete({
-            serviceUrl: '/autocomplete/schools'
         });
     </script>
 </body>
