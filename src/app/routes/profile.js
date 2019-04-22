@@ -4,6 +4,7 @@ const path = require('path');
 
 const Student = require('../models/student');
 const Placeowner = require('../models/placeowner');
+const Place = require('../models/place');
 
 const upload = require('../../config/upload');
 const uploadDir = path.join(__dirname, '../../uploads/');
@@ -93,6 +94,17 @@ profileRouter.get('/:id/image', (req, res, next) => {
                 res.sendFile('blank-profile-picture.jpg', { root: publicImagesDirectory });
             })
         }
+    });
+});
+
+// GET rsnavigation.com/profile/:id/places
+profileRouter.get('/:id/places', (req, res, next) => {
+    Place.find({ 'owner': req.params.id, 'status': 1 })
+    .populate('owner images')
+    .exec((err, places) => {
+        if (err) { return next(err); }
+        res.render('places', { 'user': req.user, 'places': places, 'message': req.flash('message') }, 
+        (err, html) => err ? next(err) : res.send(html));
     });
 });
 
