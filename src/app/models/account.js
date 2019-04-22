@@ -5,11 +5,11 @@ const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 const AccountSchema = new mongoose.Schema({
     _id: String,
+    role: Number,
     email: String,
     password: String,
     hashCode: String,
     status:   { type: Number, default: 0 },
-    role:     { type: Number, default: 0 },
     created:  { type: Date, default: new Date() },
     lastLoggedIn: { type: Date, default: null }
 });

@@ -143,6 +143,7 @@ passport.use('local-signup', new LocalStrategy({
         const hashedPassword = await argon.hash(password, { timeCost: 50 });
 
         const newAccount = new Account({
+            role: role,
             _id: newUser._id,
             email: email,
             password: hashedPassword,
