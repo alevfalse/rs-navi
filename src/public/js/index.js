@@ -22,10 +22,6 @@ function initMap() {
     const options = {
         zoom: 11,
         minZoom: 10,
-        center: {
-            lat: 14.6091,
-            lng: 121.0223
-        },
         disableDefaultUI: true,
         gestureHandling: 'greedy',
         backgroundColor: 'rgba(0, 0, 0, 0)',
