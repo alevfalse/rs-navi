@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
 const Image = require('./image');
-const generate = require('nanoid/generate');
-const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+const nanoid = require('../../bin/nanoid');
 
 const PlaceownerSchema = new mongoose.Schema({
-    _id: { type: String, default: () => '1' + generate(alpha, 9) },
+    _id: { type: String, default: () => '1' + nanoid(9) },
     firstName: String,
     lastName: String,
     image: { type: String, ref: 'Image', default: null },
@@ -30,6 +29,10 @@ license status:         2 - expired
 2 - verified
 3 - revoked
 */
+
+PlaceownerSchema.virtual('fullName').get(function() {
+    return `${this.firstName} ${this.lastName}`;
+});
 
 PlaceownerSchema.methods.updateProfileImage = function(file, callback) {
 
