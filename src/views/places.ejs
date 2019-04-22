@@ -89,7 +89,7 @@
                 for (let place of places) { %>
                     
                     <div class="col-10 col-md-6 col-lg-4 mb-3">
-                        <div class="card h-100">
+                        <div class="card">
                             <div>
                                 <div id="carousel-<%= p %>" class="carousel slide" data-ride="carousel">
 
@@ -125,8 +125,8 @@
                                 <h6 class="card-subtitle mb-2">₱ <%= place.price.toLocaleString('en') %></h6>
                                 <p class="card-text"><%= place.fullAddress %></p>
                                 <span class="mt-auto">
-                                    <a href="places/<%= place.id %>" class="card-link" target="_blank">View Details</a>
-                                    <a href="places/<%= place.id %>/images" class="card-link" target="_blank">Images</a>
+                                    <a href="/places/<%= place.id %>" class="card-link" target="_blank">View Details</a>
+                                    <a href="/places/<%= place.id %>/images" class="card-link" target="_blank">Images</a>
                                 </span>
                             </div>
                         </div>
