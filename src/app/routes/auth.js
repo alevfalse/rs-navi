@@ -1,10 +1,8 @@
 const authRouter = require('express').Router();
 const passport = require('../../config/passport');
-const crypto = require('crypto');
+const nanoid = require('../../bin/nanoid');
 
-// models
-const Student = require('../models/student');
-const Placeowner = require('../models/placeowner');
+// model
 const Account = require('../models/account');
 
 // FUNCTIONS ============================================================================
@@ -56,7 +54,7 @@ authRouter.get('/logout', (req, res) => {
 authRouter.get('/verify/:id/:hashCode', (req, res, next) => {
 
     if (req.isAuthenticated()) {
-        req.flash('message', 'Please log out before verifying an email address.');
+        req.flash('message', 'You are still logged in.');
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
 
@@ -87,11 +85,11 @@ authRouter.get('/verify/:id/:hashCode', (req, res, next) => {
 authRouter.get('/reset/:id/:hashCode', (req, res, next) => {
 
     if (req.isAuthenticated()) {
-        req.flash('message', 'You must be loggged out before resetting a forgotten password.');
+        req.flash('message', 'You are still logged in.');
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
 
-    const id = req.params.role;
+    const id = req.params.id;
     const hashCode = req.params.hashCode;
 
     if (!id || !hashCode) { return next(); } // status 404 
@@ -100,14 +98,8 @@ authRouter.get('/reset/:id/:hashCode', (req, res, next) => {
     (err, account) => {
         if (err || !account) { return next(err); } // status 500
 
-        const data = {
-            message: req.flash('message'),
-            email: account.email,
-            role: account.role,
-            hashCode: account.hashCode
-        }
-
-        res.render('reset', data, (err, html) => err ? next(err) : res.send(html));
+        res.render('reset', { 'message': req.flash('message'), 'account': account }, 
+        (err, html) => err ? next(err) : res.send(html));
     });
 });
 
@@ -150,52 +142,35 @@ authRouter.post('/forgot', (req, res, next) => {
         });
     }
 
-    let query;
+    let role = inputRole === 'student' ? 0 : 1;
 
-    switch (inputRole.toLowerCase())
-    {
-        case 'student': query = Student.findOne(); break;
-        case 'placeowner': query = Placeowner.findOne(); break;
-        default: {
-            req.flash('message', 'Invalid credentials provided.'); // invalid role
-            return req.session.save((err) => {
-                if (err) { return next(err); }
-                res.redirect('/auth');
-            });
-        }
-    }
+    Account.findOne({ 'email': inputEmail, 'role': role }, 
+    (err, account) => {
 
-    query.where({ 'account.email': inputEmail, 'account.role': 0 })
-    .exec((err, user) => {
         if (err) { return next(err); } // status 500
 
         // if no student account with such email was found
-        if (!user) { 
-            req.flash('message', 'Student email does not exist.');
-            return req.session.save((err) => {
-                if (err) { return next(err); } // status 500
-                res.redirect('/auth');
-            });
+        if (!account) { 
+            req.flash('message', 'Email does not exist.');
+            return req.session.save(err => err ? next(err) :res.redirect('/auth'));
         }
 
         // if the student account is still unverified
-        if (user.account.status === 0) {
+        if (account.status === 0) {
             req.flash('message', 'Your email address is still unverified. Check your email for the verification link.');
-            return req.session.save((err) => {
-                if (err) { return next(err); } // status 500
-                res.redirect('/auth');
-            });
+            return req.session.save(err => err ? next(err) :res.redirect('/auth'));
         }
 
-        // generate hash code and save to student's account
-        crypto.randomBytes(6, (err, buffer) => {
-            if (err) { return next(err); } // status 500
+        account.hashCode = nanoid(6);
 
-            const hashCode = buffer.toString('hex');
-            user.account.hashCode = hashCode;
-            user.save((err) => {
-                if (err) { return next(err); } // status 500
-                sendResetPasswordEmail(req, res, next, user, hashCode);
+        account.save(err => {
+            if (err) { return next(err) }
+
+            sendResetPasswordEmail(account, err => {
+                if (err) { return next(err) }
+
+                req.flash('message', 'Password reset link has been sent to your email.');
+                req.session.save(err => err ? next(err) : res.redirect('/auth'));
             });
         });
     });
@@ -209,13 +184,13 @@ authRouter.post('/reset', (req, res, next) => {
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
 
-    const email = req.body.email;
+    const id = req.body.id;
+    const hashCode = req.body.hashCode;
     const newPassword = req.body.newPassword;
     const confirmNewPassword = req.body.confirmNewPassword;
-    const roleString = req.body.role;
-    const hashCode = req.query.hashCode;
+    
 
-    if (!email || !newPassword || !confirmNewPassword || !roleString || !hashCode) {
+    if (!id || !newPassword || !confirmNewPassword || !hashCode) {
         req.flash('message', 'Missing required fields.');
         return req.session.save(err => err ? next(err) : res.redirect('/auth'))
     }
@@ -224,21 +199,16 @@ authRouter.post('/reset', (req, res, next) => {
         req.flash('message', 'Passwords do not match.');
         return req.session.save(err => err ? next(err) : res.redirect('/auth'));
     }
+    
+    Account.findOne({ '_id': id, 'hashCode': hashCode, 'status': 1 },
+    async (err, account) => {
 
-    let role = roleString === 'student' ? 0 : 'placeowner' ? 1 : null;
-    if (!role) { return next() }
-
-    Account.findOne({ 'email': email, 'hashcode': hashCode, 'role': role, 'status': 1 },
-    (err, account) => {
+        console.log(account);
             
         if (err || !account) { return next(err); }
 
-        account.password = newPassword;
-        account.haschCode = null;
-
-        account.save(err => {
-            if (err) { return next(err); } // status 500
-
+        account.updatePassword(newPassword, err => {
+            if (err) { return next(err); }
             req.flash('message', 'Password updated.');
             req.session.save(err => err ? next(err) : res.redirect('/auth'));
         });
