@@ -56,7 +56,7 @@ authRouter.get('/logout', (req, res) => {
 authRouter.get('/verify/:id/:hashCode', (req, res, next) => {
 
     if (req.isAuthenticated()) {
-        req.flash('Please log out before verifying an email address.');
+        req.flash('message', 'Please log out before verifying an email address.');
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
 
@@ -87,7 +87,7 @@ authRouter.get('/verify/:id/:hashCode', (req, res, next) => {
 authRouter.get('/reset/:id/:hashCode', (req, res, next) => {
 
     if (req.isAuthenticated()) {
-        req.flash('You must be loggged out before resetting a forgotten password.');
+        req.flash('message', 'You must be loggged out before resetting a forgotten password.');
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
 
