@@ -50,47 +50,6 @@ main {
     height: 800px;
 }
 
-/* Info Window */
-.gm-style {
-    font-family: 'Roboto Condensed', sans-serif !important;
-    color: white;
-}
-
-/* POI Info Window */
-.poi-info-window div {
-    font-family: 'Roboto Condensed', sans-serif !important;
-    background: none !important;
-    color: white !important;
-}
-
-.poi-info-window .address {
-    padding-top: 5px;
-    padding-bottom: 5px;
-}
-
-.view-link {
-    display: none;
-}
-/* End of POI Info Window */
-
-.gm-style .gm-style-iw-c {
-    background: rgb(14, 22, 38, 0.75);
-    padding: 15px 10px 10px 8px !important;
-}
-
-.gm-style .gm-style-iw-t::after {
-    background: skyblue;
-}
-
-.gm-style-iw-d {
-    background: none;
-    overflow: hidden !important;
-}
-
-.gm-style-iw-d p {
-    margin-bottom: 0.5rem;
-}
-
 /* Google Place Search Autocomplete */
 .pac-item {
     background: #0e1626;
