@@ -1,11 +1,14 @@
 const mailer = require('../config/mailer');
 
-module.exports = function(req, user, hashCode, callback) {
+module.exports = function(userId, account, callback) {
 
-    const role = user.account.role === 0 ? 'student' : 'placeowner';
-    let url = `${process.env.MODE === 'prod' ? 'http://rsnavigation.com' : `localhost:${process.env.PORT}`}/auth/verify/${user.account.role}/${hashCode}`;
+    let url = `${process.env.MODE === 'prod' ? 'https://rsnavigation.com' : `localhost:${process.env.PORT}`}`
+            + `/auth/verify/${userId}/${account.hashCode}`;
 
-    const text = `Congratulations! You have successfully created an RS Navigation ${role} account and you are just one step away from acessing it.\n\n`
+    const roleString = account.role === 0 ? 'student' : 'placeowner';
+
+    const message = `Congratulations! You have successfully created an RS Navigation ${roleString} account and `
+        + `you are just one step away from acessing it.\n\n`
         + `You can click this link to verify that this is indeed your email address:\n${url}\n\n`
         + `If you do not remember signing up to https://rsnavigation.com, calm down. Don't panic.\n`
         + `Just ignore this email and we will handle the rest.\n\n`
@@ -13,17 +16,16 @@ module.exports = function(req, user, hashCode, callback) {
 
     const mailOptions = {
         from: "roomstayin.navigation@gmail.com",
-        to: user.account.email,
+        to: account.email,
         subject: "RS Navigation - Email Verification",
-        text: text
+        text: message
     };
     
+    console.time('Verify Email');
     mailer.sendMail(mailOptions, (err, info) => {
+        console.timeEnd('Verify Email');
         if (err) { return callback(err); }
-
         console.log(`Email sent: ${info.response}`);
-
-        req.flash('message', 'Verification link has been sent to your email.');
-        req.session.save(callback);
+        callback(null);
     });
 }
