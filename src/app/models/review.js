@@ -1,9 +1,8 @@
 const mongoose = require('mongoose');
-const generate = require('nanoid/generate');
-const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+const nanoid = require('../../bin/nanoid');
 
 const ReviewSchema = new mongoose.Schema({
-    _id: { type: String, default: () => generate(alpha, 10) },
+    _id: { type: String, default: () => nanoid(10) },
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
     rating: Number,
     comment: String,

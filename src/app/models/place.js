@@ -1,9 +1,8 @@
 const mongoose = require('mongoose');
-const generate = require('nanoid/generate');
-const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+const nanoid = require('../../bin/nanoid');
 
 const PlaceSchema = new mongoose.Schema({
-    _id: { type: String, default: () => generate(alpha, 10) },
+    _id: { type: String, default: () => nanoid(10) },
     owner: { type: String, ref: 'Placeowner' },
     name: String,
     placeType: Number,

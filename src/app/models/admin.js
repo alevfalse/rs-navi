@@ -1,9 +1,8 @@
 const mongoose = require('mongoose');
-const generate = require('nanoid/generate');
-const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+const nanoid = require('../../bin/nanoid');
 
 const AdminSchema = new mongoose.Schema({
-    _id: { type: String, default: () => '7' + generate(alpha, 9) },
+    _id: { type: String, default: () => '7' + nanoid(9) },
     firstName: String,
     lastName: String,
     account: { type: String, ref: 'Account' }
