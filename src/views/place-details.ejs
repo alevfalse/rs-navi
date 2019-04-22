@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="keywords" content="rent, house, apartments, dormitories, condominiums, school, address, travel, accessibility">
+    <meta name="description" content="Find available places to live near your school.">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css" integrity="sha256-7rF6RaSKyh16288E3hVdzQtHyzatA2MQRGu0cf6pqqM=" crossorigin="anonymous" />
+
+    <!-- Map CSS -->
+    <link rel="stylesheet" href="/css/map.css" type="text/css">
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Roboto+Condensed');
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            font-family: 'Roboto Condensed', sans-serif !important;
+            background: 
+                linear-gradient(
+                rgba(0, 0, 0, 0.7), 
+                rgba(0, 0, 0, 0.7)
+                ),
+                url("/images/background_min.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            padding-top: 70px;
+        }
+
+        main {
+            min-height: 100%;
+        }
+
+        #map {
+            height: 500px;
+
+        }
+
+        #reviews {
+            overflow-y: auto;
+            height: 300px;
+        }
+
+        #verified {
+            color: limegreen;
+            font-size: 1.25rem;
+        }
+
+        #licensed {
+            color: rgba(255, 255, 0, 0.85);
+            font-size: 1.25rem;
+        }
+
+        .btn.custom-button {
+            color: skyblue;
+            background: rgb(14, 22, 38, 0.75);
+            border: solid 1px rgb(135, 206, 235, 0.25);
+        }
+
+        .btn.custom-button:hover {
+            background: rgb(14, 22, 38, 0);
+        }
+
+        .card {
+            background: rgb(14, 22, 38, 0.5);
+            border: 3px solid rgb(14, 22, 38, 0.25);
+            color: white;
+        }
+
+        .card-header {
+            font-size: 1.35rem;
+        }
+
+        .card-img-top {
+            height: 30rem;
+            object-fit: cover;
+        }
+        
+        .fa-star {
+            color: gold;
+        }
+
+        .carousel-control-prev-icon {
+            background-image: url('https://image.flaticon.com/icons/svg/137/137518.svg')
+        }
+
+        .carousel-control-next-icon {
+            background-image: url('https://image.flaticon.com/icons/svg/137/137517.svg');
+        }
+
+        @media (max-width: 600px) {
+
+            .card-img-top {
+                height: 15rem;
+                object-fit: cover;
+            }
+        }
+
+    </style>
+
+    <title><%= place.name %></title>
+</head>
+<body>
+    
+    <!-- Navbar Component -->
+    <% include ../public/components/navbar.ejs %>
+
+    <main class="container">
+        <div class="row justify-content-center">
+            <div class="col-10 col-lg-8 mb-3">
+                <div class="card collapse show" id="images">
+                    <div id="carousel" class="carousel slide" data-ride="carousel">
+                        <ol class="carousel-indicators">
+                            <% for (let i=0; i<place.images.length; i++) { %>
+                                <li <% if (i==0) { %> class="active" <% } %> data-target="#carousel" data-slide-to="<%= i %>"></li>
+                            <% } %>
+                        </ol>
+
+                        <div class="carousel-inner">
+                            <% for (let i=0; i<place.images.length; i++) { %>
+                                <div class="carousel-item <%= i==0 ? 'active' : '' %>">
+                                    <a href="<%=place.images[i].url%>" target="_blank">
+                                        <img src="<%=place.images[i].url%>" class="card-img-top" alt="Missing" height="100px">
+                                    </a>
+                                </div>
+                            <% } %>
+                        </div>
+                        
+                        <% if (place.images.length > 1) { %>
+                            <a class="carousel-control-prev" href="#carousel" role="button" data-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="sr-only">Previous</span>
+                            </a>
+                            <a class="carousel-control-next" href="#carousel" role="button" data-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="sr-only">Next</span>
+                            </a>
+                        <% } %> 
+                    </div>
+                </div>
+
+                <section id="map-section" class="collapse row mb-5 justify-content-center">
+                    <div id="map" class="col border border-primary text-center"></div>
+                </section>
+            </div>
+
+            <div class="col-10 col-lg-4 mb-3">
+                <div class="row">
+                    <div class="col mb-3">
+                        <div class="card" style="width: 100%;">
+                            <div class="card-header">
+                                <div class="row justify-content-between">
+                                    <span class="ml-3">
+                                        <%= place.owner.fullName %>
+                                        <% if (place.owner.account.status === 1)  { %>&nbsp;<i class="far fa-check-circle" id="verified" title="Verified"></i> <% } %>
+                                        <% if (place.owner.license.status === 0)  { %>&nbsp;<i class="far fa-id-badge" id="licensed" title="Licensed"></i> <% } %>
+                                    </span>
+                                    
+                                    <a href="/profile/<%= place.owner._id %>" class="btn btn-sm custom-button mr-3" target="_blank">
+                                        Visit Profile
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <%= place.owner.account.email %>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col">
+                        <div class="card" style="width: 100%;">
+                            <div class="card-header">
+                                <div class="row justify-content-between">
+                                    <span class="ml-3"><%= place.name %></span>
+                                    <span class="mr-3" style="font-size: 1.15rem;">
+                                        <%= place.stars %>&nbsp;&nbsp;<i class="fas fa-star" title="<%= place.stars %> stars"></i>
+                                    </span>
+                                </div>
+                                <div class="row">
+                                    <p style="color:skyblue; font-size: 1.15rem;" class="ml-3 mt-1 mb-0">₱ <%= place.price.toLocaleString('en') %></p>
+                                </div>
+                            </div>
+                            <div class="card-body mb-1">
+                                
+                                <p class="card-title">Address</p>
+                                <h5 class="card-text mb-3"><%= place.fullAddress %></h5>
+                                <button class="btn btn-sm custom-button" id="view-map-button">View Map</button>
+                            </div>
+                            <div class="card-body mb-1">
+                                <p class="card-text"><%= place.description %></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col" id="reviews">
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Component -->
+    <% include ../public/components/footer.ejs %>
+
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <!-- Boostrap Bundle (Bootstrap JS + Popper.js) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
+
+    <script>
+
+        $("#view-map-button").click(function() {
+            if (!$("#images").hasClass("show")) {
+                $(this).text('View Map')
+            } else {
+                $(this).text('Hide Map')
+            }
+
+            $("#images").collapse("toggle");
+            $("#map-section").collapse("toggle");
+        });
+
+        let map;
+        let mapStyles;
+
+        function loadMapStyles() {
+            $.getJSON("/js/mapStyles2.json", function(data) {
+                mapStyles = data;
+                initMap();
+            });
+        }
+
+        function initMap() {
+
+            const options = {
+                zoom: 20,
+                minZoom: 10,
+                center: <%= place.coordinates %>,
+                disableDefaultUI: true,
+                gestureHandling: 'greedy',
+                backgroundColor: 'rgba(0, 0, 0, 0)',
+                styles: mapStyles
+            }
+
+            map = new google.maps.Map(document.getElementById('map'), options);
+
+            const marker = new google.maps.Marker({
+                position: <%= place.coordinates %>,
+                map: map,
+                icon: 'https://i.imgur.com/0f9XMvH.png'
+            });
+
+            const name = '<%=place.name.toString()%>';
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<h4><strong>${name}</strong></h4>` // sanitize
+            });
+
+            infoWindow.open(map, marker);
+
+            marker.addListener('click', function () {
+                map.panTo(marker.position);
+                map.setZoom(20);
+                infoWindow.open(map, marker);
+            });
+        }
+    </script>
+    <!-- Google Maps Libraries and Services -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDREAoaQ27rc3JvRN_lyipAak9eT7C3tqQ&libraries=places&callback=loadMapStyles" type="text/javascript"></script>
+</body>
+</html>
