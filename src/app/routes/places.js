@@ -23,7 +23,7 @@ placesRouter.get('/', (req, res, next) => {
     .populate('owner images')
     .exec((err, places) => {
         if (err) { return next(err); }
-        res.render('places', { user: req.user, places: places, message: req.flash('message') }, 
+        res.render('places', { 'user': req.user, 'places': places, 'message': req.flash('message') }, 
         (err, html) => err ? next(err) : res.send(html));
     });
 });
@@ -36,7 +36,20 @@ placesRouter.get('/add', isAuthorized, (req, res, next) => {
 
 // GET rsnavigation.com/places/:id
 placesRouter.get('/:id', (req, res, next) => {
-    Place.findById(req.params.id, (err, place) => err ? next(err) : place ? res.json(place) : next());
+    Place.findById(req.params.id)
+    .populate('images')
+    .populate({
+        path: 'owner',
+        populate: { path: 'account' }
+    })
+    .exec((err, place) => {
+        if (err || !place) { return next(err) }
+
+        console.log(place);
+
+        res.render('place-details', { 'place': place, 'user': req.user, 'message': req.flash('message') },
+        (err, html) => err ? next(err) : res.send(html));
+    });
 });
 
 // GET rsnavigation.com/places/:id/images/
@@ -45,7 +58,7 @@ placesRouter.get('/:id/images/', (req, res, next) => {
     .populate('images')
     .exec((err, place) => {
         if (err || !place) { return next (err); }
-        res.render('images', { message: req.flash('message'), place: place }, 
+        res.render('images', { 'message': req.flash('message'), place: place }, 
         (err, html) => err ? next(err) : res.send(html));
     });
 });
