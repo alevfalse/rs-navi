@@ -6,14 +6,7 @@ const AdminSchema = new mongoose.Schema({
     _id: { type: String, default: () => '7' + generate(alpha, 9) },
     firstName: String,
     lastName: String,
-    account: {
-        email: String,
-        password: String,
-        passcode: Number,
-        role: { type: Number, default: 7 },
-        created: { type: Date, default: new Date() },
-        lastLoggedIn: { type: Date, default: null }
-    }
+    account: { type: String, ref: 'Account' }
 })
 
 /*account roles

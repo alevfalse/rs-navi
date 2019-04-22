@@ -1,23 +1,14 @@
 const mongoose = require('mongoose');
+const Image = require('./image');
 const generate = require('nanoid/generate');
 const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-
-const Image = require('./image');
 
 const PlaceownerSchema = new mongoose.Schema({
     _id: { type: String, default: () => '1' + generate(alpha, 9) },
     firstName: String,
     lastName: String,
     image: { type: String, ref: 'Image', default: null },
-    account: { 
-        email: String,
-        password: String,
-        hashCode: { type: String, default: null },
-        status:   { type: Number, default: 0 },
-        role:     { type: Number, default: 1 },
-        created:  { type: Date, default: new Date() },
-        lastLoggedIn: { type: Date, default: null },
-    },
+    account: { type: String, ref: 'Account' },
     license: {
         status: { type: Number, default: 0 },
         type:   { type: Number, default: null },
@@ -39,31 +30,14 @@ license status:         2 - expired
 2 - verified
 3 - revoked
 */
-PlaceownerSchema.methods.verifyEmail = function(callback) {
-    this.account.hashCode = null;
-    this.account.status = 1;
-    this.account.lastLoggedIn = new Date();
-
-    // Update student in the database
-    this.save((err) => {
-        if (err) { return callback(err); } // status 500
-
-        // Authenticate the student and bind it to request as req.user
-        req.login(this, (err) => {
-            if (err) { return callback(err); } // status 500
-
-            req.flash('message', 'Email address verified.')
-            req.session.save((err) => callback(err));
-        });
-    });
-}
 
 PlaceownerSchema.methods.updateProfileImage = function(file, callback) {
 
+    // set the old image's status to deleted
     if (this.image) {
-        Image.findByIdAndUpdate(this.image._id, { 'status': 0 },
-        (err, deleted) => {
+        Image.findByIdAndUpdate(this.image._id, { 'status': 0 }, (err, deleted) => { 
             if (err) { console.error(err); }
+            console.log(`Deleted Image: ${deleted.filename}`);
         });
     }
 
@@ -74,10 +48,10 @@ PlaceownerSchema.methods.updateProfileImage = function(file, callback) {
     });
 
     // save image to database
-    image.save((err) => {
+    image.save(err => {
         if (err) { return callback(err); }
         this.image = image._id; // set the placeowner's image to the newly saved image
-        this.save((err) => callback(err)); // save changes to database
+        this.save(err => callback(err)); // save changes to database
     });
 }
 
