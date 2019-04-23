@@ -58,8 +58,7 @@ main {
 }
 
 #thumbnail {
-    max-width: 200px;
-    max-height: 200px;
+    max-width: 100%;
     object-fit: cover;
     padding: .45rem;
     background: rgb(14, 22, 38, 0.75);
@@ -82,9 +81,5 @@ main {
 @media (max-height: 800px) {
     #thumbnail, #update-inner {
         margin-top: 80px;
-    }
-
-    #thumbnail {
-        max-height: 15rem;
     }
 }
