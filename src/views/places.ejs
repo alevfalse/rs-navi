@@ -67,10 +67,9 @@
         
     </style>
 
-    <title>RS Navi</title>
+    <title>RS Navi • Places</title>
 </head>
 <body>
-
     <!-- Navbar Component -->
     <% include ../public/components/navbar.ejs %>
 
@@ -78,7 +77,7 @@
 
         <div class="row">
             <div class="col text-center" style="margin-top: 80px;">
-                <h1 class="text-white display-4">Places</h1>
+                <h1 class="text-white display-5 mb-3">Places</h1>
             </div>
         </div>
         
@@ -88,7 +87,7 @@
                 let p=0;
                 for (let place of places) { %>
                     
-                    <div class="col-10 col-md-6 col-lg-4 mb-3">
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
                         <div class="card h-100">
                             <div>
                                 <div id="carousel-<%= p %>" class="carousel slide" data-ride="carousel">
