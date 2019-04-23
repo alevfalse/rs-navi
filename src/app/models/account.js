@@ -26,7 +26,7 @@ AccountSchema.virtual('statusString').get(function() {
         case 3: return 'Banned';
         default: return 'Unknown';
     }
-})
+});
 
 AccountSchema.methods.login = function(callback) {
     this.hashCode = null;
