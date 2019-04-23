@@ -160,7 +160,7 @@ function addMarker(place) {
                 marker.infoWindow.setContent(
                     `<h5>${place.name}</strong></h5><p>${placeType}</p><p>₱ ${place.price.toLocaleString('en')}</p><p>${address}</p>` +
                     `<p>Distance: ${element.distance.text} (${element.duration.text} Walk)</p>` +
-                    `<p><a href='/places/${place._id}' target='_blank'>Visit Page<a/>` +
+                    `<p><a href='/places/${place._id}'>Visit Page<a/>` +
                     `<p><a href='/places/${place._id}/images' target='_blank'>Images<a/>`
 
                 )
