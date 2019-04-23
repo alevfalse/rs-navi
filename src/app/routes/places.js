@@ -59,8 +59,6 @@ placesRouter.get('/:id', (req, res, next) => {
     .exec((err, place) => {
         if (err || !place) { return next(err) }
 
-        console.log(place);
-
         const data = { 
             place: place, 
             user: req.user, 
