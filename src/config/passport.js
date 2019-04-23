@@ -104,14 +104,15 @@ passport.use('local-signup', new LocalStrategy({
     const firstName = req.body.firstName;
     const lastName = req.body.lastName;
     const confirmPassword = req.body.confirmPassword;
+    const contactNumber = req.body.contactNumber;
     const roleString = req.body.role;
     
-    if (!email || !firstName || !lastName || !confirmPassword || !roleString) {
+    if (!email || !firstName || !lastName || !password || !confirmPassword || !contactNumber || !roleString) {
         req.flash('message', `Missing required signup field(s).`);
         return done(null, false);
     }
 
-    const formError = validateSignupForm(firstName, lastName, email, password, confirmPassword);
+    const formError = validateSignupForm(firstName, lastName, email, contactNumber, password, confirmPassword);
     if (formError) {
         req.flash('message', formError.message);
         return done(null, false);
@@ -134,7 +135,8 @@ passport.use('local-signup', new LocalStrategy({
         const data = {
             firstName: firstName,
             lastName: lastName,
-            schoolName: req.body.schoolName
+            schoolName: req.body.schoolName,
+            contactNumber: contactNumber
         }
 
         const newUser = role === 0 ? new Student(data) : new Placeowner(data);

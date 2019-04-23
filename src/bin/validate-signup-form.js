@@ -1,4 +1,4 @@
-module.exports = function(firstName, lastName, email, password, confirmPassword) {
+module.exports = function(firstName, lastName, email, contactNumber, password, confirmPassword) {
     
     let errorMessage = '';
 
@@ -36,6 +36,12 @@ module.exports = function(firstName, lastName, email, password, confirmPassword)
     } // regex: if email starts/ends with @ or period || 2 or more @ || an @ is preceded by a period
     else if (!email.includes('@') || email.match(/[@.]$|^[@.]|@[^@]*@|\.@/)) {
         errorMessage += 'Invalid email address.\n';
+    }
+
+    if (contactNumber.match(/[^\d+\(\)-\s]|\s{2,}/)) {
+        errorMessage += 'Contact number contains an invalid character.';
+    } else if (contactNumber.length < 7) {
+        errorMessage += 'Contact number is too short.';
     }
 
     // password
