@@ -46,8 +46,15 @@ app.use('/favicon.ico', express.static(__dirname + '/public/images/favicon.ico')
 // logging
 const logDirectory = path.join(__dirname + '/logs');
 fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory); // create logs folder if it does not exist
-app.use(morgan(mode === 'prod' ? 'common' : 'dev'));
-app.use(morgan('common', { stream: fs.createWriteStream(path.join(logDirectory, 'access.log'), { flags: 'a' }) }));
+app.use(morgan(mode === 'prod' ? 'common' : 'dev', {
+    skip: (req, res) => req.url.endsWith('.jpg') || req.url.endsWith('image')
+}));
+
+app.use(morgan('common', { 
+    stream: fs.createWriteStream(path.join(logDirectory, 'access.log'), 
+    { flags: 'a' }),
+    skip: (req, res) => req.url.endsWith('.jpg') || req.url.endsWith('image')
+}));
 
 // for parsing request body
 app.use(bodyParser.urlencoded({ extended: true }));
