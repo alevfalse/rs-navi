@@ -30,7 +30,7 @@ function isAuthorizedPlaceowner(req, res, next) {
 // GET rsnavigation.com/places
 placesRouter.get('/', (req, res, next) => {
     Place.find({ 'status': 1 })
-    .populate('owner images')
+    .populate('owner images reviews')
     .exec((err, places) => {
         if (err) { return next(err); }
         res.render('places', { 'user': req.user, 'places': places, 'message': req.flash('message') }, 
