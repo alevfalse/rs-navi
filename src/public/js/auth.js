@@ -79,6 +79,26 @@ $("input[type='text']:not(#signupRoleInput)").keyup(function() {
     $(this).next().addClass('invalid-feedback')
 })
 
+$("#contactNumber").keyup(function() {
+            
+    const number = $(this).val();
+    const res = $(this).next();
+
+    if (number.match(/[^\d+\(\)-\s]|\s{2,}/)) {
+        res.text('Mobile number must only contain digits, hyphen and parentheses');
+    } else if (number.length < 7) {
+        res.text('Too short');
+    } else {
+        $(this).removeClass('is-invalid').addClass('is-valid');
+        res.removeClass('invalid-feedback').text('');
+        return; // return as a valid name
+    }
+    
+    // will only execute if at least one of the invalid conditions above are met
+    $(this).removeClass('is-valid').addClass('is-invalid');
+    res.addClass('invalid-feedback')
+})
+
 
 const validateEmailFunction = function(email, role, input, res) {
     
@@ -153,7 +173,6 @@ $("#switchRoleButton").click(function() {
     signupEmail.removeClass('is-valid is-invalid');
     signupEmail.next().removeClass('invalid-feedback').text('');
     signupEmail.val('');
-
 
     const switchRoleButton = $(this);
     const switchRoleNav = $("#switchRoleNav");
