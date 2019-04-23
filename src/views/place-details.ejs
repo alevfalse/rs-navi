@@ -42,16 +42,23 @@
         main {
             min-height: 100%;
         }
+        
+        textarea, textarea:focus {
+            color: skyblue;
+            background: rgba(144, 144, 144, 0.075);
+            border: solid 1px rgba(144, 144, 144, 0.25);
+            width: 100%; 
+            height: 7rem;
+        }
+
+        .skyblue {
+            color: skyblue;
+        }
 
         #map {
             height: 30rem;
             width: 100%;
-            border: 5px solid rgb(14, 22, 38, 0.25);
-        }
-
-        #reviews {
-            overflow-y: auto;
-            height: 300px;
+            border: 3px solid rgba(135, 207, 235, 0.1125);
         }
 
         #verified {
@@ -64,6 +71,15 @@
             font-size: 1.25rem;
         }
 
+        #reviews {
+            overflow-y: auto;
+            max-height: 30rem;
+        }
+
+        .sticky-offset {
+            top: 70px;
+        }
+
         .btn.custom-button {
             color: skyblue;
             background: rgb(14, 22, 38, 0.75);
@@ -71,17 +87,24 @@
         }
 
         .btn.custom-button:hover {
-            background: rgb(14, 22, 38, 0);
+            background: rgb(14, 22, 38);
         }
 
         .card {
             background: rgb(14, 22, 38, 0.5);
-            border: 5px solid rgb(14, 22, 38, 0.25);
+            border: 2px solid rgba(135, 207, 235, 0.1125);
             color: white;
         }
 
         .card-header {
             font-size: 1.35rem;
+            text-shadow: 
+                0px 4px 3px black,
+                0px 8px 13px black,
+                0px 18px 23px black;
+
+            border-bottom: 2px solid rgba(135, 207, 235, 0.125);
+            border-radius: 5%;
         }
 
         .card-img-top {
@@ -89,8 +112,38 @@
             object-fit: cover;
         }
         
-        .fa-star {
+        .gold {
             color: gold;
+        }
+        
+        /* Star rating */
+        .rating {
+            width: 100%;
+            direction: rtl;
+            position: relative;
+            font-size: 1.5rem;
+        }
+        .rating > label {
+            padding: 0;
+            margin: 0;
+            position: relative;
+            font-size: 2rem;
+            cursor: pointer;
+            color: white;
+        }
+        .rating > label:hover,
+        .rating > label:hover ~ label,
+        .rating > input.radio-btn:checked ~ label {
+            color: transparent;
+        }
+        .rating > label:hover:before,
+        .rating > label:hover ~ label:before,
+        .rating > input.radio-btn:checked ~ label:before,
+        .rating > input.radio-btn:checked ~ label:before {
+            content: "\2605";
+            position: absolute;
+            left: 0;
+            color: #FFD700;
         }
 
         .carousel-control-prev-icon {
@@ -101,128 +154,360 @@
             background-image: url('https://image.flaticon.com/icons/svg/137/137517.svg');
         }
 
-        @media (max-width: 600px) {
+        /* width */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+            background: rgb(14, 22, 38, 0.9);
+        }
+
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+            background: #f1f1f1; 
+        }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(241, 241, 241, 0.5); 
+        }
+
+        #contact-number-modal {
+            margin-top: 70px;
+        }
+
+        @media (max-width: 575.98px) {
 
             .card-img-top {
-                height: 16rem;
-                object-fit: cover;
+                height: 15rem;
             }
 
             #map {
-                height: 16rem;
+                height: 15rem;
+            }
+
+            h5 {
+                font-size: 1rem;
             }
         }
 
     </style>
 
-    <title><%= place.name %></title>
+    <title>RS Navi • <%= place.name %></title>
 </head>
 <body>
-    
     <!-- Navbar Component -->
     <% include ../public/components/navbar.ejs %>
 
     <main class="container">
         <div class="row justify-content-center">
-            <div class="col-10 col-lg-8 mb-3">
 
-                <div class="card collapse show" id="images">
-                    <div id="carousel" class="carousel slide" data-ride="carousel">
-                        <ol class="carousel-indicators">
-                            <% for (let i=0; i<place.images.length; i++) { %>
-                                <li <% if (i==0) { %> class="active" <% } %> data-target="#carousel" data-slide-to="<%= i %>"></li>
-                            <% } %>
-                        </ol>
+            <!-- Place Column -->
+            <div class="col-12 col-md-8 mb-2 mb-md-3 order-0">
 
-                        <div class="carousel-inner">
-                            <% for (let i=0; i<place.images.length; i++) { %>
-                                <div class="carousel-item <%= i==0 ? 'active' : '' %>">
-                                    <a href="<%=place.images[i].url%>" target="_blank">
-                                        <img src="<%=place.images[i].url%>" class="card-img-top" alt="Missing" height="100px">
-                                    </a>
+                <!-- Images -->
+                <div class="row">
+                    <div class="col">
+                        <div class="card collapse show" id="images">
+                            <div id="carousel" class="carousel slide" data-ride="carousel">
+                                <ol class="carousel-indicators">
+                                    <% for (let i=0; i<place.images.length; i++) { %>
+                                        <li <% if (i==0) { %> class="active" <% } %> data-target="#carousel" data-slide-to="<%= i %>"></li>
+                                    <% } %>
+                                </ol>
+
+                                <div class="carousel-inner">
+                                    <% for (let i=0; i<place.images.length; i++) { %>
+                                        <div class="carousel-item <%= i==0 ? 'active' : '' %>">
+                                            <a href="<%=place.images[i].url%>" target="_blank">
+                                                <img src="<%=place.images[i].url%>" class="card-img-top" alt="Missing" height="100px">
+                                            </a>
+                                        </div>
+                                    <% } %>
                                 </div>
-                            <% } %>
+                                
+                                <% if (place.images.length > 1) { %>
+                                    <a class="carousel-control-prev" href="#carousel" role="button" data-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="sr-only">Previous</span>
+                                    </a>
+                                    <a class="carousel-control-next" href="#carousel" role="button" data-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="sr-only">Next</span>
+                                    </a>
+                                <% } %> 
+                            </div>
                         </div>
-                        
-                        <% if (place.images.length > 1) { %>
-                            <a class="carousel-control-prev" href="#carousel" role="button" data-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="sr-only">Previous</span>
-                            </a>
-                            <a class="carousel-control-next" href="#carousel" role="button" data-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="sr-only">Next</span>
-                            </a>
-                        <% } %> 
+
+                        <section id="map-section" class="collapse justify-content-center">
+                            <div id="map" class="text-center"></div>
+                        </section>
                     </div>
                 </div>
 
-                <section id="map-section" class="collapse justify-content-center">
-                    <div id="map" class="text-center"></div>
-                </section>
-            </div>
-
-            <div class="col-10 col-lg-4 mb-3">
+                <!-- Place Details -->
                 <div class="row">
-                    <div class="col mb-3">
-                        <div class="card" style="width: 100%;">
+                    <div class="col mt-2 order-0 order-md-1">
+                        <div class="card">
                             <div class="card-header">
-                                <div class="row justify-content-between">
-                                    <span class="ml-3">
-                                        <%= place.owner.fullName %>
-                                        <% if (place.owner.account.status === 1)  { %>&nbsp;<i class="far fa-check-circle" id="verified" title="Verified"></i> <% } %>
-                                        <% if (place.owner.license.status === 0)  { %>&nbsp;<i class="far fa-id-badge" id="licensed" title="Licensed"></i> <% } %>
-                                    </span>
-                                    
-                                    <a href="/profile/<%= place.owner._id %>" class="btn btn-sm custom-button mr-3" target="_blank">
-                                        Visit Profile
-                                    </a>
+                                <div class="container">
+                                    <div class="row justify-content-between">
+                                        <h3><%= place.name %> </h3>
+                                        <% if (locals.user && user._id === place.owner._id) { %>
+                                            <div class="col-3 text-right p-0">
+                                                <button type="button" class="btn btn-sm custom-button" style="width: 65px;"><i class="far fa-edit mr-1 skyblue"></i> Edit</button>
+                                            </div>
+                                        <% } else { %>
+                                            <div class="col-3 text-right p-0">
+                                                <button type="button" class="btn btn-sm custom-button"><i class="far fa-flag mr-1 skyblue"></i> Report</button>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                    <div class="row">
+                                        <span class="skyblue text-center">₱ <%= place.price.toLocaleString('en') %></span>
+                                    </div>
+                                    <div class="row mt-2 mb-0">
+                                        <h5>
+                                            <span><%= place.placeTypeString %> For <%= place.listTypeString %></span>
+                                        </h5>
+                                    </div>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <%= place.owner.account.email %>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col">
-                        <div class="card" style="width: 100%;">
-                            <div class="card-header">
-                                <div class="row justify-content-between">
-                                    <span class="ml-3"><%= place.name %></span>
-                                    <span class="mr-3" style="font-size: 1.15rem;">
-                                        <%= place.stars %>&nbsp;&nbsp;<i class="fas fa-star" title="<%= place.stars %> stars"></i>
-                                    </span>
-                                </div>
+
                                 <div class="row">
-                                    <p style="color:skyblue; font-size: 1.15rem;" class="ml-3 mt-1 mb-0">₱ <%= place.price.toLocaleString('en') %></p>
+                                    <div class="col">
+                                        <h6 class="card-text mb-3"><%= place.fullAddress %></h5>
+                                        <button class="btn btn-sm custom-button" id="view-map-button"><i class="fas fa-map-marker-alt"></i> View Map</button> 
+                                    </div>
                                 </div>
                             </div>
-                            <div class="card-body mb-1">
-                                
-                                <p class="card-title">Address</p>
-                                <h5 class="card-text mb-3"><%= place.fullAddress %></h5>
-                                <button class="btn btn-sm custom-button" id="view-map-button">View Map</button>
-                            </div>
-                            <div class="card-body mb-1">
+                            <div class="card-body mb-1 pt-0">
                                 <p class="card-text"><%= place.description %></p>
+
+                                <div class="row mt-4">
+                                    <div class="col">
+                                        <% if (place.stories) { %> 
+                                            <span class="mr-3">
+                                                <i class="far fa-building skyblue"></i> 
+                                                <%= place.stories %> Stories
+                                            </span> 
+                                        <% } %>
+
+                                        <% if (place.bedrooms) { %> 
+                                            <span class="mr-3">
+                                                <i class="fas fa-bed skyblue"></i> 
+                                                <%= place.bedrooms %> Bedrooms
+                                            </span> 
+                                        <% } %>
+
+                                        <% if (place.bathrooms) { %> 
+                                            <span class="mr-3">
+                                                <i class="fas fa-bath skyblue"></i>
+                                                <%= place.bathrooms %> Bathrooms
+                                            </span> 
+                                        <% } %>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Reviews -->
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div class="card" id="reviews">
+                            <div class="card-header">
+                                <div class="container">
+                                    <!-- Average Stars -->
+                                    <div class="row justify-content-between">
+                                        <span>Reviews</span>
+                                        <% if (place.stars > 0) { %>
+                                            <span><%= place.stars %> <span class="gold">★</span></span>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Post Reviews -->
+                            <div class="card-body">
+                                <form method="POST" action="/places/<%= place._id %>/review">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <textarea name="comment" placeholder="Comment..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="rating">
+                                                <input id="star5" name="rating" type="radio" value="5" class="radio-btn" hidden required>
+                                                <label for="star5">☆</label>
+                                                <input id="star4" name="rating" type="radio" value="4" class="radio-btn" hidden required>
+                                                <label for="star4">☆</label>
+                                                <input id="star3" name="rating" type="radio" value="3" class="radio-btn" hidden required>
+                                                <label for="star3">☆</label>
+                                                <input id="star2" name="rating" type="radio" value="2" class="radio-btn" hidden required>
+                                                <label for="star2">☆</label>
+                                                <input id="star1" name="rating" type="radio" value="1" class="radio-btn" hidden required>
+                                                <label for="star1">☆</label>
+                                                <div class="clear"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-3 text-right">
+                                            <button type="submit" class="btn btn-sm custom-button mt-2">Submit</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Submitted Reviews -->
+                            <% if (place.reviews.length > 0) { 
+                                for (review of place.reviews) { %>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <h5 class="card-title">
+                                                    <span class="mr-3"><%= review.author.fullName %></span>
+                                                    <% for (let i=0; i<review.rating; i++) { %> <span class="gold">★</span> <% } %> 
+                                                </h5>
+                                            </div>
+                                            <div class="col">
+                                                <p class="text-right"><%= review.dateString %></h5>
+                                            </div>
+                                        </div>
+        
+                                        <div class="row">
+                                            <div class="col">
+                                                <p class="card-text"><%= review.comment %></p>
+                                            </div>
+                                        </div>
+        
+                                        <% if (locals.user) { %>
+                                            <div class="row mt-3">
+                                                <div class="col">
+                                                    <% if (user.account.role === 0 && user._id !== review.author._id) { %>
+                                                        <button type="button" class="btn btn-sm custom-button mr-2" style="color: limegreen;">Helpful</button>
+                                                    <% } %>
+                                                        
+                                                    <% if (user._id !== review.author._id) { %>
+                                                        <button type="button" class="btn btn-sm custom-button mr-2"><i class="far fa-flag mr-1 skyblue"></i> Report</button>
+                                                    <% } %>
+                                                    
+        
+                                                    <% if (user.account.role === 7 || user._id === review.author._id) { %>
+                                                        <button type="button" class="btn btn-sm custom-button" style="color: rgb(248, 45, 45);">Delete</button>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                        <% } %>
+                                        
+                                    </div>
+                                <% }
+                            } else { %>
+                                <div class="card-body">
+                                    No reviews for this place yet.
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div class="row">
-            <div class="col" id="reviews">
+            <!-- Placeowner Column -->
+            <div class="col-12 col-md-4 order-1 mb-3">
+                <div class="row sticky-top sticky-offset">
 
+                    <!-- Placeowner Details -->
+                    <div class="col-12 order-1 order-md-0">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row my-1">
+                                    <div class="col">
+                                        <a href="/profile/<%= place.owner._id %>">
+                                            <img class="card-img-top border border-info" src="<%=place.owner.image.url%>" style="width: 5rem; height: 5rem;">
+                                        </a>
+                                    </div>
+                                    <div class="col text-right">
+                                        <a href="/profile/<%= place.owner._id %>" class="btn btn-sm custom-button">
+                                            View Profile
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="row justify-content-between">
+                                    <span class="ml-3">
+                                        <%= place.owner.fullName %>
+                                    </span>
+                                </div>
+                                <div class="row">
+                                    <span class="ml-3">
+                                        <% if (place.owner.account.status === 1)  { %><i class="far fa-check-circle mr-2" id="verified" title="Verified"></i> <% } %>
+                                        <% if (place.owner.license.status === 0)  { %><i class="far fa-id-badge mr-2" id="licensed" title="Licensed"></i> <% } %>
+                                        <i class="far fa-handshake mr-2 skyblue" title="Partner"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+
+                                <% if (locals.user) { %>
+                                    <p class="card-text" id="contact-number">
+                                        <i class="fas fa-mobile-alt mx-1 skyblue"></i> <%= place.owner.contactNumber %>
+                                    </p>
+                                <% } else { %>
+                                    <a class="card-text" id="contact-number" title="Show contact number" data-toggle="modal" data-target="#contact-number-modal" style="cursor: pointer;">
+                                        <i class="fas fa-mobile-alt skyblue ml-1 mr-2"></i><%= place.owner.partialContactNumber %>
+                                        <span class="skyblue ml-2">Show</span>
+                                    </a>
+                                <% } %>
+
+                                <p class="card-text mt-2"><i class="far fa-envelope mr-1 skyblue"></i> <%= place.owner.account.email %></p>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
     <!-- Footer Component -->
     <% include ../public/components/footer.ejs %>
+        
+    <!-- Modal -->
+    <div class="modal fade" id="contact-number-modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" style="background: rgb(14, 22, 38, 0.5);">
 
+                <div class="modal-header">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-8">
+                                <h2>Login Required</h2>
+                            </div>
+                            <div class="col">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true" class="fa fa-times" style="color: white;"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-body">
+                    <p>You have to be logged in before we can show you the placeowner's contact number to ensure legitimate contact purposes.</p>
+                </div>
+
+                <div class="modal-footer">
+                    <a href="/auth">
+                        <button type="button" class="btn custom-button">Login</button>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
     <!-- jQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <!-- Boostrap Bundle (Bootstrap JS + Popper.js) -->
@@ -232,17 +517,15 @@
 
         $("#view-map-button").click(function() {
             if (!$("#images").hasClass("show")) {
-                $(this).text('View Map')
+                $(this).html('<i class="fas fa-map-marker-alt"></i> View Map')
             } else {
-                $(this).text('Hide Map')
+                $(this).html('<i class="fas fa-times"></i> Hide Map')
             }
 
             $("#images").collapse("toggle");
             $("#map-section").collapse("toggle");
 
-            $('html, body').animate({
-                scrollTop: 0
-            }, 1000);
+            $('html, body').animate({ scrollTop: 0 }, 1000);
         });
 
         let map;
