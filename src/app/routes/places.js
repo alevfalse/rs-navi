@@ -3,14 +3,24 @@ const path = require('path');
 
 const placesRouter = require('express').Router();
 const Image = require('../models/image');
-const Place = require('../models/place')
+const Review = require('../models/review');
+const Place = require('../models/place');
 
 const upload = require('../../config/upload');
 const uploadsDirectory = path.join(__dirname, '../../uploads/');
 
 // middleware
-function isAuthorized(req, res, next) {
-    if (req.isAuthenticated() && req.user.account.role == 1) {
+function isAuthorizedStudent(req, res, next) {
+    if (req.isAuthenticated() && req.user.account.role === 0) {
+        return next();
+    } else {
+        req.flash('message', 'You must be logged in as student.');
+        req.session.save(err => err ? next(err) : res.redirect('/auth'));
+    }
+}
+
+function isAuthorizedPlaceowner(req, res, next) {
+    if (req.isAuthenticated() && req.user.account.role === 1) {
         return next();
     } else {
         return res.redirect('/auth?placeowner=1');
@@ -29,7 +39,7 @@ placesRouter.get('/', (req, res, next) => {
 });
 
 // GET rsnavigation.com/places/add
-placesRouter.get('/add', isAuthorized, (req, res, next) => {
+placesRouter.get('/add', isAuthorizedPlaceowner, (req, res, next) => {
     res.render('add-place', { user: req.user, message: req.flash('message') }, 
     (err, html) => err ? next(err) : res.send(html));
 });
@@ -40,14 +50,24 @@ placesRouter.get('/:id', (req, res, next) => {
     .populate('images')
     .populate({
         path: 'owner',
-        populate: { path: 'account' }
+        populate: { path: 'account image' }
+    })
+    .populate({
+        path: 'reviews',
+        populate: { path: 'author' }
     })
     .exec((err, place) => {
         if (err || !place) { return next(err) }
 
         console.log(place);
 
-        res.render('place-details', { 'place': place, 'user': req.user, 'message': req.flash('message') },
+        const data = { 
+            place: place, 
+            user: req.user, 
+            message: req.flash('message')
+        }
+        
+        res.render('place-details', data,
         (err, html) => err ? next(err) : res.send(html));
     });
 });
@@ -88,8 +108,33 @@ placesRouter.get('/:id/images/:filename', (req, res, next) => {
     });
 });
 
+placesRouter.post('/:id/review', isAuthorizedStudent, (req, res, next) => {
+
+    const comment = req.body.comment;
+    const rating = req.body.rating;
+
+    const newReview = new Review({
+        author: req.user._id,
+        rating: rating,
+        comment: comment
+    });
+
+    console.log(newReview);
+
+    newReview.save(err => {
+        if (err) { return next(err); }
+
+        Place.findById(req.params.id, 'reviews', (err, place) => {
+            if (err || !place) { return next(err); }
+
+            place.reviews.push(newReview._id);
+            place.save(err => err ? next(err) : res.redirect(`/places/${req.params.id}`))
+        });
+    });
+});
+
 // DELETE rsnavigation.com/places/:id/images/:filename
-placesRouter.delete('/:placeId/images/:filename', isAuthorized, (req, res, next) => {
+placesRouter.delete('/:placeId/images/:filename', isAuthorizedPlaceowner, (req, res, next) => {
     
     Place.findOne({ '_id': req.params.placeId, 'owner': req.user.id }, 'images')
     .populate({
@@ -112,7 +157,7 @@ placesRouter.delete('/:placeId/images/:filename', isAuthorized, (req, res, next)
 });
 
 // POST rsnavigation.com/places/add
-placesRouter.post('/add', isAuthorized, upload.array('images', 10),
+placesRouter.post('/add', isAuthorizedPlaceowner, upload.array('images', 10),
 (err, req, res, next) => {
     if (err) {
         req.flash('message', err.message);

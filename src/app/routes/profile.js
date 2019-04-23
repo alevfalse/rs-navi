@@ -43,6 +43,8 @@ profileRouter.get('/:id', (req, res, next) => {
 
     // TODO: Create visited profile page
     return next();
+
+    
     
     let query = null;
 
