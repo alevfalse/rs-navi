@@ -25,6 +25,10 @@ const PlaceSchema = new mongoose.Schema({
         lat: Number,
         lng: Number
     },
+    stories: { type: Number, default: null },
+    bedrooms: { type: Number, default: null },
+    bathrooms: { type: Number, default: null },
+    area: Number,
     images: [{ type: String, ref: 'Image' }],
     reviews: [{ type: String, ref: 'Review' }]
 })
@@ -34,7 +38,10 @@ const PlaceSchema = new mongoose.Schema({
 1 - visible     1: dormitory
 2 - removed     2: apartment
                 3: condominium
-                
+
+0 - Rent/Sell
+1 - Rent
+2 - Sell        
 */
 
 PlaceSchema.virtual('fullAddress').get(function() {
@@ -42,6 +49,27 @@ PlaceSchema.virtual('fullAddress').get(function() {
     return `${number} ${street}, ${subdivision ? `${subdivision},` : ''} ` +
     `${barangay?`Bgy. ${barangay},`:''} ` +
     `${city}, ${zipCode?`${zipCode}`:''} ${province}`;
+});
+
+PlaceSchema.virtual('placeTypeString').get(function() {
+    switch(this.placeType)
+    {
+        case 0: return 'Boarding House';
+        case 1: return 'Dormitory';
+        case 2: return 'Apartment';
+        case 3: return 'Condominium';
+        default: return 'Unknown Place Type';
+    }
+});
+
+PlaceSchema.virtual('listTypeString').get(function() {
+    switch(this.listType)
+    {
+        case 0: return 'Rent/Sale';
+        case 1: return 'Rent';
+        case 2: return 'Sale';
+        default: return 'Unknown List Type';
+    }
 });
 
 PlaceSchema.virtual('stars').get(function() {
@@ -53,7 +81,7 @@ PlaceSchema.virtual('stars').get(function() {
         stars += review.rating;
     }
 
-    return stars / this.reviews.length;
+    return (stars / this.reviews.length).toFixed(1);
 });
 
 PlaceSchema.methods.delete = function(callback) {
