@@ -8,6 +8,7 @@ const StudentSchema = new mongoose.Schema({
     lastName: String,
     image: { type: String, ref: 'Image', default: null },
     account: { type: String, ref: 'Account' },
+    contactNumber: String,
     schoolName: String,
 });
 
@@ -19,7 +20,7 @@ const StudentSchema = new mongoose.Schema({
 5 - deleted
 */
 
-StudentSchema.virtual('fullName').get(() => {
+StudentSchema.virtual('fullName').get(function() {
     return `${this.firstName} ${this.lastName}`;
 });
 
