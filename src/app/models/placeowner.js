@@ -8,6 +8,7 @@ const PlaceownerSchema = new mongoose.Schema({
     lastName: String,
     image: { type: String, ref: 'Image', default: null },
     account: { type: String, ref: 'Account' },
+    contactNumber: String,
     license: {
         status: { type: Number, default: 0 },
         type:   { type: Number, default: null },
@@ -32,6 +33,14 @@ license status:         2 - expired
 
 PlaceownerSchema.virtual('fullName').get(function() {
     return `${this.firstName} ${this.lastName}`;
+});
+
+PlaceownerSchema.virtual('partialContactNumber').get(function() {
+    let str = this.contactNumber.substr(0, 4);
+    for (let i=3; i<this.contactNumber.length; i++) {
+        str += '*';
+    }
+    return str;
 });
 
 PlaceownerSchema.methods.updateProfileImage = function(file, callback) {
