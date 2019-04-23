@@ -3,19 +3,21 @@ const nanoid = require('../../bin/nanoid');
 
 const ReviewSchema = new mongoose.Schema({
     _id: { type: String, default: () => nanoid(10) },
-    author: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
+    author: { type: String, ref: 'Student' },
     rating: Number,
     comment: String,
     edited: { type: Boolean, default: false },
-    status: { type: Number, default: 0 },
-    votes:  { type: Number, default: 0 },
+    status: { type: Number, default: 1 },
     created:   { type: Date, default: new Date() },
 }); 
 
 /* status types
-1 - visible
-2 - deleted
-3 - removed
+-1 - flagged
+ 0 - deleted
+ 1 - visible
 */
 
+ReviewSchema.virtual('dateString').get(function() {
+    return `${this.created.getMonth()}/${this.created.getDate()}/${this.created.getFullYear()}`
+});
 module.exports = mongoose.model('Review', ReviewSchema);
