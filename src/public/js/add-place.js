@@ -123,7 +123,7 @@ function previewImages() {
 let mapStyles;
 
 function loadMapStyles() {
-    $.getJSON("/js/mapStyles.json", function(data) {
+    $.getJSON("/js/mapStyles2.json", function(data) {
         mapStyles = data;
         initMap();
     });
