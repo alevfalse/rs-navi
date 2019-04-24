@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const nanoid = require('../../bin/nanoid');
+const formatDate = require('../../bin/date-formatter');
 
 const PlaceSchema = new mongoose.Schema({
     _id: { type: String, default: () => nanoid(10) },
@@ -71,6 +72,10 @@ PlaceSchema.virtual('listTypeString').get(function() {
         default: return 'Unknown List Type';
     }
 });
+
+PlaceSchema.virtual('createdString').get(function() {
+    return formatDate(this.created);
+})
 
 PlaceSchema.virtual('stars').get(function() {
     if (this.reviews.length == 0) { return 0 }

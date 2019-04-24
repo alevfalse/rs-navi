@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const nanoid = require('../../bin/nanoid');
+const formatDate = require('../../bin/date-formatter');
 
 const ReviewSchema = new mongoose.Schema({
     _id: { type: String, default: () => nanoid(10) },
@@ -18,6 +19,7 @@ const ReviewSchema = new mongoose.Schema({
 */
 
 ReviewSchema.virtual('dateString').get(function() {
-    return `${this.created.getMonth()}/${this.created.getDate()}/${this.created.getFullYear()}`
+    return formatDate(this.created);
 });
+
 module.exports = mongoose.model('Review', ReviewSchema);
