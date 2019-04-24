@@ -29,6 +29,9 @@ function isAuthorizedPlaceowner(req, res, next) {
 
 // GET rsnavigation.com/places
 placesRouter.get('/', (req, res, next) => {
+
+    return next(); // removed
+
     Place.find({ 'status': 1 })
     .populate('owner images reviews')
     .exec((err, places) => {
@@ -54,10 +57,13 @@ placesRouter.get('/:id', (req, res, next) => {
     })
     .populate({
         path: 'reviews',
+        options: { sort: { 'created': -1 } },
         populate: { path: 'author' }
     })
     .exec((err, place) => {
         if (err || !place) { return next(err) }
+
+        for (let rev of place.reviews) { console.log(rev.created) }
 
         const data = { 
             place: place, 
@@ -108,7 +114,7 @@ placesRouter.get('/:id/images/:filename', (req, res, next) => {
 
 placesRouter.post('/:id/review', isAuthorizedStudent, (req, res, next) => {
 
-    const comment = req.body.comment;
+    const comment = req.body.comment.replace(/\n/g, '<br>'); // replace all new lines with <br>
     const rating = req.body.rating;
 
     const newReview = new Review({
@@ -169,6 +175,8 @@ placesRouter.post('/add', isAuthorizedPlaceowner, upload.array('images', 10),
 },
 (req, res, next) => {
 
+    console.log(req.body);
+
     const ownerId     = req.user.id;
     const name        = req.body.name;
     const placeType   = req.body.placeType;
@@ -182,9 +190,9 @@ placesRouter.post('/add', isAuthorizedPlaceowner, upload.array('images', 10),
     const zipCode     = req.body.zipCode;
     const province    = req.body.province;
 
-    const price       = req.body.price;
+    const price       = req.body.price.replace(/[^\d\.]/g, '') // delete all non-digit characters
     const listType    = req.body.listType;
-    const description = req.body.description;
+    const description = req.body.description.replace(/\n/g, '<br>') // replace all new lines with <br>
     const coordinates = req.body.coordinates.split(',');
 
     if (!ownerId || !name || !placeType || !number || !street || !city 
