@@ -1,6 +1,7 @@
 const profileRouter = require('express').Router();
 const fs = require('fs');
 const path = require('path');
+const argon = require('argon2');
 
 const Student = require('../models/student');
 const Placeowner = require('../models/placeowner');
@@ -102,12 +103,61 @@ profileRouter.get('/:id/image', (req, res, next) => {
 // GET rsnavigation.com/profile/:id/places
 profileRouter.get('/:id/places', (req, res, next) => {
     Place.find({ 'owner': req.params.id, 'status': 1 })
-    .populate('owner images')
+    .populate('owner images reviews')
     .exec((err, places) => {
         if (err) { return next(err); }
         res.render('places', { 'user': req.user, 'places': places, 'message': req.flash('message') }, 
         (err, html) => err ? next(err) : res.send(html));
     });
+});
+
+profileRouter.post('/update', isAuthenticated, async (req, res, next) => {
+
+    const firstName          = req.body.firstName;
+    const lastName           = req.body.lastName;
+    const schoolName         = req.body.schoolName;
+    const contactNumber      = req.body.contactNumber;
+
+    const newPassword        = req.body.newPassword;
+    const confirmNewPassword = req.body.confirmNewPassword;
+    const currentPassword    = req.body.currentPassword;
+
+    if (!await req.user.account.verifyPassword(currentPassword)) {
+        req.flash('message', 'Incorrect password.');
+        return req.session.save(err => err ? next(err) : res.redirect('/profile'));
+    }
+
+    if (firstName)     { req.user.firstName     = firstName     };
+    if (lastName)      { req.user.lastName      = lastName      }; 
+    if (schoolName)    { req.user.schoolName    = schoolName    };  
+    if (contactNumber) { req.user.contactNumber = contactNumber };
+
+    if (newPassword || confirmNewPassword) {
+
+        if (newPassword === confirmNewPassword) {
+
+            req.user.account.updatePassword(newPassword, (err) => {
+                if (err) { return next(err); }
+                req.user.save(err => {
+                    if (err) { return next(err) }
+
+                    req.flash('message', 'Updated profile.');
+                    req.session.save(err => err ? next(err) : res.redirect('/profile'));
+                });
+            });
+
+        } else {
+            req.flash('message', 'Passwords do not match.');
+            req.session.save(err => err ? next(err) : res.redirect('/profile'));
+        }
+
+    } else {
+        req.user.save(err => {
+            if (err) { return next(err); }
+            req.flash('message', 'Updated profile.');
+            req.session.save(err => err ? next(err) : res.redirect('/profile'));
+        });
+    }
 });
 
 // POST rsnavigation.com/profile/image/update
