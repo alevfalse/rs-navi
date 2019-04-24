@@ -93,10 +93,9 @@
                                     <div class="row">
                                         <span class="skyblue text-center">₱ <%= place.price.toLocaleString('en') %></span>
                                     </div>
-                                    <div class="row mt-2 mb-0">
-                                        <h5>
-                                            <span><%= place.placeTypeString %> For <%= place.listTypeString %></span>
-                                        </h5>
+                                    <div class="row mt-2 mb-0 justify-content-between">
+                                        <span><%= place.placeTypeString %> For <%= place.listTypeString %></span>
+                                        <span class="text-right" id="date-added"><%= place.createdString %></span>
                                     </div>
                                 </div>
                             </div>
@@ -110,7 +109,7 @@
                                 </div>
                             </div>
                             <div class="card-body mb-1 pt-0">
-                                <p class="card-text"><%= place.description %></p>
+                                <p class="card-text"><%- place.description %></p>
 
                                 <div class="row mt-4">
                                     <div class="col">
@@ -145,7 +144,7 @@
                 <div class="row mt-2">
                     <div class="col-12">
                         <div class="card" id="reviews">
-                            <div class="card-header">
+                            <div class="card-header sticky-top" id="reviews-header">
                                 <div class="container">
                                     <!-- Average Stars -->
                                     <div class="row justify-content-between">
@@ -194,19 +193,24 @@
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col">
-                                                <h5 class="card-title">
+                                                <h5 class="card-title mb-0">
                                                     <span class="mr-3"><%= review.author.fullName %></span>
-                                                    <% for (let i=0; i<review.rating; i++) { %> <span class="gold">★</span> <% } %> 
                                                 </h5>
                                             </div>
-                                            <div class="col">
+                                            <div class="col-5">
                                                 <p class="text-right"><%= review.dateString %></h5>
+                                            </div>
+                                        </div>
+
+                                        <div class="row mb-2">
+                                            <div class="col">
+                                                <% for (let i=0; i<review.rating; i++) { %> <span class="gold">★</span> <% } %> 
                                             </div>
                                         </div>
         
                                         <div class="row">
                                             <div class="col">
-                                                <p class="card-text"><%= review.comment %></p>
+                                                <p class="card-text"><%- review.comment %></p>
                                             </div>
                                         </div>
         
@@ -252,7 +256,7 @@
                                 <div class="row my-1">
                                     <div class="col">
                                         <a href="/profile/<%= place.owner._id %>">
-                                            <img class="card-img-top border border-info" src="<%=place.owner.image.url%>" style="width: 5rem; height: 5rem;">
+                                            <img class="card-img-top border border-info" src="<%= place.owner.image ? place.owner.image.url : '/images/blank-profile-picture.jpg' %>" style="width: 5rem; height: 5rem;">
                                         </a>
                                     </div>
                                     <div class="col text-right">

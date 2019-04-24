@@ -57,6 +57,14 @@ textarea, textarea:focus {
     max-height: 30rem;
 }
 
+#reviews-header {
+    background: rgb(14, 22, 38, 0.75);
+}
+
+#date-added {
+    font-size: 1rem;
+}
+
 .sticky-offset {
     top: 70px;
 }
