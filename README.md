@@ -1,6 +1,6 @@
 # rs-navi
 A web application that helps students find a place to live near their school.  
-www.rsnavigation.com
+https://rsnavigation.com
 
 ![RS Navi Logo](https://raw.githubusercontent.com/alevfalse/rs-navi/master/src/public/images/rs_navi_logo.png)
 
