@@ -25,8 +25,8 @@ adminRouter.get('/', isAuthenticated, (req, res, next) => {
 
     // parallel database querying
     Promise.all([
-        Student.find().exec(),
-        Placeowner.find().exec()
+        Student.find().populate('account image').exec(),
+        Placeowner.populate('account image').find().exec()
     ])
     .then(([students, placeowners]) => {
         res.render('admin/home', 
