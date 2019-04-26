@@ -181,21 +181,22 @@ passport.use('local-login-admin', new LocalStrategy({
         return done(null, false);
     }
 
-    Admin.findOne({ 'account.email' : email}, (err, admin) => {
+    Account.findOne({ 'email': email, role: 7 }, async (err, account) => {
         if (err) { return done(err, false); }
 
-        if (!admin || password !== admin.account.password) {
-            req.flash('message', 'Invalid email or password.');
+        if (!account) {
+            req.flash('message', 'Invalid email.');
+            return done(null, false);
+        }
+
+        if (!await account.verifyPassword(password)) {
+            req.flash('message', 'Invalid password.');
             return done(null, false);
         }
         
-        admin.account.lastLoggedIn = new Date();
-        admin.save((err) => {
-            if (err) { return done(err, false); }
-            return done(null, admin);
-        })
-    })
-}))
+        account.login(err => err ? done(err, false) : done(null, account));
+    });
+}));
 
 module.exports = passport;
 
