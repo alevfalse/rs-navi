@@ -26,6 +26,22 @@
     <!-- Navbar Component -->
     <% include ../public/components/navbar.ejs %>
 
+    <% if (locals.message) { 
+        if (message.length > 0) { %>
+            <!-- Alert Message From Server -->
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="alert alert-info alert-dismissible fade show mb-5" role="alert">
+                        <%= locals.message %>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+    <% } %>
+
     <main class="container">
         <div class="row justify-content-center">
 
@@ -77,26 +93,47 @@
                     <div class="col mt-2 order-0 order-md-1">
                         <div class="card">
                             <div class="card-header">
-                                <div class="container">
+                                <div class="container collapse show" id="place-title">
                                     <div class="row justify-content-between">
-                                        <h3><%= place.name %> </h3>
+                                        <div class="col-12 col-md-9 p-0">
+                                            <h3><%= place.name %></h3>
+                                        </div>
                                         <% if (locals.user && user._id === place.owner._id) { %>
                                             <div class="col-3 text-right p-0">
                                                 <button type="button" class="btn btn-sm custom-button" style="width: 65px;"><i class="far fa-edit mr-1 skyblue"></i> Edit</button>
                                             </div>
                                         <% } else { %>
-                                            <div class="col-3 text-right p-0">
-                                                <button type="button" class="btn btn-sm custom-button"><i class="far fa-flag mr-1 skyblue"></i> Report</button>
+                                            <div class="col-12 col-md-3 text-left text-md-right p-0">
+                                                <button type="button" class="btn btn-sm custom-button" id="report-button">
+                                                    <i class="far fa-flag mr-1 skyblue"></i> Report
+                                                </button>
                                             </div>
                                         <% } %>
                                     </div>
-                                    <div class="row">
+                                    <div class="row mt-2">
                                         <span class="skyblue text-center">₱ <%= place.price.toLocaleString('en') %></span>
                                     </div>
                                     <div class="row mt-2 mb-0 justify-content-between">
-                                        <span><%= place.placeTypeString %> For <%= place.listTypeString %></span>
-                                        <span class="text-right" id="date-added"><%= place.createdString %></span>
+                                        <div class="col-12 col-md-8 p-0">
+                                            <span><%= place.placeTypeString %> For <%= place.listTypeString %></span>
+                                        </div>
+                                        <div class="col-12 col-md-4 p-0 text-left text-md-right">
+                                            <span id="date-added">
+                                                <% if (place.updated) { %>
+                                                    Updated <%= place.updatedString %>
+                                                <% } else { %>
+                                                    Added <%= place.createdString %>
+                                                <% } %>
+                                            </span>
+                                        </div>
                                     </div>
+                                </div>
+                                <div class="container collapse" id="report-form">
+                                    <form class="row" action="/places/<%= place._id %>/report" method="POST">
+                                        <textarea name="reason" placeholder="Reason" class="mt-1 mb-2" required></textarea>
+                                        <button type="submit" class="btn btn-sm custom-button mr-2"><i class="far fa-flag mr-1"></i> Send Report</button>
+                                        <button type="button" class="btn grey btn-sm custom-button" id="cancel-report-button">Cancel</button>
+                                    </form>
                                 </div>
                             </div>
                             <div class="card-body">
@@ -191,23 +228,24 @@
                             <% if (place.reviews.length > 0) { 
                                 for (review of place.reviews) { %>
                                     <div class="card-body">
+
                                         <div class="row">
-                                            <div class="col">
-                                                <h5 class="card-title mb-0">
+                                            <div class="col-10 col-md-6">
+                                                <h5 class="card-title">
                                                     <span class="mr-3"><%= review.author.fullName %></span>
                                                 </h5>
                                             </div>
-                                            <div class="col-5">
-                                                <p class="text-right"><%= review.dateString %></h5>
+                                            <div class="col-10 col-md-6 text-left text-md-right">
+                                                <h6><%= review.dateString %></h6>
                                             </div>
                                         </div>
-
-                                        <div class="row mb-2">
+        
+                                        <div class="row">
                                             <div class="col">
                                                 <% for (let i=0; i<review.rating; i++) { %> <span class="gold">★</span> <% } %> 
                                             </div>
                                         </div>
-        
+
                                         <div class="row">
                                             <div class="col">
                                                 <p class="card-text"><%- review.comment %></p>
@@ -273,7 +311,7 @@
                                 <div class="row">
                                     <span class="ml-3">
                                         <% if (place.owner.account.status === 1)  { %><i class="far fa-check-circle mr-2" id="verified" title="Verified"></i> <% } %>
-                                        <% if (place.owner.license.status === 0)  { %><i class="far fa-id-badge mr-2" id="licensed" title="Licensed"></i> <% } %>
+                                        <% if (place.owner.license.status === 0)  { %><i class="far fa-id-card mr-2" id="licensed" title="Licensed"></i> <% } %>
                                         <i class="far fa-handshake mr-2 skyblue" title="Partner"></i>
                                     </span>
                                 </div>
@@ -342,6 +380,7 @@
     <!-- Boostrap Bundle (Bootstrap JS + Popper.js) -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
 
+    <script src="/js/place-details.js"></script>
     <script>
 
         $("#view-map-button").click(function() {

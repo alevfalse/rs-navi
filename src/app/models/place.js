@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 const nanoid = require('../../bin/nanoid');
 const formatDate = require('../../bin/date-formatter');
 
+const Placeowner = require('./placeowner');
+const Image = require('./image');
+const Review = require('./review');
+
 const PlaceSchema = new mongoose.Schema({
     _id: { type: String, default: () => nanoid(10) },
     owner: { type: String, ref: 'Placeowner' },
@@ -9,7 +13,7 @@ const PlaceSchema = new mongoose.Schema({
     placeType: Number,
     status: { type: Number, default: 1 },
     created: { type: Date, default: new Date() },
-    lastUpdated: { type: Date, default: null },
+    updated: { type: Date, default: null },
     address: {
         number: String,
         street: String,
@@ -31,7 +35,8 @@ const PlaceSchema = new mongoose.Schema({
     bathrooms: { type: Number, default: null },
     area: Number,
     images: [{ type: String, ref: 'Image' }],
-    reviews: [{ type: String, ref: 'Review' }]
+    reviews: [{ type: String, ref: 'Review' }],
+    reports: [{ type: String, ref: 'Report' }]
 })
 
 /* status:      /* types:
@@ -75,7 +80,11 @@ PlaceSchema.virtual('listTypeString').get(function() {
 
 PlaceSchema.virtual('createdString').get(function() {
     return formatDate(this.created);
-})
+});
+
+PlaceSchema.virtual('updatedString').get(function() {
+    return formatDate(this.updated);
+});
 
 PlaceSchema.virtual('stars').get(function() {
     if (this.reviews.length == 0) { return 0 }
