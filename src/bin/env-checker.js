@@ -20,6 +20,11 @@ module.exports = function() {
         console.error(`The SESSION_SECRET environment variable is not set in your environment file (.env).`);
     }
 
+    if (!process.env.ADMIN_SESSION_SECRET) {
+        valid = false;
+        console.error(`The ADMIN_SESSION_SECRET environment variable is not set in your environment file (.env).`);
+    }
+
     if (!process.env.HASH_CODE_SALT) {
         valid = false;
         console.error(`The HASH_CODE_SALT environment variable is not set in your environment file (.env).`);
