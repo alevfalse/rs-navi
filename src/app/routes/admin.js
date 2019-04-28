@@ -1,5 +1,8 @@
 const adminRouter = require('express').Router();
 const passport = require('../../config/passport');
+const session = require('express-session');
+const mongoose = require('mongoose');
+const MongoStore = require('connect-mongo')(session);
 
 const Student = require('../models/student');
 const Placeowner = require('../models/placeowner');
@@ -25,6 +28,30 @@ function isAuthenticated(req, res, next) {
     }
 }
 
+// session
+const cookieOptions = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 3 days
+
+// set cookie's domain to the main domain at production for it to 
+// be accessible by all subdomains e.g. www. and admin.
+if (process.env.mode === 'prod') {
+    cookieOptions.domain = 'admin.rsnavigation.com';
+    console.log(`Cookie domain set to: ${cookieOptions.domain}`);
+    cookieOptions.secure = true
+    console.log(`Cookie set to HTTPS only.`);
+} else {
+    cookieOptions.domain = 'admin.localhost.com';
+    console.log(`Cookie domain set to: ${cookieOptions.domain}`);
+}
+
+// TODO: Fix sessions, share www. and rsnavigation.com, but different for admin.rsnavigation.com
+adminRouter.use(session({
+    name: 'admin.rsnavi',
+    cookie: cookieOptions,
+    secret: process.env.ADMIN_SESSION_SECRET,
+    saveUninitialized: true, // save the session immediately even if not modified
+    resave: true, // resave the session in every request
+    store: new MongoStore({ mongooseConnection: mongoose.connection })
+}));
 
 
 // ==========================================================================================================================================

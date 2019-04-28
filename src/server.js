@@ -77,8 +77,8 @@ if (mode === 'prod') {
     cookieOptions.secure = true
     console.log(`Cookie set to HTTPS only.`);
 } else {
-    cookieOptions.domain = '.localhost.com'; // TODO
-    console.log(`Cookie domain set to: ${cookieOptions.domain}`);
+    //cookieOptions.domain = '.localhost.com'; // TODO
+    //console.log(`Cookie domain set to: ${cookieOptions.domain}`);
 }
 
 // TODO: Fix sessions, share www. and rsnavigation.com, but different for admin.rsnavigation.com
