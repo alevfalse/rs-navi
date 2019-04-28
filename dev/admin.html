@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+     <!-- Required meta tags -->
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+ 
+     <meta name="keywords" content="rent, house, apartments, dormitories, condominiums, school, address, travel, accessibility">
+     <meta name="description" content="Find available places to live near your school.">
+ 
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139123832-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-139123832-1');
+    </script>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css" integrity="sha256-7rF6RaSKyh16288E3hVdzQtHyzatA2MQRGu0cf6pqqM=" crossorigin="anonymous" />  
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/admin.css" type="text/css">
+    
+    <title>Admin</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
+        <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
+        <button class="navbar-toggler" data-toggle="collapse" data-target="#navLinks" aria-label="Toggle navigation links">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navLinks">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a href=" " class="nav-link"></a></li>
+            </ul>
+        </div>
+    </nav>
+
+
+    <div class="row justify-content-center my-5 text-white">
+        <div class="col-10 col-md-8 col-lg-6 text-center">
+            <h2 class="display-4">Admin Control Center</h2>
+        </div>
+    </div>
+
+    <div class="container text-white">
+        <div id="accordion">
+            <div class="card">
+                <div class="card-header" id="headingOne">
+                    <h5 class="mb-0">
+                        <button class="btn custom-button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true"
+                            aria-controls="collapseOne">Reports Review</button>
+                    </h5>
+                </div>
+    
+                <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                        <p>
+                            <a class="btn custom-button" data-toggle="collapse" href="#multiCollapsePlace" role="button" aria-expanded="false"
+                                aria-controls="multiCollapsePlace">PLACES</a>
+                            <button class="btn custom-button" type="button" data-toggle="collapse" data-target="#multiCollapseUser"
+                                aria-expanded="false" aria-controls="multiCollapseUser">USERS</button>
+                        </p>
+                        <div class="collapse multi-collapse" id="multiCollapsePlace">
+                            <div class="card card-body">
+                                Anetica, craft beer labore wes anderson cred nesciunt sapiente ea proident.
+                            </div>
+                        </div>
+                        <div class="collapse multi-collapse" id="multiCollapseUser">
+                            <div class="card card-body">
+                                Asfiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" id="headingTwo">
+                    <h5 class="mb-0">
+                        <button class="btn custom-button collapsed" data-toggle="collapse" data-target="#collapseTwo"
+                            aria-expanded="false" aria-controls="collapseTwo">Licenses Confirmation
+                        </button>
+                    </h5>
+                </div>
+                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                    <div class="card-body">
+                        <div class="container">
+                            <table class="table custom-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">License Type</th>
+                                        <th scope="col"><a class="text-center" href="https://online.prc.gov.ph/verification" target="_blank">PRC Verification Link</a></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">1</th>
+                                        <td>Mark Otto</td>
+                                        <td>Real Estate Broker</td>
+                                        <td><button class="btn custom-button">Confirm</button><button class="btn custom-button">Deny</button></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">2</th>
+                                        <td>Jacob Thornton</td>
+                                        <td>Real Estate Broker</td>
+                                        <td><button class="btn custom-button">Confirm</button><button class="btn custom-button">Deny</button></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">3</th>
+                                        <td>Larry the Bird</td>
+                                        <td>Social Worker</td>
+                                        <td><button class="btn custom-button">Confirm</button><button class="btn custom-button">Deny</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" id="headingThree">
+                    <h5 class="mb-0">
+                        <button class="btn custom-button collapsed" data-toggle="collapse" data-target="#collapseThree"
+                            aria-expanded="false" aria-controls="collapseThree">
+                            Newsletter Sending
+                        </button>
+                    </h5>
+                </div>
+                <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+                    <div class="card-body">
+                        <div class="col-md-9">
+                            <div class="panel panel-default">
+                                <div class="panel-body message">
+                                    <p class="text-center">NEWSLETTER MESSAGE</p>
+                                    <div class="col-sm-11 col-sm-offset-1">
+                                        <div class="btn-toolbar" role="toolbar">
+                                            <div class="btn-group">
+                                                <button class="btn custom-button"><span class="fa fa-bold"></span></button>
+                                                <button class="btn custom-button"><span class="fa fa-italic"></span></button>
+                                                <button class="btn custom-button"><span class="fa fa-underline"></span></button>
+                                            </div>
+                                            <div class="btn-group">
+                                                <button class="btn custom-button"><span class="fa fa-align-left"></span></button>
+                                                <button class="btn custom-button"><span class="fa fa-align-right"></span></button>
+                                                <button class="btn custom-button"><span class="fa fa-align-center"></span></button>
+                                                <button class="btn custom-button"><span class="fa fa-align-justify"></span></button>
+                                            </div>
+                                            <div class="btn-group">
+                                                <button class="btn custom-button"><span class="fa fa-indent"></span></button>
+                                                <button class="btn custom-button"><span class="fa fa-outdent"></span></button>
+                                            </div>
+                                            <div class="btn-group">
+                                                <button class="btn custom-button"><span class="fa fa-list-ul"></span></button>
+                                                <button class="btn custom-button"><span class="fa fa-list-ol"></span></button>
+                                            </div>
+                                            <button class="btn custom-button"><span class="fa fa-trash-o"></span></button>
+                                            <button class="btn custom-button"><span class="fa fa-paperclip"></span></button>
+                                            <div class="btn-group">
+                                                <button class="btn custom-button dropdown-toggle" data-toggle="dropdown"><span class="fa fa-tags"></span>
+                                                    <span class="caret"></span></button>
+                                            </div>
+                                        </div>
+                                        <br>
+                                        <div class="form-group">
+                                            <textarea class="form-control" id="message" name="body" rows="12" placeholder="Start Newsletter Message"></textarea>
+                                        </div>
+                    
+                                        <div class="form-group">
+                                            <button type="submit" class="btn custom-button">Send</button>
+                                            <button type="submit" class="btn custom-button">Draft</button>
+                                            <button type="submit" class="btn custom-button">Discard</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <!-- Bootstrap JS + Popper.js Bundle -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
+</body>
+</html>
