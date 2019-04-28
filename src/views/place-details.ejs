@@ -34,7 +34,7 @@
 </head>
 <body>
     <!-- Navbar Component -->
-    <% include ../public/components/navbar.ejs %>
+    <% include ./components/navbar.ejs %>
 
     <% if (locals.message) { 
         if (message.length > 0) { %>
@@ -160,24 +160,24 @@
 
                                 <div class="row mt-4">
                                     <div class="col">
-                                        <% if (place.stories) { %> 
+                                        <% if (place.floors) { %> 
                                             <span class="mr-3">
                                                 <i class="far fa-building skyblue"></i> 
-                                                <%= place.stories %> Stories
+                                                <%= place.floors %> Floor<%= place.floors > 1 ? 's' : ''%>
                                             </span> 
                                         <% } %>
 
                                         <% if (place.bedrooms) { %> 
                                             <span class="mr-3">
                                                 <i class="fas fa-bed skyblue"></i> 
-                                                <%= place.bedrooms %> Bedrooms
+                                                <%= place.bedrooms %> Bedroom<%= place.bedrooms > 1 ? 's' : ''%>
                                             </span> 
                                         <% } %>
 
                                         <% if (place.bathrooms) { %> 
                                             <span class="mr-3">
                                                 <i class="fas fa-bath skyblue"></i>
-                                                <%= place.bathrooms %> Bathrooms
+                                                <%= place.bathrooms %> Bathrooms<%= place.bathrooms > 1 ? 's' : ''%>
                                             </span> 
                                         <% } %>
                                     </div>
@@ -350,7 +350,7 @@
     </main>
 
     <!-- Footer Component -->
-    <% include ../public/components/footer.ejs %>
+    <% include ./components/footer.ejs %>
         
     <!-- Modal -->
     <div class="modal fade" id="contact-number-modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">
@@ -417,7 +417,7 @@
         }
 
         function initMap() {
-
+            // TODO: add distance and route rendering
             const options = {
                 zoom: 20,
                 minZoom: 10,
