@@ -95,6 +95,11 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash()); // for flashing messages between requests
 
+app.use((req, res, next) => {
+    console.log(req.protocol + '://' + req.get('host') + req.originalUrl);
+    next();
+});
+
 app.use(subdomain('admin', adminRouter)); // admin.rsnavigation.com
 
 // bind the routes to the application; the order is important
