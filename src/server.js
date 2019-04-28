@@ -10,6 +10,7 @@ const mode = process.env.MODE;
 const path       = require('path');
 const fs         = require('fs');
 const express    = require('express');
+const subdomain  = require('express-subdomain');
 const https      = require('https');
 const session    = require('express-session');
 const flash      = require('connect-flash');
@@ -68,25 +69,33 @@ app.set('views', __dirname + '/views'); // folder containing the pages to be ren
 // session
 const cookieOptions = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 3 days
 
-// set cookie's domain to the main domain at production
+// set cookie's domain to the main domain at production for it to 
+// be accessible by all subdomains e.g. www. and admin.
 if (mode === 'prod') {
-    cookieOptions.domain = '.rsnavigation.com';
+    cookieOptions.domain = '.rsnavigation.com'; // TODO
     console.log(`Cookie domain set to: ${cookieOptions.domain}`);
     cookieOptions.secure = true
     console.log(`Cookie set to HTTPS only.`);
+} else {
+    cookieOptions.domain = '.localhost.com'; // TODO
+    console.log(`Cookie domain set to: ${cookieOptions.domain}`);
 }
 
+// TODO: Fix sessions, share www. and rsnavigation.com, but different for admin.rsnavigation.com
 app.use(session({
-    secret: process.env.SESSION_SECRET,
+    name: 'rsnavi',
     cookie: cookieOptions,
+    secret: process.env.SESSION_SECRET,
     saveUninitialized: true, // save the session immediately even if not modified
     resave: true, // resave the session in every request
     store: new MongoStore({ mongooseConnection: mongoose.connection })
-}))
+}));
 
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash()); // for flashing messages between requests
+
+app.use(subdomain('admin', adminRouter)); // admin.rsnavigation.com
 
 // bind the routes to the application; the order is important
 app.use('/auth', authRouter);
@@ -94,7 +103,6 @@ app.use('/places', placesRouter);
 app.use('/profile', profileRouter);
 app.use('/validate', validateRouter);
 app.use('/newsletter', newsletterRouter);
-app.use('/admin', adminRouter);
 app.use('/', rootRouter);
 
 // This is called when no route was able handle the request
