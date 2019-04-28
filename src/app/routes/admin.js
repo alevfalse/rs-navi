@@ -11,6 +11,7 @@ const Report = require('../models/report');
 // if the user is not authenticated as admin, render admin login page
 function isAuthenticated(req, res, next) {
 
+    console.log(`Admin Auth: ${req.isAuthenticated()}`);
     if (req.isAuthenticated()) {
         if (req.user.account.role === 7) {
             next();
@@ -47,7 +48,7 @@ if (process.env.MODE === 'prod') {
 adminRouter.use(session({
     name: 'admin.rsnavi',
     cookie: cookieOptions,
-    secret: process.env.ADMIN_SESSION_SECRET,
+    secret: process.env.SESSION_SECRET,
     saveUninitialized: true, // save the session immediately even if not modified
     resave: true, // resave the session in every request
     store: new MongoStore({ mongooseConnection: mongoose.connection })
