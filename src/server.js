@@ -72,8 +72,8 @@ const cookieOptions = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 
 // set cookie's domain to the main domain at production for it to 
 // be accessible by all subdomains e.g. www. and admin.
 if (mode === 'prod') {
-    cookieOptions.domain = '.rsnavigation.com'; // TODO
-    console.log(`Cookie domain set to: ${cookieOptions.domain}`);
+    //cookieOptions.domain = '.rsnavigation.com'; // TODO
+    //console.log(`Cookie domain set to: ${cookieOptions.domain}`);
     cookieOptions.secure = true
     console.log(`Cookie set to HTTPS only.`);
 } else {
