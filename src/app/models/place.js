@@ -30,13 +30,13 @@ const PlaceSchema = new mongoose.Schema({
         lat: Number,
         lng: Number
     },
-    stories: { type: Number, default: null },
+    floors: { type: Number, default: null },
     bedrooms: { type: Number, default: null },
     bathrooms: { type: Number, default: null },
     area: Number,
     images: [{ type: String, ref: 'Image' }],
-    reviews: [{ type: String, ref: 'Review' }],
-    reports: [{ type: String, ref: 'Report' }]
+    reviews: [{ type: String, ref: 'Review' }], // TODO: Remove
+    reports: [{ type: String, ref: 'Report' }]  // TODO: Remove? or set limit
 })
 
 /* status:      /* types:

@@ -1,3 +1,5 @@
+let customMarker; // place marker
+
 $('form').attr('autocomplete', 'off');  // disable default autocomplete
 
 $(document).ready(function() {
@@ -7,18 +9,32 @@ $(document).ready(function() {
     });
 })
 
-$("#mapToggler").click(function() {
-    $("#mapSection").animate({ opacity: 1 }, 500).css('display', 'block');
+// show the pin on map button after providing name and type
+$("#name, #placeType").change(function() {
+    if ($("#name").val() && $("#placeType").val()) {
+        $("#map-toggler").css('display', 'block');
+        $("#map-toggler").animate({ 'opacity': 1 }, 500);
+    }
+});
+
+$("#map-toggler").click(function() {
     $("#form").collapse("toggle");
+    $("#title").animate({ 'margin-top': '60px'}, 450) // animate the Add A Place title to move to top
+    $("#mapSection").animate({ opacity: 1 }, 500).css('display', 'block');
 });
 
 $("#hide-map-button").click(function() {
+
     $("#form").collapse("toggle");
-    
     $("#mapSection").animate({ opacity: 0 }, 500);
     setTimeout(() => {
         $("#mapSection").css('display', 'none');
     }, 500);
+
+    // if the additional place info fields aren't visible, push the Add A Place back down
+    if (!customMarker) {
+        $("#title").animate({ 'margin-top': '300px'}, 450) // animate the Add A Place title to move to top
+    }
 });
 
 $("#image-gallery-toggler").click(function() {
@@ -34,15 +50,6 @@ $("#hide-image-button").click(function() {
         $("#image-gallery").css('display', 'none');
     }, 500);
 });
-
-// show additional place inputs after providing name and type
-$("#name, #placeType").change(function() {
-    if ($("#place-info").hasClass('show')) { return }
-    if ($("#name").val() && $("#placeType").val()) {
-        $("#place-info").collapse("toggle");
-        $("#title").animate({ 'margin-top': '50px'}, 450)
-    }
-})
 
 function resetImageGallery() {
     const carouselInner = document.getElementById('carousel-inner');
@@ -69,7 +76,10 @@ $("#files").change(function(event) {
         return alert('Exceeded maximum number of 10 images allowed.');
     }
 
+    $("#hide-image-button").text('Add Images');
+    $("#image-gallery-toggler").text(`${files.length} Images`);
     $("#submit-button").css('display', 'block');
+    $("#indicators-section").addClass('border border-primary');
     
     for (let i=0; i<files.length; i++) {
 
@@ -146,15 +156,15 @@ function initMap() {
 
     const map = new google.maps.Map(document.getElementById('map'), options);
     const input = document.getElementById('searchBox');
-    map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
-    map.addListener('tilesloaded', function () {
-        input.style.display = 'inline';
-        $("#searchBox").animate({
-            opacity: 1
-        }, 1000);
-    });
+    const hideMapButton = document.getElementById('hide-map-button');
 
-    let customMarker;
+    map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+    map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(hideMapButton);
+
+    // fade in controls after the map loaded
+    map.addListener('tilesloaded', function() {
+        $("#searchBox, #hide-map-button").animate({ 'opacity': 1 }, 1000);
+    });
 
     map.addListener('click', function (event) {
 
@@ -226,6 +236,7 @@ function initMap() {
                     }, 1500)
                 }
 
+                // clear the address fields
                 $("#number").val('');
                 $("#street").val('')
                 $("#subdivision").val('');
@@ -242,21 +253,23 @@ function initMap() {
                         case 'locality': $("#city").val(comp.long_name); break;
                         case 'administrative_area_level_2': $("#province").val(comp.long_name); break;
                         case 'administrative_area_level_1': {
-                            if ($("#province").val().length == 0) { $("#province").val(comp.long_name);}
+                            if ($("#province").val().length === 0) { $("#province").val(comp.long_name); }
                         } break;
                         case 'postal_code': $("#zipCode").val(comp.long_name); break;
                     }
                 }
-
+ 
                 const number = $("#number").val();
                 const street = $("#street").val()
                 const subdv  = $("#subdivision").val();
                 const brgy   = $("#barangay").val();
                 const city   = $("#city").val();
                 const zip    = $("#zipCode").val();
-                const prov   = $("#province").val();
+                let prov     = $("#province").val();
 
                 let address = '';
+
+                if (prov.toLowerCase() === 'kalakhang maynila') $("#province").val('Metro Manila'); // translate to english
 
                 if (number) address += number;
                 if (street) address += ' ' + street + ', ';
@@ -277,6 +290,12 @@ function initMap() {
                 }
                 
                 customMarker = addMarker(data);
+
+                // if the additional place info fields are not visible, show them now after pinning
+                if (!$("#place-info").hasClass('show')) {
+                    $("#place-info").collapse('toggle');
+                    $("#map-toggler").text('Pinned');
+                }
             },
             error: function(err) {
                 console.error(err.message);

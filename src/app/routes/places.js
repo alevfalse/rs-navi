@@ -159,12 +159,14 @@ placesRouter.post('/add', isAuthorizedPlaceowner, sanitizer, upload.array('image
 },
 (req, res, next) => {
 
-    // TODO: Min and max characters
+    // TODO: Min and max characters, check for invalid characters
     console.log(req.body);
 
     const ownerId     = req.user._id;
     const name        = req.body.name;
     const placeType   = req.body.placeType;
+
+    let coordinates   = req.body.coordinates
 
     // address
     const number      = req.body.number;
@@ -175,21 +177,36 @@ placesRouter.post('/add', isAuthorizedPlaceowner, sanitizer, upload.array('image
     const zipCode     = req.body.zipCode;
     const province    = req.body.province;
 
-    const price       = req.body.price.replace(/[^\d\.]/g, '') // delete all non-digit characters
+    let price         = req.body.price
     const listType    = req.body.listType;
-    const description = req.body.description.replace(/\n/g, '<br>') // replace all new lines with <br>
-    const coordinates = req.body.coordinates.split(',');
+    let floors      = req.body.floors;
+    let bedrooms    = req.body.bedrooms;
+    let bathrooms   = req.body.bathrooms;
+    let description = req.body.description;
 
     if (!ownerId || !name || !placeType || !number || !street || !city 
         || !province || !price || !listType || !description || !coordinates)
     {
         req.flash('message', 'Missing required input field(s).');
-        return req.session.save((err) => {
-            if (err) { return next(err); }
-            res.redirect('/places/add');
-        });
+        return req.session.save(err => err ? next(err) : res.redirect('/places/add'));
     }
 
+    // TODO: Make specific errors for each field & client-side validation
+    if (zipCode.match(/[^\d]/) || price.match(/[^\d]/) || floors.match(/[^\d]/) 
+        || bedrooms.match(/[^\d]/) || bathrooms.match(/[^\d]/))
+    {
+        req.flash('message', 'Number field(s) contain invalid characters.');
+        return req.session.save(err => err ? next(err) : res.redirect('/places/add'));
+    }
+
+    coordinates = coordinates.split(',');
+    price = price.replace(/[^\d\.]/g, ''); // delete all non-digit characters
+    description = description.replace(/\n/g, '<br>') // replace all new lines with <br>
+
+    if (floors) floors = floors.replace(/[^\d\.]/g, '');
+    if (bedrooms) bedrooms = bedrooms.replace(/[^\d\.]/g, '');
+    if (bathrooms) bathrooms = bathrooms.replace(/[^\d\.]/g, '');
+    
     const newPlace = new Place({
         owner: ownerId,
 
@@ -208,6 +225,10 @@ placesRouter.post('/add', isAuthorizedPlaceowner, sanitizer, upload.array('image
 
         price: price,
         listType: listType,
+        
+        floors: floors,
+        bedrooms: bedrooms,
+        bathrooms: bathrooms,
         
         description: description,
         coordinates: {
