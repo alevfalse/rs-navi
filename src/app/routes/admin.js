@@ -11,7 +11,7 @@ const Report = require('../models/report');
 // if the user is not authenticated as admin, render admin login page
 function isAuthenticated(req, res, next) {
 
-    console.log(`Admin Auth: ${req.isAuthenticated()}`);
+    console.log(`Admin Auth: ${req.isAuthenticated()}\n`);
     if (req.isAuthenticated()) {
         if (req.user.account.role === 7) {
             next();
@@ -119,6 +119,8 @@ adminRouter.get('/logout', (req, res, next) => {
 // POST admin.rsnavigation.com/login
 adminRouter.post('/login', (req, res, next) => {
     
+    console.log('Admin Login Page');
+
     // use configured local login strategy for admin
     passport.authenticate('local-login-admin', (err, adminAccount) => {
 
