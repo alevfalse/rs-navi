@@ -33,14 +33,14 @@ const cookieOptions = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 
 
 // set cookie's domain to the main domain at production for it to 
 // be accessible by all subdomains e.g. www. and admin.
-if (process.env.mode === 'prod') {
+if (process.env.MODE === 'prod') {
     cookieOptions.domain = 'admin.rsnavigation.com';
     console.log(`Admin Cookie domain set to: ${cookieOptions.domain}`);
     cookieOptions.secure = true
     console.log(`Admin Cookie set to HTTPS only.`);
 } else {
     cookieOptions.domain = 'admin.localhost.com';
-    console.log(`Cookie domain set to: ${cookieOptions.domain}`);
+    console.log(`Admin Cookie domain set to: ${cookieOptions.domain}`);
 }
 
 // TODO: Fix sessions, share www. and rsnavigation.com, but different for admin.rsnavigation.com
