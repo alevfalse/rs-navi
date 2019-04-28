@@ -35,9 +35,9 @@ const cookieOptions = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 
 // be accessible by all subdomains e.g. www. and admin.
 if (process.env.mode === 'prod') {
     cookieOptions.domain = 'admin.rsnavigation.com';
-    console.log(`Cookie domain set to: ${cookieOptions.domain}`);
+    console.log(`Admin Cookie domain set to: ${cookieOptions.domain}`);
     cookieOptions.secure = true
-    console.log(`Cookie set to HTTPS only.`);
+    console.log(`Admin Cookie set to HTTPS only.`);
 } else {
     cookieOptions.domain = 'admin.localhost.com';
     console.log(`Cookie domain set to: ${cookieOptions.domain}`);
