@@ -29,7 +29,7 @@
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
-        <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
+        <a href="/" class="navbar-brand"><span class="font-weight-bold">RS NAVI</span> Admin</a>
     </nav>
     
     <% if (locals.message) { 
@@ -62,11 +62,11 @@
         <div>
             <div class="row justify-content-center text-center mb-3">
                 <div class="col-8">
-                    <h2 class="display-6 text-white collapse show" id="loginRoleTitle">Admin</h2>
+                    <h2 class="display-6 text-white collapse show" id="loginRoleTitle">Login</h2>
                 </div>
             </div>
 
-            <form method="POST" action="/admin/login">
+            <form method="POST" action="/login">
                 <div class="row justify-content-center text-center">
                     <div class="col-8 col-md-6 col-lg-5 col-xl-4 formFields">
                         <input type="email" class="form-control mb-3" placeholder="Email" name="email" required>

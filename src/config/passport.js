@@ -18,23 +18,36 @@ const sendVerificationLinkEmail = require('../bin/verification-link-email');
 const validateSignupForm = require('../bin/validate-signup-form');
 
 // stores the user's id in session to be used during deserialization
-passport.serializeUser((user, done) => {
-    done(null, user.id);  
+passport.serializeUser((account, done) => {
+    if (account && account._id) {
+        done(null, account._id);
+        console.log(`Serialized: ${account._id}`);
+    } else {
+        done(null, false);
+        console.log(`Failed to serialize.`);
+    } 
 });
 
-// fetches user's data from the database in every request
-// using their id that is stored in session
+// fetches user's data from the database in every request using their id that is stored in session
 passport.deserializeUser((id, done) => {
+
     let query;
-    switch (id[0])
-    {
-        case '0': query = Student.findById(id);    break;
-        case '1': query = Placeowner.findById(id); break;
-        case '7': query = Admin.findById(id);      break;
-        default : return done(null, false);
+
+    if (id === '001') { // TODO: Temporary. Remove.
+        query = Admin.findById(id);
+    } else {
+        switch (id[0])
+        {
+            case '0': query = Student.findById(id);    break;
+            case '1': query = Placeowner.findById(id); break;
+            case '7': query = Admin.findById(id);      break;
+            default : return done(null, false);
+        }
     }
-    query.populate('image account').exec((err, user) => done(err, user));
+
+    query.populate('account image').exec(done);
 });
+
 
 
 // NOTE: There's no need to call for req.session.save() after every req.flash() in the following code.
@@ -64,6 +77,7 @@ passport.use('local-login', new LocalStrategy({
             req.flash('message', 'Invalid role.');
             return done(null, false);
     }
+
     Account.findOne({ 'email': email, 'role': role },
     async (err, account) => {
         if (err) { return done(err, false); }
@@ -119,7 +133,7 @@ passport.use('local-signup', new LocalStrategy({
     }
 
     let role = roleString === 'student' ? 0 : 'placeowner' ? 1 : null;
-    if (role === null) { 
+    if (role === null) {
         req.flash('message', 'Invalid role.');
         return done(null, false);
     }
@@ -127,7 +141,7 @@ passport.use('local-signup', new LocalStrategy({
     Account.findOne({ 'email': email, 'role': role }, '_id', async (err, account) => {
         if (err) { return done(err, false); }
 
-        if (account) { 
+        if (account) {
             req.flash('message', 'Email already exists.');
             return done(null, false);
         }
@@ -152,16 +166,20 @@ passport.use('local-signup', new LocalStrategy({
             hashCode: generate(alpha, 6)
         });
 
-        newAccount.save(err => { if (err) { return done(err, false); }
-
-        newUser.save(err => { if (err) { return done(err, false); }
-
-        sendVerificationLinkEmail(newAccount, err => {
+        newAccount.save(err => { 
             if (err) { return done(err, false); }
 
-            req.flash('message', 'Verification email sent.');
-            return done(null, newUser);
-        }); }); });
+            newUser.save(err => { 
+                if (err) { return done(err, false); }
+
+                sendVerificationLinkEmail(newAccount, err => {
+                    if (err) { return done(err, false); }
+
+                    req.flash('message', 'Verification email sent.');
+                    return done(null, newUser);
+                }); 
+            }); 
+        });
     });
 }))
 
@@ -173,8 +191,10 @@ passport.use('local-login-admin', new LocalStrategy({
     passReqToCallback: true
 
 }, function(req, email, password, done) {
-    console.log('Local Login Strategy Invoked');
+    console.log('---------- Local Admin Login Strategy Invoked ----------\n');
+
     console.log(req.body);
+    console.log('----');
 
     if (!email || !password) {
         req.flash('message', `Missing required login field(s).`);
@@ -199,4 +219,3 @@ passport.use('local-login-admin', new LocalStrategy({
 }));
 
 module.exports = passport;
-

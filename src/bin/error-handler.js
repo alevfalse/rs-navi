@@ -8,6 +8,11 @@ module.exports = function(err, req, res, next) {
     {
         case 401: {
             title = '401 Unauthorized';
+            message = 'You are not logged in.';
+        } break;
+
+        case 403: {
+            title = '403 Forbidden';
             message = 'Not for your eyes.';
         } break;
 

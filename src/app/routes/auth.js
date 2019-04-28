@@ -17,7 +17,7 @@ function isAuthenticated(req, res, next) {
     // redirect to profile/admin page if already logged in
     if (req.isAuthenticated()) {
         if (req.user.account.role === 7) {
-            res.redirect('/admin');
+            res.redirect('/');
         } else {
             res.redirect('/profile')
         }

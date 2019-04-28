@@ -7,9 +7,9 @@ const ReportSchema = new mongoose.Schema({
     _id: { type: String, default: () => nanoid() },
     createdAt: { type: Date, default: new Date() },
     place: { type: String, ref: 'Place' },
-    author: String,
     reason: String,
-    status: { type: Number, default: 0 }
+    status: { type: Number, default: 0 },
+    author: String
 });
 
 /**

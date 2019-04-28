@@ -13,9 +13,10 @@ const publicImagesDirectory = path.join(__dirname, '../../public/images');
 
 // a middleware to check if a user is logged in
 function isAuthenticated(req, res, next) {
+
     if (req.isAuthenticated()) {
         if (req.user.account.role === 7) {
-            res.redirect('/admin');
+            res.redirect('/');
         } else {
             next();
         }
