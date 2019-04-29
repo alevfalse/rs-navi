@@ -4,6 +4,7 @@ const formatDate = require('../../bin/date-formatter');
 
 const ReviewSchema = new mongoose.Schema({
     _id: { type: String, default: () => nanoid(10) },
+    place: { type: String, ref: 'Place' },
     author: { type: String, ref: 'Student' },
     rating: Number,
     comment: String,
