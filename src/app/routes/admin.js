@@ -8,10 +8,12 @@ const Student = require('../models/student');
 const Placeowner = require('../models/placeowner');
 const Report = require('../models/report');
 
-// if the user is not authenticated as admin, render admin login page
-function isAuthenticated(req, res, next) {
+const fs = require('fs');
+const path = require('path');
+const logsDirectory = path.join(__dirname, '../../logs/');
 
-    console.log(`Admin Auth: ${req.isAuthenticated()}\n`);
+// if the user is not authenticated as admin, render admin login page
+function isAdmin(req, res, next) {
     if (req.isAuthenticated()) {
         if (req.user.account.role === 7) {
             next();
@@ -29,7 +31,7 @@ function isAuthenticated(req, res, next) {
     }
 }
 
-// session
+// admin session
 const cookieOptions = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 3 days
 
 // set cookie's domain to the main domain at production for it to 
@@ -59,7 +61,7 @@ adminRouter.use(session({
 // GET ======================================================================================================================================
 
 // GET admin.rsnavigation.com/
-adminRouter.get('/', isAuthenticated, (req, res, next) => {
+adminRouter.get('/', isAdmin, (req, res, next) => {
 
     // parallel database querying
     Promise.all([
@@ -85,6 +87,15 @@ adminRouter.get('/', isAuthenticated, (req, res, next) => {
     })
     .catch((err) => { return next(err); })
 });
+
+// GET admin.rsnavigation.com/logs
+rootRouter.get('/logs', isAdmin, (req, res, next) => {
+    if (fs.existsSync(logsDirectory + 'access.log')) {
+        res.sendFile('access.log', { root: logsDirectory});
+    } else {
+        return next();
+    }
+})
 
 // GET admin.rsnavigation.com/logout
 adminRouter.get('/logout', (req, res, next) => {
