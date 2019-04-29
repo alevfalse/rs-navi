@@ -77,13 +77,15 @@
 
         <div class="row">
             <div class="col text-center" style="margin-top: 80px;">
-                <h1 class="text-white display-5 mb-3"><%= locals.places ? `${places[0].owner.fullName}'s` : '' %> Places</h1>
+                <h1 class="text-white display-5 mb-3">
+                    <%= locals.places && places.length > 0 ? `${places[0].owner.fullName}'s Places` : 'Places' %>
+                </h1>
             </div>
         </div>
         
 
         <div class="row justify-content-center">
-            <% if (locals.places)  { 
+            <% if (locals.places && places.length > 0)  { 
                 let p=0;
                 for (let place of places) { %>
                     
