@@ -27,7 +27,9 @@ function isAuthenticated(req, res, next) {
     }
 }
 
-
+authRouter.use((req, res, next) => {
+    req.get('host').split('.')[0] === 'admin' ? res.redirect('/') : next();
+});
 
 // =======================================================================================
 // GET ROUTES ============================================================================
@@ -45,13 +47,15 @@ authRouter.get('/', isAuthenticated, (req, res, next) => {
 
 // GET rsnavigation.com/auth/logout
 authRouter.get('/logout', (req, res) => {
+    const id = req.user._id;
+
     if (req.isAuthenticated()) {
         req.logout();
         req.flash('message', 'Logged out.');
     }
     
     req.session.save(err => err ? next(err) : res.redirect('/auth'));
-    new Audit({ executor: req.user._id, action: 5, actionType: 'UPDATE' }).save(console.error);
+    new Audit({ executor: id, action: 5, actionType: 'UPDATE' }).save(console.error);
 })
 
 // GET rsnavigation.com/verify/<id>/<hashCode>

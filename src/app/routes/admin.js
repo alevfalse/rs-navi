@@ -19,7 +19,7 @@ function isAdmin(req, res, next) {
         if (req.user.account.role === 7) {
             next();
         } else {
-            const err = new Error('Logged in as student.');
+            const err = new Error('Forbidden.');
             err.status = 403;
             next(err);
         }
@@ -89,7 +89,7 @@ adminRouter.get('/', isAdmin, (req, res, next) => {
 });
 
 // GET admin.rsnavigation.com/logs
-rootRouter.get('/logs', isAdmin, (req, res, next) => {
+adminRouter.get('/logs', isAdmin, (req, res, next) => {
     if (fs.existsSync(logsDirectory + 'access.log')) {
         res.sendFile('access.log', { root: logsDirectory});
         new Audit({ executor: req.user._id, action: 72, actionType: 'ACCESSED' }).save(console.error);
@@ -106,23 +106,20 @@ adminRouter.get('/logout', (req, res, next) => {
         return res.redirect('/');
     }
 
+    const id = req.user._id;
+
     // logout the admin if authenticated user's account role is equal to 7
     if (req.user.account.role === 7) {
         req.logout();
-
-        new Audit({ executor: adminAccount._id, type: 05 }).save(console.error);
-
         req.flash('message', 'Logged out.');
         req.session.save(err => err ? next(err) : res.redirect('/'));
+
+        new Audit({ executor: id, type: 5 }).save(console.error);
 
     // redirect to profile page if the account is a regular user
     } else {
         req.flash('message', 'You are not logged in as admin.');
-        req.session.save((err) => {
-            if (err) { return next(err); }
-            res.redirect('/profile');
-            new Audit({ executor: adminAccount._id, action: 5 }).save(console.error);
-        });
+        req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
 });
 

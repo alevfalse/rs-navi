@@ -13,7 +13,7 @@ const ReviewSchema = new mongoose.Schema({
 }); 
 
 ReviewSchema.virtual('dateString').get(function() {
-    return formatDate(this.created);
+    return formatDate(this.createdAt);
 });
 
 module.exports = mongoose.model('Review', ReviewSchema);

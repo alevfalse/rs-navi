@@ -80,7 +80,7 @@ placesRouter.get('/:id', sanitizer, (req, res, next) => {
     })
     .populate({
         path: 'reviews',
-        options: { sort: { 'created': -1 } },
+        options: { sort: { 'createdAt': -1 } },
         populate: { path: 'author' }
     })
     .exec((err, place) => {

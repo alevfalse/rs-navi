@@ -11,7 +11,7 @@ function sanitizer(req, res, next) {
 
     for (let prop in req.params) {
         if (req.params[prop].match(/<[a-z][\s\S]*>/)) {
-            console.warn(`XSS Detected at ${req.originalUrl}:\n${req.params[prop]}\n----------\n`);
+            console.warn(`Unexpected input received at ${req.originalUrl}:\n${req.params[prop]}\n----------`);
             req.flash('message', 'Bad request.');
             return req.session.save(err => err ? next(err) : res.redirect('/'));
         }
@@ -19,7 +19,7 @@ function sanitizer(req, res, next) {
 
     for (let prop in req.body) {
         if (req.body[prop].match(/<[a-z][\s\S]*>/)) {
-            console.warn(`XSS Detected at ${req.originalUrl}:\n${req.params[prop]}\n----------\n`);
+            console.warn(`Unexpected input received at ${req.originalUrl}:\n${req.params[prop]}\n----------`);
             req.flash('message', 'Bad request.');
             return req.session.save(err => err ? next(err) : res.redirect('/'));
         }

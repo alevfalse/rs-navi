@@ -78,8 +78,8 @@ PlaceSchema.virtual('listTypeString').get(function() {
     }
 });
 
-PlaceSchema.virtual('createdString').get(function() {
-    return formatDate(this.created);
+PlaceSchema.virtual('createdAtString').get(function() {
+    return formatDate(this.createdAt);
 });
 
 PlaceSchema.virtual('updatedString').get(function() {

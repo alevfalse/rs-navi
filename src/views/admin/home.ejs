@@ -33,13 +33,14 @@
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
-        <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
+        <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> Admin</a>
         <button class="navbar-toggler" data-toggle="collapse" data-target="#navLinks" aria-label="Toggle navigation links">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navLinks">
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item"><a href=" " class="nav-link"></a></li>
+                    <li class="nav-item"><a href="/logout" class="nav-link"><%= user.firstName %></a></li>
+                <li class="nav-item"><a href="/logout" class="nav-link">Logout</a></li>
             </ul>
         </div>
     </nav>
