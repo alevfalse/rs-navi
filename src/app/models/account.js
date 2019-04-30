@@ -8,7 +8,7 @@ const AccountSchema = new mongoose.Schema({
     password: String,
     hashCode: String,
     status:   { type: Number, default: 0 },
-    created:  { type: Date, default: new Date() },
+    createdAt:  { type: Date, default: new Date() },
     lastLoggedIn: { type: Date, default: null }
 });
 

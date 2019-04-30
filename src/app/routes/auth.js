@@ -4,6 +4,7 @@ const nanoid = require('../../bin/nanoid');
 
 // model
 const Account = require('../models/account');
+const Audit = require('../models/audit');
 
 // FUNCTIONS ============================================================================
 const sendResetPasswordEmail = require('../../bin/password-reset-email');
@@ -50,6 +51,7 @@ authRouter.get('/logout', (req, res) => {
     }
     
     req.session.save(err => err ? next(err) : res.redirect('/auth'));
+    new Audit({ executor: req.user._id, action: 5, actionType: 'UPDATE' }).save(console.error);
 })
 
 // GET rsnavigation.com/verify/<id>/<hashCode>
@@ -78,6 +80,7 @@ authRouter.get('/verify/:id/:hashCode', (req, res, next) => {
                 if (err) { return next(err); } // status 500
                 req.flash('message', 'Verified email address.');
                 req.session.save(err => err ? next(err) : res.redirect('/profile'));
+                new Audit({ executor: account._id, action: 1, actionType: 'UPDATE' }).save(console.error);
             });
         });
     });
@@ -119,6 +122,7 @@ authRouter.post('/login', (req, res, next) => {
         req.login(user, (err) => {
             if (err) { return next(err); } // status 500
             req.session.save(err => err ? next(err) : res.redirect('/profile'));
+            new Audit({ executor: user._id, action: 4, actionType: 'ACCESSED' }).save(console.error);
         });
     }) (req, res, next);
 });
@@ -128,6 +132,7 @@ authRouter.post('/signup', (req, res, next) => {
     passport.authenticate('local-signup', (err, user) => {
         if (err) { return next(err); } // status 500
         req.session.save(err => err ? next(err) : res.redirect('/auth'));
+        if (user) { new Audit({ executor: user._id, action: 0, actionType: 'CREATE' }).save(console.error); }
     }) (req, res, next);
 });
 
@@ -165,6 +170,7 @@ authRouter.post('/forgot', (req, res, next) => {
             return req.session.save(err => err ? next(err) :res.redirect('/auth'));
         }
 
+        const oldHashCode = account.hashCode;
         account.hashCode = nanoid(6);
 
         account.save(err => {
@@ -175,6 +181,10 @@ authRouter.post('/forgot', (req, res, next) => {
 
                 req.flash('message', 'Password reset link has been sent to your email.');
                 req.session.save(err => err ? next(err) : res.redirect('/auth'));
+                
+                new Audit({ executor: account._id, actionType: 'UPDATE', action: 2,
+                    changes: { key: 'hashCode', old: oldHashCode, new: account.hashCode }, 
+                }).save(console.error);
             });
         });
     });
@@ -215,6 +225,8 @@ authRouter.post('/reset', (req, res, next) => {
             if (err) { return next(err); }
             req.flash('message', 'Password updated.');
             req.session.save(err => err ? next(err) : res.redirect('/auth'));
+            
+            new Audit({ executor: account._id, action: 3, actionType: 'UPDATE', changes: { key: 'password' } }).save(console.error);
         });
     });
 });

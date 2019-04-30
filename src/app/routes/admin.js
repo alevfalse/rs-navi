@@ -7,6 +7,7 @@ const MongoStore = require('connect-mongo')(session);
 const Student = require('../models/student');
 const Placeowner = require('../models/placeowner');
 const Report = require('../models/report');
+const Audit = require('../models/audit');
 
 const fs = require('fs');
 const path = require('path');
@@ -46,11 +47,10 @@ if (process.env.MODE === 'prod') {
     console.log(`Admin Cookie domain set to: ${cookieOptions.domain}`);
 }
 
-// TODO: Fix sessions, share www. and rsnavigation.com, but different for admin.rsnavigation.com
 adminRouter.use(session({
     name: 'admin.rsnavi',
     cookie: cookieOptions,
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.ADMIN_SESSION_SECRET,
     saveUninitialized: true, // save the session immediately even if not modified
     resave: true, // resave the session in every request
     store: new MongoStore({ mongooseConnection: mongoose.connection })
@@ -92,6 +92,7 @@ adminRouter.get('/', isAdmin, (req, res, next) => {
 rootRouter.get('/logs', isAdmin, (req, res, next) => {
     if (fs.existsSync(logsDirectory + 'access.log')) {
         res.sendFile('access.log', { root: logsDirectory});
+        new Audit({ executor: req.user._id, action: 72, actionType: 'ACCESSED' }).save(console.error);
     } else {
         return next();
     }
@@ -108,11 +109,11 @@ adminRouter.get('/logout', (req, res, next) => {
     // logout the admin if authenticated user's account role is equal to 7
     if (req.user.account.role === 7) {
         req.logout();
+
+        new Audit({ executor: adminAccount._id, type: 05 }).save(console.error);
+
         req.flash('message', 'Logged out.');
-        req.session.save((err) => {
-            if (err) { return next(err); }
-            res.redirect('/');
-        });
+        req.session.save(err => err ? next(err) : res.redirect('/'));
 
     // redirect to profile page if the account is a regular user
     } else {
@@ -120,6 +121,7 @@ adminRouter.get('/logout', (req, res, next) => {
         req.session.save((err) => {
             if (err) { return next(err); }
             res.redirect('/profile');
+            new Audit({ executor: adminAccount._id, action: 5 }).save(console.error);
         });
     }
 });
@@ -143,15 +145,11 @@ adminRouter.post('/login', (req, res, next) => {
             return req.session.save(err => err ? next(err) : res.redirect('/'));
         }
 
-        console.log('\n--- Admin Account ---');
-        console.log(adminAccount);
-        console.log('--- ---\n');
-
         // authenticate the admin and bind it to request as req.user
         req.login(adminAccount, err => {
             if (err) { return next(err); } // status 500
-            console.log(`Logged in Admin`);
             req.session.save(err => err ? next(err) : res.redirect('/'));
+            new Audit({ executor: adminAccount._id, action: 4, actionType: 'ACCESSED' }).save(console.error);
         });
 
     }) (req, res, next);

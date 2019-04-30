@@ -5,7 +5,7 @@ const nanoid = require('../../bin/nanoid');
 const SubscriberSchema = new mongoose.Schema({
     _id: { type: String, default: () => nanoid(10) },
     email: String,
-    created: { type: Date, default: new Date() },
+    createdAt: { type: Date, default: new Date() },
     status: { type: Number, default: 1 }
 });
 

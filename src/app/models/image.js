@@ -8,7 +8,7 @@ const ImageSchema = new mongoose.Schema({
     url: String,
     contentType: String,
     status: { type: Number, default: 1 },
-    created: { type: Date, default: new Date() }
+    createdAt: { type: Date, default: new Date() }
 });
 
 /* status types

@@ -12,7 +12,7 @@ const PlaceSchema = new mongoose.Schema({
     name: String,
     placeType: Number,
     status: { type: Number, default: 1 },
-    created: { type: Date, default: new Date() },
+    createdAt: { type: Date, default: new Date() },
     updated: { type: Date, default: null },
     address: {
         number: String,
