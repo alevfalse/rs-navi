@@ -1,43 +1,47 @@
 const mongoose = require('mongoose');
-const nanoid = require('../../bin/nanoid');
+const generate = require('../../bin/generator');
+const logger = require('../../config/logger');
+const audit = require('../../bin/auditor');
 const formatDate = require('../../bin/date-formatter');
 
-const Placeowner = require('./placeowner');
 const Image = require('./image');
-const Review = require('./review');
 
 const PlaceSchema = new mongoose.Schema({
-    _id: { type: String, default: () => nanoid(10) },
-    owner: { type: String, ref: 'Placeowner' },
-    name: String,
-    placeType: Number,
+    _id: { type: String, default: generate()},
     status: { type: Number, default: 1 },
     createdAt: { type: Date, default: new Date() },
     updated: { type: Date, default: null },
+    owner: { type: String, ref: 'User', required: true },
+    name: { type: String, required: true },
+    placeType: { type: Number, required: true },
     address: {
-        number: String,
-        street: String,
-        subdivision: String,
-        barangay: String,
-        city: String,
-        zipCode: String,
-        province: String
+        number: { type: String, required: true },
+        street: { type: String, required: true },
+        subdivision: { type: String, default: null },
+        barangay: { type: String, default: null },
+        city: { type: String, required: true },
+        zipCode: { type: String, default: null },
+        province: { type: String, required: true },
     },
-    price: Number,
-    listType: Number,
-    description: String,
+    price: { type: Number, required: true },
+    listType: { type: Number, required: true },
+    description: { type: String, required: true },
     coordinates: {
-        lat: Number,
-        lng: Number
+        lat: { type: Number, required: true },
+        lng: { type: Number, required: true }
     },
     floors: { type: Number, default: null },
     bedrooms: { type: Number, default: null },
     bathrooms: { type: Number, default: null },
-    area: Number,
-    images: [{ type: String, ref: 'Image' }],
-    reviews: [{ type: String, ref: 'Review' }], // TODO: Remove
-    reports: [{ type: String, ref: 'Report' }]  // TODO: Remove? or set limit
+    area: { type: Number, default: null },
+    images: [{ type: String, ref: 'Image', required: true}]
 })
+
+PlaceSchema.index({ owner: 1 });
+
+PlaceSchema.on('index', (err) => {
+    logger.info(err);
+});
 
 /* status:      /* types:
 0 - deleted     0: boarding house
@@ -98,14 +102,63 @@ PlaceSchema.virtual('stars').get(function() {
     return (stars / this.reviews.length).toFixed(1);
 });
 
-PlaceSchema.methods.delete = function(callback) {
-    this.status = 0;
-    this.save(err => callback(err));
+function createImage(file) {
+    return new Promise((resolve, reject) => {
+        const image = new Image({
+            filename: file.filename,
+            url: `/places/${this._id}/images/` + file.filename,
+            contentType: file.mimetype
+        });
+
+        image.save(err => {
+            if (err) { return reject(err); }
+            resolve(image._id);
+        });
+    })
+}
+
+PlaceSchema.addImages = function(files, callback) {
+
+    const oldImages = this.images;
+
+    const promises = [];
+    
+    for (file of files) {
+        promises.push(createImage(file));
+    }
+    
+    Promise.all(promises).then(function(images) {
+        console.log(images);
+        this.images = this.images.concat(images);
+        this.save(err => {
+            callback(err);
+            if (!err) { audit(this.owner._id || this.owner, 12, 2, { target: this._id, targetModel: 1, 
+                changed: { key: 'images', old: oldImages, new: this.images } }); 
+            }
+        })
+    }).catch(logger.error);
 }
 
 PlaceSchema.methods.removeImage = function(id, callback) {
+    const oldImages = this.images;
+
     this.images.pull(id);
-    this.save(err => callback(err));
+    this.save(err => {
+        callback(err);
+        if (!err) { audit(this.owner._id || this.owner, 12, 2, { target: this._id, targetModel: 1,
+            changed: { key: 'images', old: oldImages, new: this.images } }); 
+        }
+    })
+}
+
+PlaceSchema.methods.delete = function(callback) {
+    this.status = 0;
+    this.save(err => {
+        callback(err);
+        if (!err) { audit(this.owner._id || this.owner, 13, 3, { target: this._id, targetModel: 1,
+            changed: { key: 'status', old: 1, new: 0 } }); 
+        }
+    })
 }
 
 

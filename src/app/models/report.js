@@ -1,22 +1,29 @@
 const mongoose = require('mongoose');
-const nanoid = require('../../bin/nanoid');
-
-const Place = require('./place');
+const generate = require('../../bin/generator');
 
 const ReportSchema = new mongoose.Schema({
-    _id: { type: String, default: () => nanoid() },
+    _id: { type: String, default: generate() },
     createdAt: { type: Date, default: new Date() },
-    place: { type: String, ref: 'Place' },
-    reason: String,
     status: { type: Number, default: 0 },
-    author: String
+    type: { type: Number, required: true },
+    author: { type: String, ref: 'User', required: true },
+    reason: { type: String, required: true },
+    target: { 
+        type: String, // id of target place/user/review
+        refPath: 'targetModel',
+        required: true
+    },
+    targetModel: {
+        type: String,
+        enum: ['User', 'Place', 'Review'],
+        required: true
+    }
 });
 
 /**
 status
-0 - unread
-1 - read but unresolved
-2 - resolved
+0 - unresolve
+1 - resolved
 */
 
 module.exports = mongoose.model('Report', ReportSchema);

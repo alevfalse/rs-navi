@@ -1,16 +1,16 @@
 const adminRouter = require('express').Router();
+const fs = require('fs');
+const path = require('path');
 const passport = require('../../config/passport');
 const session = require('express-session');
 const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo')(session);
+const logger = require('../../config/logger');
 
-const Student = require('../models/student');
-const Placeowner = require('../models/placeowner');
+const User = require('../models/user');
 const Report = require('../models/report');
 const Audit = require('../models/audit');
 
-const fs = require('fs');
-const path = require('path');
 const logsDirectory = path.join(__dirname, '../../logs/');
 
 // if the user is not authenticated as admin, render admin login page
@@ -39,12 +39,12 @@ const cookieOptions = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 
 // be accessible by all subdomains e.g. www. and admin.
 if (process.env.MODE === 'prod') {
     cookieOptions.domain = 'admin.rsnavigation.com';
-    console.log(`Admin Cookie domain set to: ${cookieOptions.domain}`);
+    logger.info(`Admin Cookie domain set to: ${cookieOptions.domain}`);
     cookieOptions.secure = true
-    console.log(`Admin Cookie set to HTTPS only.`);
+    logger.info(`Admin Cookie set to HTTPS only.`);
 } else {
     cookieOptions.domain = 'admin.localhost.com';
-    console.log(`Admin Cookie domain set to: ${cookieOptions.domain}`);
+    logger.info(`Admin Cookie domain set to: ${cookieOptions.domain}`);
 }
 
 adminRouter.use(session({
@@ -65,34 +65,27 @@ adminRouter.get('/', isAdmin, (req, res, next) => {
 
     // parallel database querying
     Promise.all([
-        Student.find().populate('account image').exec(),
-        Placeowner.find().populate('account image').exec(),
-        Report.find()
-            .populate('place')
-            .populate({
-                path: 'author',
-                model: 'Student'
-            })
-            .populate({
-                path: 'author',
-                model: 'Placeowner'
-            })
+        User.find({ $or: [{ 'account.role': 0 }, { 'account.role': 1 }] }).exec(),
+        Report.find().populate('author target')
     ])
-    .then(([students, placeowners, reports]) => {
-        console.log(reports);
+    .then(([users, reports]) => {
+        let students = users.filter(user => user.account.role === 0);
+        let placeowners = users.filter(user => user.account.role === 1);
+
         res.render('admin/home', 
         { 'admin': req.user, 'students': students, 'placeowners': placeowners, 
           'reports': reports, 'message': req.flash('message') },
         (err, html) => (err) ? next(err) : res.send(html));
     })
-    .catch((err) => { return next(err); })
+    .catch(next);
 });
 
 // GET admin.rsnavigation.com/logs
 adminRouter.get('/logs', isAdmin, (req, res, next) => {
     if (fs.existsSync(logsDirectory + 'access.log')) {
         res.sendFile('access.log', { root: logsDirectory});
-        new Audit({ executor: req.user._id, action: 72, actionType: 'ACCESSED' }).save(console.error);
+        new Audit({ executor: req.user._id, action: 72, actionType: 2 })
+            .save(err => { if (err) logger.error(err); });
     } else {
         return next();
     }
@@ -102,9 +95,7 @@ adminRouter.get('/logs', isAdmin, (req, res, next) => {
 adminRouter.get('/logout', (req, res, next) => {
 
     // redirect to admin login page if not authenticated
-    if (!req.isAuthenticated()) {
-        return res.redirect('/');
-    }
+    if (!req.isAuthenticated()) { return res.redirect('/'); }
 
     const id = req.user._id;
 
@@ -112,14 +103,16 @@ adminRouter.get('/logout', (req, res, next) => {
     if (req.user.account.role === 7) {
         req.logout();
         req.flash('message', 'Logged out.');
-        req.session.save(err => err ? next(err) : res.redirect('/'));
-
-        new Audit({ executor: id, type: 5 }).save(console.error);
+        req.session.save(err => {
+            if (err) { return next(err); }
+            new Audit({ executor: id, action: 5 }).save(err => { if (err) logger.error(err); });
+            res.redirect('/');
+        });
 
     // redirect to profile page if the account is a regular user
     } else {
-        req.flash('message', 'You are not logged in as admin.');
-        req.session.save(err => err ? next(err) : res.redirect('/profile'));
+        const err = new Error('Forbidden.');
+        err.status = 403; next(err);
     }
 });
 
@@ -129,24 +122,25 @@ adminRouter.get('/logout', (req, res, next) => {
 // POST admin.rsnavigation.com/login
 adminRouter.post('/login', (req, res, next) => {
     
-    console.log('Admin Login Page');
+    logger.info('Admin Login Page');
 
     // use configured local login strategy for admin
-    passport.authenticate('local-login-admin', (err, adminAccount) => {
+    passport.authenticate('local-login-admin', (err, admin) => {
 
         // if an errror occurred, send status 500
         if (err) { return next(err); }
 
         // if no admin account with the provided credentials is found, redirect to admin login page
-        if (!adminAccount) {
+        if (!admin) {
             return req.session.save(err => err ? next(err) : res.redirect('/'));
         }
 
         // authenticate the admin and bind it to request as req.user
-        req.login(adminAccount, err => {
+        req.login(admin, err => {
             if (err) { return next(err); } // status 500
             req.session.save(err => err ? next(err) : res.redirect('/'));
-            new Audit({ executor: adminAccount._id, action: 4, actionType: 'ACCESSED' }).save(console.error);
+            new Audit({ executor: admin._id, action: 4, actionType: 2 })
+                .save(err => { if (err) logger.error(err); });
         });
 
     }) (req, res, next);
