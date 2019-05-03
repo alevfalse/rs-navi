@@ -1,8 +1,8 @@
+const logger = require('../config/logger');
+
 module.exports = function(err, req, res, next) {
     res.status(err.status || 500);
     let title, message;
-
-    console.log('ERROR: ' + res.statusCode);
 
     switch (res.statusCode)
     {
@@ -22,11 +22,11 @@ module.exports = function(err, req, res, next) {
         } break;
 
         default: { // status 500
-            console.error(err); // TODO: Write server errors to a log file
+            logger.error(err);
             title = '500 Internal Server Error T_T';
             message = 'Something went wrong. Our lazy devs are onto it.';
         }
     }
 
-    res.render('error', { title: title, message: message });
+    res.render('error', { 'title': title, 'message': message });
 }

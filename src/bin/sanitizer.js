@@ -1,27 +1,35 @@
+const logger = require('../config/logger');
+
 /**
  * @description A middleware that checks for html tags in the request parameters and body
  */
 function sanitizer(req, res, next) {
     console.time('Passed');
-    console.log(`\nSanitizing: ${req.originalUrl}`);
-    console.log('---Params---');
-    console.log(req.params);
-    console.log('---Body---');
-    console.log(req.body);
+    logger.info(`\nSanitizing: ${req.originalUrl}`);
 
     for (let prop in req.params) {
-        if (req.params[prop].match(/<[a-z][\s\S]*>/)) {
-            console.warn(`Unexpected input received at ${req.originalUrl}:\n${req.params[prop]}\n----------`);
-            req.flash('message', 'Bad request.');
-            return req.session.save(err => err ? next(err) : res.redirect('/'));
+        req.params[prop] = req.params[prop].trim();
+
+        if (req.params[prop].match(/<.*>|\$/s)) {
+
+            const warning = `HTML Tag/NoSQL Operator detected: [${req.params[prop]}] ${req.originalUrl} - ${req.ip} `
+            + `${req.user ? `${req.user._id}` : 'Anonymous'}`;
+            logger.warn(warning);
+            
+            return next();
         }
     }
 
     for (let prop in req.body) {
-        if (req.body[prop].match(/<[a-z][\s\S]*>/)) {
-            console.warn(`Unexpected input received at ${req.originalUrl}:\n${req.params[prop]}\n----------`);
-            req.flash('message', 'Bad request.');
-            return req.session.save(err => err ? next(err) : res.redirect('/'));
+        req.body[prop] = req.body[prop].trim();
+
+        if (req.body[prop].match(/<.*>|\$/s)) {
+            
+            const warning = `HTML Tag/NoSQL Operator detected: [${req.body[prop]}] ${req.originalUrl} - ${req.ip} `
+            + `${req.user ? `${req.user._id}` : 'Anonymous'}`;
+            logger.warn(warning);
+
+            return next();
         }
     }
 
