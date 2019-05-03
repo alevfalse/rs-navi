@@ -122,7 +122,6 @@ $("#searchBox").focus(function () {
 
 // preview image filenames
 function previewImages() {
-    console.log($("#file").get(0).files)
     const files = Array.from($("#file").get(0).files);
     const text = files.reduce((str, file, index) => {
         return str + file.name + (index != files.length-1 ? ', ' : '');

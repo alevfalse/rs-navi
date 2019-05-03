@@ -57,7 +57,7 @@
                     <div class="col-10 col-md-6 col-lg-4 col-xl-3">
                         <form action="/profile/image/update" method="POST" enctype="multipart/form-data">
                             <label for="profile-image-input">
-                                <img id="thumbnail" src="<%= user.image ? user.image.url : '/images/blank-profile-picture.jpg' %>" alt="photo" data-toggle="tooltip" data-placement="bottom" title="Change Photo"/>
+                                <img id="thumbnail" src="<%= user.image ? user.image.url : '/images/blank.jpg' %>" alt="photo" data-toggle="tooltip" data-placement="bottom" title="Change Photo"/>
                             </label>
                             <input id="profile-image-input" type="file" name="image" hidden accept=".jpg, .jpeg, .png"> <br>
                             <button type="submit" class="btn custom-button" id="update-image-button">Update Profile Picture</button>
