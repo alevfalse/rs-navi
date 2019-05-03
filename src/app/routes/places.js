@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const logger = require('../../config/logger');
 const uploadsDirectory = path.join(__dirname, '../../uploads/');
 
 const placesRouter = require('express').Router();
@@ -71,17 +72,11 @@ placesRouter.get('/add', isPlaceowner, (req, res, next) => {
 // GET rsnavigation.com/places/:id
 placesRouter.get('/:id', sanitizer, (req, res, next) => {
 
-    // TODO: Sanitize params
     Place.findById(req.params.id)
     .populate('images')
     .populate({
         path: 'owner',
-        populate: { path: 'account image' }
-    })
-    .populate({
-        path: 'reviews',
-        options: { sort: { 'createdAt': -1 } },
-        populate: { path: 'author' }
+        populate: { path: 'image' }
     })
     .exec((err, place) => {
         if (err || !place) { return next(err) }
@@ -160,7 +155,7 @@ placesRouter.post('/add', isPlaceowner, sanitizer, upload.array('images', 10),
 (req, res, next) => {
 
     // TODO: Min and max characters, check for invalid characters
-    console.log(req.body);
+    logger.info(req.body);
 
     const ownerId     = req.user._id;
     const name        = req.body.name;
@@ -179,10 +174,10 @@ placesRouter.post('/add', isPlaceowner, sanitizer, upload.array('images', 10),
 
     let price         = req.body.price
     const listType    = req.body.listType;
-    let floors      = req.body.floors;
-    let bedrooms    = req.body.bedrooms;
-    let bathrooms   = req.body.bathrooms;
-    let description = req.body.description;
+    let floors        = req.body.floors;
+    let bedrooms      = req.body.bedrooms;
+    let bathrooms     = req.body.bathrooms;
+    let description   = req.body.description;
 
     if (!ownerId || !name || !placeType || !number || !street || !city 
         || !province || !price || !listType || !description || !coordinates)
@@ -203,9 +198,9 @@ placesRouter.post('/add', isPlaceowner, sanitizer, upload.array('images', 10),
     price = price.replace(/[^\d\.]/g, ''); // delete all non-digit characters
     description = description.replace(/\n/g, '<br>') // replace all new lines with <br>
 
-    if (floors) floors = floors.replace(/[^\d\.]/g, '');
-    if (bedrooms) bedrooms = bedrooms.replace(/[^\d\.]/g, '');
-    if (bathrooms) bathrooms = bathrooms.replace(/[^\d\.]/g, '');
+    if (floors) floors = floors.replace(/[^\d]/g, '');
+    if (bedrooms) bedrooms = bedrooms.replace(/[^\d]/g, '');
+    if (bathrooms) bathrooms = bathrooms.replace(/[^\d]/g, '');
     
     const newPlace = new Place({
         owner: ownerId,
@@ -216,10 +211,10 @@ placesRouter.post('/add', isPlaceowner, sanitizer, upload.array('images', 10),
         address: {
             number: number,
             street: street,
-            subdivision: subdivision || null,
-            barangay: barangay || null,
+            subdivision: subdivision,
+            barangay: barangay,
             city: city,
-            zipCode: zipCode || null,
+            zipCode: zipCode,
             province: province
         },
 
@@ -238,30 +233,15 @@ placesRouter.post('/add', isPlaceowner, sanitizer, upload.array('images', 10),
         images: []
     });
 
-    for (let file of req.files) {
+    newPlace.addImages(req.files, err => {
+        if (err) {
+            req.flash('message', err.message);
+            return req.session.save(err => err ? next(err) : res.redirect('/places/add'));
+        }
 
-        const image = new Image({
-            filename: file.filename,
-            url: `/places/${newPlace._id}/images/` + file.filename,
-            contentType: file.mimetype
-        })
-
-        newPlace.images.push(image._id);
-        
-        image.save((err) => {
-            if (err) { return next(err); }
-        })
-    }
-    
-    newPlace.save((err) => {
-        if (err) { return next(err); }
-
-        req.flash('message', `${newPlace.name} has been added.`);
-        req.session.save((err) => {
-            if (err) { return next(err); }
-            res.redirect('/places/add');
-        });
-    }); 
+        req.flash('message', `<a href="/places/${newPlace._id}">${newPlace.name}</a> has been added.`);
+        req.session.save(err => err? next(err) : res.redirect('/places/add'));
+    });
 });
 
 // POST rsnavigation.com/places/:id/review
@@ -349,7 +329,7 @@ placesRouter.post('/:id/report', isAuthenticated, sanitizer, (req, res, next) =>
     .exec((err, place) => {
         if (err || !place) { return next(err); }
 
-        console.log(place.reports);
+        logger.info(place.reports);
 
         // Check first if the user has already submitted a report on the place
         if (place.reports.find(report => report.author === req.user._id)) {
