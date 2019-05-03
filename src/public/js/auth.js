@@ -11,7 +11,6 @@ $(document).ready(function() {
 // ==============================================================================
 // Realtime Form Validations ====================================================
 $("form").on('submit', function(event) {
-    console.log($(this).find(".is-invalid").length)
 
     // prevent form submit if a field contains an invalid value
     if ($(this).find(".is-invalid").length > 0) {
@@ -21,10 +20,12 @@ $("form").on('submit', function(event) {
         let fields = [];
         $(this).find(".is-invalid").each(function(i, elem) {
             fields.push(elem.getAttribute('placeholder') || elem.getAttribute('name'));
-        })
+        });
         alert($(this).find(".is-invalid").length + ' Invalid Field(s):\n' + fields.join(', '));
+    } else {
+        $("#signup-button").html('Sending email <i class="fas fa-spinner fa-spin"></i>');
     }
-})
+});
 
 $("#signupPassword, #confirmSignupPassword").keyup(function() {
 
@@ -118,7 +119,7 @@ const validateEmailFunction = function(email, role, input, res) {
                 res.addClass('invalid-feedback').text('Email address is already taken');
             } else if (result === '2') {
                 input.removeClass('is-valid').addClass('is-invalid');
-                res.addClass('invalid-feedback').text('An error occurred.');
+                res.addClass('invalid-feedback').text('Invalid email address');
                 $("#signupRoleTitle").text('What are you doing?');
             }
         }
@@ -141,7 +142,7 @@ $("#signupEmail").change(function() {
         res.text('Must not start with space')
     } else if (email.match(/[^a-zA-Z0-9.@_]/)) {
         res.text('Contains invalid character')
-    } else if (email.length == 0) {
+    } else if (email.length === 0) {
         res.text('Cannot be empty');
     } else if (email.length > 50) {
         res.text('Too long');       // regex: if starts/ends with @ or period, 2 or more @, an @ is preceded by a period
@@ -169,11 +170,6 @@ function swapForms() {
 
 $("#switchRoleButton").click(function() {
 
-    const signupEmail = $("#signupEmail");
-    signupEmail.removeClass('is-valid is-invalid');
-    signupEmail.next().removeClass('invalid-feedback').text('');
-    signupEmail.val('');
-
     const switchRoleButton = $(this);
     const switchRoleNav = $("#switchRoleNav");
 
@@ -184,30 +180,40 @@ $("#switchRoleButton").click(function() {
     const signupRole = $("#signupRoleInput");
     const signupRoleTitle = $("#signupRoleTitle");
 
+    const schoolNameInput = $("#schoolNameInput");
+
     const switchToLoginButton = $("#switchToLoginButton");
     const switchToSignupButton = $("#switchToSignupButton");
     const forgotPasswordButton = $("#forgotPasswordButton");
 
-    const schoolNameInput = $("#schoolNameInput");
+    // remove invalid feedback on schoolname when switching roles
+    schoolNameInput.removeClass('is-invalid');
+    schoolNameInput.next().text('').removeClass('invalid-feedback'); 
 
+    // temopary disable of buttons during collapse animation
     switchRoleButton.attr('disabled', 'disabled');
     switchToLoginButton.attr('disabled', 'disabled');
     switchToSignupButton.attr('disabled', 'disabled');
     forgotPasswordButton.attr('disabled', 'disabled');
 
+    // hide titles
     loginRoleTitle.collapse("toggle");
     signupRoleTitle.collapse("toggle");
     switchRoleNav.collapse("toggle");
 
+    // change the text of the titles then show them again after half a second
     setTimeout(() => {
 
+        // check for value of login role input for the title of the login/signup form
         loginRoleTitle.text(`Login as ${loginRole.val() === 'student' ? 'placeowner' : 'student'}`);
         signupRoleTitle.text(`Signup as ${loginRole.val() === 'student' ? 'placeowner' : 'student'}`)
         switchRoleButton.text(`${login.hasClass('show') ? 'Login' : 'Signup'} as ${loginRole.val()}`);
 
+        // change the value of the login and signup role to opposite
         loginRole.val(loginRole.val() === 'student' ? 'placeowner' : 'student');
         signupRole.val(loginRole.val());
 
+        // hide and disable school name when signing up as placeowner
         if (signupRole.val() === 'student') {
             schoolNameInput.removeAttr('disabled hidden').css('display', 'inline');
         } else {
@@ -218,6 +224,7 @@ $("#switchRoleButton").click(function() {
         signupRoleTitle.collapse("toggle");
         switchRoleNav.collapse("toggle");
         
+        // remove disabled to buttons after 350ms after showing the titles again
         setTimeout(() => {
             switchRoleButton.removeAttr('disabled');
             switchToLoginButton.removeAttr('disabled');
