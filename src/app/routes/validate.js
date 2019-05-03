@@ -1,26 +1,25 @@
 const validateRouter = require('express').Router();
+const logger = require('../../config/logger');
 
-// model
-const Account = require('../models/account');
+const User = require('../models/user');
 
-validateRouter.get('/email', (req, res) => {
+validateRouter.get('/email', (req, res, next) => {
 
-    const inputEmail = req.query.email;
-    const roleString = req.query.role;
+    const email = req.query.email;
 
-    if (!inputEmail || !roleString) { return res.send('2'); }
+    if (!email || email.match(/<.*>|\$/s)) { return res.send('2'); }
 
-    let role;
-
-    switch(roleString)
-    {
-        case 'student':     role = 0; break;
-        case 'placeowner':  role = 1; break;
-        default: return res.send('2');
-    }
-    
-    Account.findOne({ 'email': inputEmail, 'role': role }, '_id',
-    (err, account) => { err ? res.send('0') : account ? res.send('0') : res.send('1'); });
+    // TODO: Test $
+    User.findOne({ 'account.email': email }, '_id', (err, user) => {
+        if (err) { logger.error(err); }
+        user ? res.send('0') : res.send('1');
+    });
 });
+
+/* response codes
+0 - taken
+1 - available
+2 - invalid email
+*/
 
 module.exports = validateRouter;
