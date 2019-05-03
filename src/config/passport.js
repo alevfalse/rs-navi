@@ -1,53 +1,27 @@
 const passport = require('passport')
 const LocalStrategy  = require('passport-local').Strategy;
+const isEmail = require('validator/lib/isEmail');
 const argon = require('argon2');
+const audit = require('../bin/auditor');
 
-const generate = require('nanoid/generate');
-const alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-
-// Models
-const Student = require('../app/models/student');
-const Placeowner = require('../app/models/placeowner');
-const Admin = require('../app/models/admin');
-const Account = require('../app/models/account');
+// models
+const User = require('../app/models/user');
 
 // mailer
-const sendVerificationLinkEmail = require('../bin/verification-link-email');
+const mailer = require('../config/mailer');
 
 // additional validation on top of the client-side validation
 const validateSignupForm = require('../bin/validate-signup-form');
 
 // stores the user's id in session to be used during deserialization
-passport.serializeUser((account, done) => {
-    if (account && account._id) {
-        done(null, account._id);
-        console.log(`Serialized: ${account._id}`);
-    } else {
-        done(null, false);
-        console.log(`Failed to serialize.`);
-    } 
+passport.serializeUser((user, done) => {
+    user && user._id ? done(null, user._id) : done(null, false);
 });
 
 // fetches user's data from the database in every request using their id that is stored in session
 passport.deserializeUser((id, done) => {
-
-    let query;
-
-    if (id === '001') { // TODO: Temporary. Remove.
-        query = Admin.findById(id);
-    } else {
-        switch (id[0])
-        {
-            case '0': query = Student.findById(id);    break;
-            case '1': query = Placeowner.findById(id); break;
-            case '7': query = Admin.findById(id);      break;
-            default : return done(null, false);
-        }
-    }
-
-    query.populate('account image').exec(done);
+    User.findById(id).populate('image').exec(done);
 });
-
 
 
 // NOTE: There's no need to call for req.session.save() after every req.flash() in the following code.
@@ -66,41 +40,29 @@ passport.use('local-login', new LocalStrategy({
 
     if (!email || !password || !roleString) { return done(null, false); }
 
-    let role;
+    const role = req.body.role === 'student' ? 0 : 1;
 
-    switch(roleString)
-    {
-        case 'student': role = 0; break;
-        case 'placeowner': role = 1; break;
-
-        default: 
-            req.flash('message', 'Invalid role.');
-            return done(null, false);
-    }
-
-    Account.findOne({ 'email': email, 'role': role },
-    async (err, account) => {
+    User.findOne({ 'account.email': email, 'account.role': role },
+    async (err, user) => {
         if (err) { return done(err, false); }
 
-        console.log(account);
-
-        if (!account || !await account.verifyPassword(password)) {
+        if (!user || !await user.verifyPassword(password)) {
             req.flash('message', 'Invalid email or password.');
             return done(null, false);
         }
 
-        if (account.status === 0) {
+        if (user.account.status === 0) {
             req.flash('message', 'Your email address is still unverified.\n Please check your email for verification link.')
             return done(null, false);
-        } else if (account.status === 2) {
-            req.flash('message', 'Your account has been temporarily suspended.')
+        } else if (user.account.status === 2) {
+            req.flash('message', `Your account has been locked due to suspicious activities until ${user.account.unlockedAt}.`)
             return done(null, false);
-        } else if (account.status === 3) {
-            req.flash('message', 'Your account has been permanently banned.')
+        } else if (user.account.status === 4) {
+            req.flash('message', 'Your account has been banned.')
             return done(null, false);
         }
 
-        account.login(err => err ? done(err, false) : done(null, account));
+        user.login(err => err ? done(err, false) : done(null, user));
     });
 }));
 
@@ -112,76 +74,59 @@ passport.use('local-signup', new LocalStrategy({
     passReqToCallback: true
 
 }, async function(req, email, password, done) {
-    console.log('--- Local Signup Strategy ---');
-    console.log(req.body);
-
-    const firstName = req.body.firstName;
-    const lastName = req.body.lastName;
-    const confirmPassword = req.body.confirmPassword;
-    const contactNumber = req.body.contactNumber;
-    const roleString = req.body.role;
     
-    if (!email || !firstName || !lastName || !password || !confirmPassword || !contactNumber || !roleString) {
-        req.flash('message', `Missing required signup field(s).`);
+    if (!isEmail(email, { allow_utf8_local_part: false })) {
+        req.flash('message', 'Invalid email address.');
         return done(null, false);
     }
-
-    const formError = validateSignupForm(firstName, lastName, email, contactNumber, password, confirmPassword);
+    
+    const formError = validateSignupForm(req.body);
     if (formError) {
         req.flash('message', formError.message);
         return done(null, false);
     }
+    
+    const firstName = req.body.firstName;
+    const lastName = req.body.lastName;
+    const contactNumber = req.body.contactNumber;
+    const role = req.body.role === 'student' ? 0 : 1;
 
-    let role = roleString === 'student' ? 0 : 'placeowner' ? 1 : null;
-    if (role === null) {
-        req.flash('message', 'Invalid role.');
-        return done(null, false);
-    }
-
-    Account.findOne({ 'email': email, 'role': role }, '_id', async (err, account) => {
+    User.findOne({ 'email': email }, '_id', async (err, account) => {
         if (err) { return done(err, false); }
 
         if (account) {
-            req.flash('message', 'Email already exists.');
+            req.flash('message', 'Email address is already taken.');
             return done(null, false);
         }
 
-        const data = {
-            firstName: firstName,
-            lastName: lastName,
-            schoolName: req.body.schoolName,
-            contactNumber: contactNumber
-        }
-
-        const newUser = role === 0 ? new Student(data) : new Placeowner(data);
-        newUser.account = newUser._id;
-
         const hashedPassword = await argon.hash(password, { timeCost: 50 });
 
-        const newAccount = new Account({
-            _id: newUser._id,
-            role: role,
-            email: email,
-            password: hashedPassword,
-            hashCode: generate(alpha, 6)
+        const newUser = new User({
+            firstName: firstName,
+            lastName: lastName,
+            contactNumber: contactNumber,
+            account: {
+                role: role,
+                email: email,
+                password: hashedPassword
+            }
         });
 
-        newAccount.save(err => { 
+        if (role === 0) { newUser.schoolName = req.body.schoolName; }
+        else { newUser.license = { status: 0, type: null } }
+
+        newUser.save(err => {
             if (err) { return done(err, false); }
 
-            newUser.save(err => { 
+            mailer.sendVerificationEmail(newUser, (err) => {
                 if (err) { return done(err, false); }
-
-                sendVerificationLinkEmail(newAccount, err => {
-                    if (err) { return done(err, false); }
-
-                    req.flash('message', 'Verification email sent.');
-                    return done(null, newUser);
-                }); 
+                req.flash('message', 'Verification email sent.');
+                done(null, newUser);
+                audit(newUser._id, 0, 0);
             }); 
         });
     });
-}))
+}));
 
 // =====================================================================================================
 // ADMIN LOGIN =========================================================================================
@@ -191,30 +136,21 @@ passport.use('local-login-admin', new LocalStrategy({
     passReqToCallback: true
 
 }, function(req, email, password, done) {
-    console.log('---------- Local Admin Login Strategy Invoked ----------\n');
-
-    console.log(req.body);
-    console.log('----');
 
     if (!email || !password) {
         req.flash('message', `Missing required login field(s).`);
         return done(null, false);
     }
 
-    Account.findOne({ 'email': email, role: 7 }, async (err, account) => {
+    User.findOne({ 'account.email': email, 'account.role': 7 }, 'account', async (err, admin) => {
         if (err) { return done(err, false); }
 
-        if (!account) {
-            req.flash('message', 'Invalid email.');
-            return done(null, false);
-        }
-
-        if (!await account.verifyPassword(password)) {
-            req.flash('message', 'Invalid password.');
+        if (!admin || !await admin.verifyPassword(password)) {
+            req.flash('message', 'Invalid email or password.');
             return done(null, false);
         }
         
-        account.login(err => err ? done(err, false) : done(null, account));
+        admin.login(err => err ? done(err, false) : done(null, admin));
     });
 }));
 
