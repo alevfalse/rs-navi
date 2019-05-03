@@ -1,50 +1,55 @@
 const mongoose = require('mongoose');
+const generate = require('../../bin/generator');
 
 const AuditSchema = new mongoose.Schema({
+    _id: { type: String, default: generate() },
     createdAt: { type: Date, default: new Date() },
-    executor: String,
-    target: { type: String, default: null },
-    reason: { type: String, default: null },
-    changes: {
-        key: String,
-        old: String,
-        new: String
+    executor: { type: String, ref: 'User', required: true },
+    action: { type: Number, required: true },
+    actionType: { type: Number, default: 4 },
+    target: {
+        type: String,
+        refPath: 'targetModel'
     },
-    action: Number,
-    actionType: { type: String, default: 'ALL' }
+    targetModel: {
+        type: String,
+        enum: ['User', 'Place', 'Review', 'Report']
+    },
+    reason: String,
+    changed: String
 });
 
 /*
 action types
-CREATE
-DELETE
-UPDATE
-ACCESSED
-ALL
+0 - CREATE
+1 - ACCESS
+2 - UPDATE
+3 - DELETE
+4 - ALL
 
-action
-0 - Account Sign Up
-1 - Verified Account
-2 - Forgot Account Password
-3 - Reset Account Password
-4 - Account Log In
-5 - Account Log Out
-6 - Account Update
+--- User Actions ---
+0 - User Sign Up
+1 - Verify Email
+2 - Forgot Password
+3 - Reset Password
+4 - User Log In
+5 - User Log Out
+6 - User Update
 
 11 - Place Add
 12 - Place Update
 13 - Place Delete
 14 - Place Add Review
 
-20 - Report
+20 - Report User
+21 - Report Place
 
-30 - Newsletter Subscribe 
-31 - Newsletter Unsubscribe
-32 - Newsletter Send
 
-70 - Account Ban
-71 - Account Revoke Ban
-72 - Accessed Logs
+--- Admin Actions ---
+70 - Ban User
+71 - Revoke User Ban
+72 - Send Newsletter
+77 - Accessed Logs
 */
 
 module.exports = mongoose.model('Audit', AuditSchema);
