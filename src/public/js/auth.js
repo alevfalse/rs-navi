@@ -1,15 +1,17 @@
 $(document).ready(function() {
     $('form').attr('autocomplete', 'off');  // disable default autocomplete
-    $("main").animate({ opacity: 1 }, 1000) // fade-in
+    $("main").animate({ opacity: 1 }, 1000); // fade-in
 
+    // add the class scrolled to the navbar if the window is scrolled below the navbar's height
     $(document).scroll(() => {
         const $nav = $("#mainNavbar");
         $nav.toggleClass("scrolled", $(this).scrollTop() > $nav.height());
-    })
-})
+    });
+});
 
 // ==============================================================================
 // Realtime Form Validations ====================================================
+
 $("form").on('submit', function(event) {
 
     // prevent form submit if a field contains an invalid value
@@ -24,21 +26,30 @@ $("form").on('submit', function(event) {
         alert($(this).find(".is-invalid").length + ' Invalid Field(s):\n' + fields.join(', '));
     } else {
         $("#signup-button").html('Sending email <i class="fas fa-spinner fa-spin"></i>');
+        $("#reset-password-button").html('Sending email <i class="fas fa-spinner fa-spin"></i>');
     }
 });
 
+// password and confirm password validation
 $("#signupPassword, #confirmSignupPassword").keyup(function() {
 
     const password = $("#signupPassword");
     const confirm = $("#confirmSignupPassword");
 
-    if (password.val().length <= 7) {
+    if (password.val().length < 8) {
         password.removeClass('is-valid').addClass('is-invalid');
         password.next().addClass('invalid-feedback').text('Must be at least 8 characters');
 
-        confirm.removeClass('is-valid is-invalid')
+        confirm.removeClass('is-valid is-invalid');
         confirm.next().removeClass('invalid-feedback').text('');
 
+    } else if (password.val().length > 24) {
+        password.removeClass('is-valid').addClass('is-invalid');
+        password.next().addClass('invalid-feedback').text('Must not be more than 24 characters');
+
+        confirm.removeClass('is-valid is-invalid');
+        confirm.next().removeClass('invalid-feedback').text('');
+        
     } else {
         password.removeClass('is-invalid');
         password.next().removeClass('invalid-feedback').text('');
@@ -55,58 +66,63 @@ $("#signupPassword, #confirmSignupPassword").keyup(function() {
     }
 })
 
+// text input validation except for signup role input and contact number
 $("input[type='text']:not(#signupRoleInput)").keyup(function() {
             
     const input = $(this);
-    const name = input.val();
     const res = input.next();
-    
-    if (name.startsWith(' ')) {
-        res.text('Must not start with space')
-    } else if (name.match(/[^a-zA-Zñ\s]|\s{2,}/)) {
-        res.text('Contains invalid character')
-    } else if (name.length == 0) {
+    const text = input.val();
+
+    if (validator.isEmpty(text)) {
         res.text('Cannot be empty');
-    } else if (name.length > 50) {
+    } else if (text.length > 50) {
         res.text('Too long');
-    }  else {
-        $(this).removeClass('is-invalid').addClass('is-valid');
-        $(this).next().removeClass('invalid-feedback').text('');
-        return; // return as a valid name
+    } else if (text.match(/[^a-zA-Zñ\s]/)) {
+        res.text('Contains invalid character');
+    } else {
+        input.removeClass('is-invalid').addClass('is-valid');
+        input.next().removeClass('invalid-feedback').text('');
+        return; // return as a valid text input
     }
     
-    // will only execute if at least one of the invalid conditions above are met
-    $(this).removeClass('is-valid').addClass('is-invalid');
-    $(this).next().addClass('invalid-feedback')
+    // will only execute if at least one of the text is invalid
+    input.removeClass('is-valid').addClass('is-invalid');
+    input.next().addClass('invalid-feedback')
 })
 
+// contact number validation
 $("#contactNumber").keyup(function() {
             
-    const number = $(this).val();
-    const res = $(this).next();
+    const input = $(this);
+    const res = input.next();
+    const number = input.val();
 
-    if (number.match(/[^\d+\(\)-\s]|\s{2,}/)) {
-        res.text('Mobile number must only contain digits, hyphen and parentheses');
+    if (validator.isEmpty(number)) {
+        res.text('Cannot be empty');
+    } else if (!validator.isNumeric(number)) {
+        res.text('Must only contain numbers');
     } else if (number.length < 7) {
         res.text('Too short');
+    } else if (number.length > 12) {
+        res.text('Too long');
     } else {
         $(this).removeClass('is-invalid').addClass('is-valid');
         res.removeClass('invalid-feedback').text('');
-        return; // return as a valid name
+        return;
     }
-    
-    // will only execute if at least one of the invalid conditions above are met
-    $(this).removeClass('is-valid').addClass('is-invalid');
+
+    // will only execute if the contact number is invalid
+    input.removeClass('is-valid').addClass('is-invalid');
     res.addClass('invalid-feedback')
 })
 
-
+// server side validation
 const validateEmailFunction = function(email, role, input, res) {
     
     $.ajax({
-        url: '/validate/email',
+        url: '/auth/validate/email',
         data: { 
-            email: email,
+            q: DOMPurify.sanitize(email),
             role: role
         },
         success: function(result) {
@@ -120,43 +136,28 @@ const validateEmailFunction = function(email, role, input, res) {
             } else if (result === '2') {
                 input.removeClass('is-valid').addClass('is-invalid');
                 res.addClass('invalid-feedback').text('Invalid email address');
-                $("#signupRoleTitle").text('What are you doing?');
             }
         }
     });
 }
 
-// client-side rate-limiting
-const throttledValidateEmailFunction = _.throttle(validateEmailFunction, 1000);
+// client-side rate-limiting 
+const throttledValidateEmailFunction = _.throttle(validateEmailFunction, 3000);
 
+// email sanitization and validation
 $("#signupEmail").change(function() {
 
     const input = $(this);
-    const email = input.val();
     const res = input.next();
+    const email = input.val();
     const role = $("#signupRoleInput").val();
-    
-    let valid = false;
 
-    if (email.startsWith(' ')) {
-        res.text('Must not start with space')
-    } else if (email.match(/[^a-zA-Z0-9.@_]/)) {
-        res.text('Contains invalid character')
-    } else if (email.length === 0) {
-        res.text('Cannot be empty');
-    } else if (email.length > 50) {
-        res.text('Too long');       // regex: if starts/ends with @ or period, 2 or more @, an @ is preceded by a period
-    } else if (!email.includes('@') || email.match(/[@.]$|^[@.]|@[^@]*@|\.@/)) {
-        res.text('Invalid email address')
+    if (!email || !validator.isEmail(email)) {
+        res.text('Invalid email address');
+        input.removeClass('is-valid').addClass('is-invalid');
+        res.addClass('invalid-feedback');
     } else {
-        valid = true;
         throttledValidateEmailFunction(email, role, input, res);
-    }
-    
-    if (!valid) {
-        // will only execute if at least one of the invalid conditions above are met
-        $(this).removeClass('is-valid').addClass('is-invalid');
-        $(this).next().addClass('invalid-feedback')
     }
 })
 
@@ -216,8 +217,10 @@ $("#switchRoleButton").click(function() {
         // hide and disable school name when signing up as placeowner
         if (signupRole.val() === 'student') {
             schoolNameInput.removeAttr('disabled hidden').css('display', 'inline');
+            $("#license").attr('disabled', 'disabled').css('display', 'none');
         } else {
             schoolNameInput.attr('disabled', 'disabled').css('display', 'none');
+            $("#license").removeAttr('disabled hidden').css('display', 'inline');
         }
 
         loginRoleTitle.collapse("toggle");
@@ -236,6 +239,9 @@ $("#switchRoleButton").click(function() {
 
 $("#switchToSignupButton, #switchToLoginButton").click(function() {
 
+    $("#login").hasClass("show") ? $("#logo").animate({ 'margin-top': '30px'}, 350)
+        : $("#logo").animate({ 'margin-top': '100px'}, 350);
+        
     const switchRoleButton = $("#switchRoleButton");
     const switchRoleNav = $("#switchRoleNav");
 
