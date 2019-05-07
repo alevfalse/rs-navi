@@ -30,7 +30,6 @@ const authRouter = require('./app/routes/auth');
 const placesRouter = require('./app/routes/places');
 const profileRouter = require('./app/routes/profile');
 const rootRouter = require('./app/routes/root');
-const validateRouter = require('./app/routes/validate');
 
 // APPLICATION ===========================================================================
 const app = express();
@@ -71,7 +70,7 @@ app.set('view engine', 'ejs'); // templating engine for rendering pages
 app.set('views', __dirname + '/views'); // folder containing the pages to be rendered
 
 // session
-const cookieOptions = { maxAge: 1000 * 60 /** 60 * 24 * 3*/ }; // max cookie age of 3 days
+const cookieOptions = { maxAge: 1000 * 60 * 60 * 24 * 1 }; // max cookie age of 1 day
 
 // set cookie's domain to the main domain at production for it to 
 // be accessible by all subdomains e.g. www. and admin.
@@ -105,7 +104,6 @@ app.use(subdomain('admin', adminRouter)); // admin.rsnavigation.com
 app.use('/auth', authRouter);
 app.use('/places', placesRouter);
 app.use('/profile', profileRouter);
-app.use('/validate', validateRouter);
 app.use('/', rootRouter);
 
 // This is called when no route was able handle the request
