@@ -113,8 +113,18 @@ passport.use('local-signup', new LocalStrategy({
 
         if (role === 0) { 
             newUser.schoolName = sanitize(req.body.schoolName); 
-        } else { 
-            newUser.license = { status: 0, type: null } 
+        } else if (req.body.licenseType) {
+            const licenseType = sanitize(req.body.licenseType);
+            
+            if (licenseType !== '0' && licenseType !== '1' && licenseType !== '2' && licenseType !== '3') {
+                req.flash('message', 'Invalid license type.');
+                return done(null, false);
+            }
+    
+            if (licenseType === '0') { newUser.license.status = 0; }
+            else { newUser.license.status = 1; }
+    
+            newUser.license.type = licenseType;
         }
 
         newUser.save(err => {
