@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
+const argon = require('argon2');
 const generate = require('../../bin/generator');
-const audit = require('../../bin/auditor');
 const logger = require('../../config/logger');
+const formatDate = require('../../bin/date-formatter');
 const Image = require('./image');
 
-
 const UserSchema = new mongoose.Schema({
-    _id: { type: String, default: generate() },
+    _id: { type: String, default: () => generate() },
     createdAt:  { type: Date, default: new Date() },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
@@ -21,6 +21,7 @@ const UserSchema = new mongoose.Schema({
         unlockedAt: { type: Date, default: null }
     },
     contactNumber: { type: String, required: true },
+    partner: { type: Boolean, default: false },
 
     // optional fields depending on role
     schoolName: String,
@@ -45,9 +46,10 @@ license status:
 3 - revoked
 
 license type:
-0 - Real Estate Appraiser
-1 - Real Estate Broker
-2 - Real Estate Accountant
+0 - None
+1 - Real Estate Appraiser
+2 - Real Estate Broker
+3 - Real Estate Accountant
 */
 
 // ==================================================================
@@ -65,13 +67,12 @@ UserSchema.virtual('partialContactNumber').get(function() {
     return str;
 });
 
-// virtual getters
 UserSchema.virtual('roleString').get(function() {
     return this.account.role === 0 ? 'Student' : this.account.role === 1 ? 'Placeowner' : 'Admin';
 });
 
 UserSchema.virtual('statusString').get(function() {
-    switch(this.status)
+    switch(this.account.status)
     {
         case 0: return  'Unverified';
         case 1: return  'Verified';
@@ -81,16 +82,56 @@ UserSchema.virtual('statusString').get(function() {
     }
 });
 
+UserSchema.virtual('licenseStatusString').get(function() {
+    switch(this.license.status)
+    {
+        case 0: return  'No License';
+        case 1: return  'Unverified';
+        case 2: return  'Verified';
+        case 3: return  'Revoked';
+        default: return 'Unknown';
+    }
+});
+
+UserSchema.virtual('licenseTypeString').get(function() {
+    switch(this.license.type)
+    {
+        case 0: return  'No License';
+        case 1: return  'Real Estate Appraiser';
+        case 2: return  'Real Estate Broker';
+        case 3: return  'Real Estate Accountant';
+        default: return 'Unknown';
+    }
+});
+
+UserSchema.virtual('unlockedAtString').get(function() {
+    return formatDate(this.unlockedAt);
+});
+
+// Virtual Population
+UserSchema.virtual('places', {
+    ref: 'Place',
+    localField: '_id',
+    foreignField: 'owner',
+    options: {
+        match: { 'status': 1 }
+    }
+});
+
+// Virtual Population
+UserSchema.virtual('reports', {
+    ref: 'Report',
+    localField: '_id',
+    foreignField: 'target'
+});
+
 // ==================================================================
 // User Schema Methods ==============================================
 
 UserSchema.methods.login = function(callback) {
     this.account.hashCode = null;
     this.account.lastLoggedIn = new Date();
-    this.save(err => {
-        callback(err);
-        if (!err) { audit(this._id, 4, 1) }
-    });
+    this.save(callback);
 }
 
 UserSchema.methods.verifyPassword = async function(password) {
@@ -102,31 +143,21 @@ UserSchema.methods.verifyEmail = function(callback) {
     this.account.hashCode = null;
     this.account.status = 1;
     this.account.lastLoggedIn = new Date();
-    this.save(err => {
-        callback(err);
-        if (!err) { audit(this._id, 1, 2, { changed: { key: 'status', old: 0, new: 1 } }); }
-    });
+    this.save(callback);
 }
 
 UserSchema.methods.updatePassword = async function(password, callback, reset=false) {
     
     this.account.password = await argon.hash(password, { timeCost: 50 });
     this.account.hashCode = null;
-    this.save(err => {
-        callback(err);
-        if (!err) { audit(this._id, reset ? 3 : 6, 2, { changed: { key: 'password' } }); }
-    });
+    this.save(callback);
 }
 
 UserSchema.methods.updateImage = function(file, callback) {
 
-    let oldImageFilename = null;
-
     // set the old image's status to deleted
     if (this.image) { 
-        this.image.delete(err => { 
-            if (err) { logger.error(err); } 
-        });
+        this.image.delete(err => { if (err) { logger.error(err.stack); } });
         oldImageFilename = this.image.filename;
     }
 
@@ -138,27 +169,18 @@ UserSchema.methods.updateImage = function(file, callback) {
 
     newImage.save(err => {
         if (err) { return callback(err); }
-
         this.image = newImage._id;
-        this.save(err => {
-            callback(err);
-            if (!err) { audit(this._id, 6, 2, { changed: { key: 'image', old: oldImageFilename, new: newImage.filename } }); }
-        });
+        this.save(callback);
     });
 }
 
 UserSchema.methods.removeImage = function(callback) {
     if (!this.image) { return callback(null); }
 
-    const oldImageFilename = this.image.filename;
-
     this.image.delete(err => { // Image Schema's method
         if (err) { return callback(err); }
         this.image = null;
-        this.save(err => {
-            callback(err);
-            if (!err) { audit(this._id, 6, 3, { changed: { key: 'image', old: oldImageFilename, new: null } }); }
-        });
+        this.save(callback);
     });
 }
 
