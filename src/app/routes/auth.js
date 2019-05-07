@@ -1,15 +1,14 @@
 const authRouter = require('express').Router();
 const passport = require('../../config/passport');
-const generate = require('../../bin/generator');
 const logger = require('../../config/logger');
-
-// model
-const User = require('../models/user');
-
-// FUNCTIONS ============================================================================
-const sanitizer = require('../../bin/sanitizer');
 const mailer = require('../../config/mailer');
-const validateForgotPasswordForm = require('../../bin/forgot-validation');
+const generate = require('../../bin/generator');
+const sanitize = require('../../bin/sanitizer');
+const isEmail = require('validator/lib/isEmail');
+const validators = require('../../bin/validators');
+
+// models
+const User = require('../models/user');
 
 // MIDDLEWARES ===========================================================================
 
@@ -45,13 +44,24 @@ authRouter.get('/', isAuthenticated, (req, res, next) => {
     }
 
     res.render('auth', options, (err, html) => err ? next(err) : res.send(html));
-})
+});
+
+// validates email availability during sign up
+// GET rsnavigation.com/auth/validate/email?q=email
+authRouter.get('/validate/email', (req, res, next) => {
+    let email = req.query.q;
+
+    if (!email || !isEmail(email)) { return res.send('2'); }
+    
+    User.findOne({ 'account.email': sanitize(email) }, '_id', (err, user) => {
+        if (err) { logger.error(err.stack); }
+        user ? res.send('0') : res.send('1');
+    });
+});
 
 // GET rsnavigation.com/auth/logout
 authRouter.get('/logout', (req, res) => {
     if (req.isAuthenticated()) {
-        new Audit({ executor: req.user._id, action: 5 })
-            .save(err => { if (err) logger.error(err); });
         req.logout();
         req.flash('message', 'Logged out.');
     }
@@ -67,13 +77,11 @@ authRouter.get('/verify/:hashCode', (req, res, next) => {
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
 
-    const hashCode = req.params.hashCode;
+    const hashCode = sanitize(req.params.hashCode);
 
-    if (!hashCode) { return next(); } // status 404
+    if (!validators.validateHashCode(hashCode)) { return next(); }
 
-    User.findOne({ 'account.hashCode': hashCode, 'account.status': 0 },
-    (err, user) => {
-        logger.info(user);
+    User.findOne({ 'account.hashCode': hashCode, 'account.status': 0 }, (err, user) => {
         if (err || !user) { return next(err); }
 
         user.verifyEmail(err => {
@@ -95,15 +103,15 @@ authRouter.get('/reset/:hashCode', (req, res, next) => {
         req.flash('message', 'You are still logged in.');
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
-    const hashCode = req.params.hashCode;
 
-    if (!hashCode) { return next(); } // status 404 
+    if (!validators.validateHashCode(req.params.hashCode)) { return next(); }
 
-    User.findOne({ 'hashCode': hashCode, '_id': id, 'status': 1 },
-    (err, account) => {
-        if (err || !account) { return next(err); } 
+    const code = sanitize(req.params.hashCode);
 
-        res.render('reset', { 'message': req.flash('message'), 'account': account }, 
+    User.findOne({ 'account.hashCode': code, 'account.status': 1 }, (err, user) => {
+        if (err || !user) { return next(err); } 
+
+        res.render('reset', { 'message': req.flash('message'), 'user': user }, 
         (err, html) => err ? next(err) : res.send(html));
     });
 });
@@ -114,7 +122,7 @@ authRouter.get('/reset/:hashCode', (req, res, next) => {
 // POST ROUTES ============================================================================
 
 // POST rsnavigation.com/auth/login
-authRouter.post('/login', sanitizer, (req, res, next) => {
+authRouter.post('/login', (req, res, next) => {
     passport.authenticate('local-login', (err, user) => {
         if (err) { return next(err); }
         if (!user) { return req.session.save(err => err ? next(err) : res.redirect('/auth')); }
@@ -127,7 +135,7 @@ authRouter.post('/login', sanitizer, (req, res, next) => {
 });
 
 // POST rsnavigation.com/auth/signup
-authRouter.post('/signup', sanitizer, (req, res, next) => {
+authRouter.post('/signup', (req, res, next) => {
     passport.authenticate('local-signup', (err, user) => {
         if (err) { return next(err); }
         req.session.save(err => err ? next(err) : res.redirect('/auth'));
@@ -135,20 +143,18 @@ authRouter.post('/signup', sanitizer, (req, res, next) => {
 });
 
 // POST rsnavigation.com/auth/forgot
-authRouter.post('/forgot', sanitizer, (req, res, next) => {
+authRouter.post('/forgot', (req, res, next) => {
 
-    const inputEmail = req.body.email;
-    const inputRole = req.body.role;
+    const email = req.body.email;
+    const role = req.body.role;
 
-    let formError = validateForgotPasswordForm(inputEmail, inputRole);
+    const formError = validators.validateForgotPasswordForm(email, role);
     if (formError) {
-        req.flash('message', formError.message);
+        req.flash('message', formError);
         return req.session.save(err => err ? next(err) : res.redirect('/auth'));
     }
 
-    let role = inputRole === 'student' ? 0 : 1;
-
-    User.findOne({ 'account.email': inputEmail, 'account.role': role }, 
+    User.findOne({ 'account.email': sanitize(email), 'account.role': role === 'student' ? 0 : 1 }, 
     (err, user) => {
 
         if (err) { return next(err); } 
@@ -160,7 +166,7 @@ authRouter.post('/forgot', sanitizer, (req, res, next) => {
         }
 
         // if the student account is still unverified
-        if (user.status === 0) {
+        if (user.account.status === 0) {
             req.flash('message', 'Your email address is still unverified. Check your email for the verification link.');
             return req.session.save(err => err ? next(err) :res.redirect('/auth'));
         }
@@ -169,7 +175,7 @@ authRouter.post('/forgot', sanitizer, (req, res, next) => {
         user.save(err => {
             if (err) { return next(err) }
 
-            mailer.sendResetPasswordEmail(user.account, err => {
+            mailer.sendResetPasswordEmail(user, err => {
                 if (err) { return next(err) }
 
                 req.flash('message', 'Password reset link has been sent to your email.');
@@ -180,43 +186,30 @@ authRouter.post('/forgot', sanitizer, (req, res, next) => {
 });
 
 // POST rsnavigation.com/auth/reset
-authRouter.post('/reset', sanitizer, (req, res, next) => {
+authRouter.post('/reset', (req, res, next) => {
 
     if (req.isAuthenticated()) {
         req.flash('message', 'You are still logged in.');
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
 
-    const id = req.body.id;
     const hashCode = req.body.hashCode;
     const newPassword = req.body.newPassword;
     const confirmNewPassword = req.body.confirmNewPassword;
     
-
-    if (!id || !newPassword || !confirmNewPassword || !hashCode) {
-        req.flash('message', 'Missing required fields.');
-        return req.session.save(err => err ? next(err) : res.redirect(`/reset/${hashCode}`))
-    }
-
-    if (newPassword.length < 8) {
-        req.flash('message', 'Password must be at least 8 characters.');
-        return req.session.save(err => err ? next(err) : res.redirect(`/reset/${hashCode}`))
-    }
-
-    if (confirmNewPassword !== newPassword) {
-        req.flash('message', 'Passwords do not match.');
-        return req.session.save(err => err ? next(err) : res.redirect(`/reset/${hashCode}`));
+    const formError = validators.validateResetPasswordForm(hashCode, newPassword, confirmNewPassword);
+    if (formError) {
+        req.flash('message', formError);
+        return req.session.save(err => err ? next(err) : res.redirect(`/auth/reset/${hashCode}`)) 
     }
     
-    User.findOne({ '_id': id, 'hashCode': hashCode, 'status': 1 },
+    User.findOne({ 'account.hashCode': hashCode, 'account.status': 1 },
     async (err, user) => {
-
-        logger.info(user);
-            
         if (err || !user) { return next(err); }
 
-        user.updatePassword(newPassword, err => { // set reset to true for audit
+        user.updatePassword(newPassword, err => {
             if (err) { return next(err); }
+
             req.flash('message', 'Password updated.');
             req.session.save(err => err ? next(err) : res.redirect('/auth'));
         }, true);
