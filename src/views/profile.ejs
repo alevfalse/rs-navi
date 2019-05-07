@@ -97,9 +97,8 @@
                                             </div>
                                         </div>
                                         
-                                        <h6 class="card-subtitle mb-3">
-                                            <span class="skyblue mr-1">₱ <%= place.price.toLocaleString('en') %></span> For <span><%= place.listTypeString %></span>
-                                        </h6>
+                                        <h6 class="card-subtitle skyblue">₱ <%= place.price.toLocaleString('en') %></h6>
+                                        <h6 class="card-subtitle mb-3"><%= place.placeTypeString %> For <%= place.listTypeString %></h6>
                                         <p class="card-text"><%= place.fullAddress %></p>
                                         <span class="mt-auto">
                                             <a href="/places/<%= place.id %>" class="card-link">View Details</a>
