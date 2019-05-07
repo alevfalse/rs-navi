@@ -1,3 +1,7 @@
+$(document).ready(() => {
+    $("main").animate({ opacity: 1 }, 1000) // fade-in
+});
+
 // TODO: Form validation
 
 function enable(button, id) {
@@ -63,11 +67,6 @@ $("#np").change(function() {
     }
 })
 
-$(document).ready(() => {
-    $("main").animate({ opacity: 1 }, 1000) // fade-in
-});
-
-
 $(function() {
     $('[data-toggle="tooltip"]').tooltip()
 })
@@ -76,7 +75,13 @@ $("#edit").click(function() {
     $("#profile").hasClass("show") ? $(this).text("Cancel Edit") : $(this).text("Edit Profile")
     $("#profile").collapse("toggle");
     $("#update").collapse("toggle");
-})
+});
+
+$("#report-button").click(function() {
+    $("#profile").hasClass("show") ? $(this).text("Cancel Report") : $(this).text("Report User")
+    $("#profile").collapse("toggle");
+    $("#report-reason").collapse("toggle");
+});
 
 $("#subscription, #back2").click(function() {
     $("#profile").collapse("toggle");

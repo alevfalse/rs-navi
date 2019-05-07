@@ -41,7 +41,10 @@
 
         <% if (visited.account.role === 1) { %>
             <!-- Visited Placeowner's Places Column -->
-            <div class="col-12 col-md-9 mb-3">
+            <div class="col-12 col-md-9 mb-3 order-1 order-md-0">
+                <div class="card">
+                    <h1 class="display-4 text-center text-white my-2"><%= visited.fullName %>'s Places</h1>
+                </div>
                 <div class="row mx-0" id="places">
                     <% if (visited.places && visited.places.length > 0) {
                         let p=0;
@@ -115,7 +118,7 @@
 
         <% } %>
             <!-- User Column -->
-            <div class="col-12 col-md-3 mb-3 pl-md-0">
+            <div class="col-12 col-md-3 mb-3 pl-md-0 order-0 order-md-1">
 
                 <!-- User Details -->
                 <div class="card">
@@ -154,12 +157,14 @@
                                     if (user._id === visited._id) { %>
                                         <a href="#" class="btn btn-sm custom-button" id="edit">Edit Profile</a>
                                     <% } else if (user.account.role === 7) { %>
-                                        <a href="/profile/<%= visited._id %>?_method=DELETE" class="btn btn-sm red custom-button">Delete User</a>
+                                        <form method="POST" action="/profile/<%= visited._id %>?_method=DELETE">
+                                            <button type="submit" class="btn btn-sm red custom-button">Delete User</button>
+                                        </form>
                                     <% } else { %>
-                                        <a href="#" class="btn btn-sm red custom-button" id="report-button">Report User</a>
+                                        <button type="button" class="btn btn-sm red custom-button" id="report-button">Report User</button>
                                     <% }
                                 } else { %>
-                                    <a href="#" class="btn btn-sm red custom-button" id="report-button">Report User</a>
+                                    <button type="button" class="btn btn-sm red custom-button" id="report-button">Report User</button>
                                 <% } %>
                             </div>
                         </div>
@@ -259,6 +264,13 @@
                     </form>
                 </div>
                 <!-- End of Update Profile Form -->
+                <% } else { %>
+                    <div class="container-fluid collapse" id="report-reason">
+                        <form class="row justify-content-end" method="POST" action="/profile/<%= visited._id %>/report">
+                            <textarea class="form-control" placeholder="Reason"></textarea>
+                            <button type="submit" class="btn btn-sm red custom-button mt-2">Send Report</button>
+                        </form>
+                    </div>
                 <% } %>
 
             </div>
