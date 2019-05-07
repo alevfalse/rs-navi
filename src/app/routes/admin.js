@@ -7,33 +7,15 @@ const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo')(session);
 const logger = require('../../config/logger');
 
+// models
 const User = require('../models/user');
 const Report = require('../models/report');
-const Audit = require('../models/audit');
 
+// directories
 const logsDirectory = path.join(__dirname, '../../logs/');
 
-// if the user is not authenticated as admin, render admin login page
-function isAdmin(req, res, next) {
-    if (req.isAuthenticated()) {
-        if (req.user.account.role === 7) {
-            next();
-        } else {
-            const err = new Error('Forbidden.');
-            err.status = 403;
-            next(err);
-        }
-    } else {
-        res.render('admin/login', { message: req.flash('message') },
-        (err, html) => {
-            if (err) { return next(err); }
-            res.send(html);
-        });
-    }
-}
-
-// admin session
-const cookieOptions = { maxAge: 1000 * 60 * 60 * 24 * 3 }; // max cookie age of 3 days
+// admin subdomain session and cookie
+const cookieOptions = { maxAge: 1000 * 60 * 60 * 1 }; // max cookie age of 1 hour
 
 // set cookie's domain to the main domain at production for it to 
 // be accessible by all subdomains e.g. www. and admin.
@@ -55,6 +37,30 @@ adminRouter.use(session({
     resave: true, // resave the session in every request
     store: new MongoStore({ mongooseConnection: mongoose.connection })
 }));
+
+
+
+// =======================================================================================
+// MIDDLEWARES ===========================================================================
+
+// if the user is not authenticated as admin, render admin login page
+function isAdmin(req, res, next) {
+    if (req.isAuthenticated()) {
+        if (req.user.account.role === 7) {
+            next();
+        } else {
+            const err = new Error('Forbidden.');
+            err.status = 403;
+            next(err);
+        }
+    } else {
+        res.render('admin/login', { message: req.flash('message') },
+        (err, html) => {
+            if (err) { return next(err); }
+            res.send(html);
+        });
+    }
+}
 
 
 // ==========================================================================================================================================
@@ -84,8 +90,7 @@ adminRouter.get('/', isAdmin, (req, res, next) => {
 adminRouter.get('/logs', isAdmin, (req, res, next) => {
     if (fs.existsSync(logsDirectory + 'access.log')) {
         res.sendFile('access.log', { root: logsDirectory});
-        new Audit({ executor: req.user._id, action: 72, actionType: 2 })
-            .save(err => { if (err) logger.error(err); });
+        logger.info(`${req.user.fullName} accessed logs.`);
     } else {
         return next();
     }
@@ -97,17 +102,11 @@ adminRouter.get('/logout', (req, res, next) => {
     // redirect to admin login page if not authenticated
     if (!req.isAuthenticated()) { return res.redirect('/'); }
 
-    const id = req.user._id;
-
     // logout the admin if authenticated user's account role is equal to 7
     if (req.user.account.role === 7) {
         req.logout();
         req.flash('message', 'Logged out.');
-        req.session.save(err => {
-            if (err) { return next(err); }
-            new Audit({ executor: id, action: 5 }).save(err => { if (err) logger.error(err); });
-            res.redirect('/');
-        });
+        req.session.save(err => err ? next(err) : res.redirect('/'));
 
     // redirect to profile page if the account is a regular user
     } else {
@@ -139,8 +138,6 @@ adminRouter.post('/login', (req, res, next) => {
         req.login(admin, err => {
             if (err) { return next(err); } // status 500
             req.session.save(err => err ? next(err) : res.redirect('/'));
-            new Audit({ executor: admin._id, action: 4, actionType: 2 })
-                .save(err => { if (err) logger.error(err); });
         });
 
     }) (req, res, next);
