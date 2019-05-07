@@ -8,7 +8,7 @@ function enable(button, id) {
         button.innerHTML = '<i class="fas fa-times"></i>';
     } else {
         input.setAttribute('disabled', '');
-        input.value = '';
+        if (id !== 'license') input.value = '';
         button.innerHTML = '<i class="far fa-edit"></i>';
     }
     
@@ -33,9 +33,12 @@ $("#edit-password").click(function() {
     } else {
         newPassword.setAttribute('disabled', '');     // disable the new password input field
         confirmPassword.setAttribute('disabled', ''); // and confirm password input field
+
+        // clear the value of new and confirm password
         newPassword.value = '';     
-        confirmPassword.value = ''; // clear the value of new and confirm password
-        $button.html('<i class="far fa-edit"></i>');
+        confirmPassword.value = ''; 
+
+        $button.html('<i class="far fa-edit"></i>'); // change button icon to edit
 
         if ($("#cp-div").hasClass('show')) { // hide the confirm password if it is visible
             $("#cp-div").collapse("toggle"); // and cancel button is pressed on new password
@@ -69,7 +72,8 @@ $(function() {
     $('[data-toggle="tooltip"]').tooltip()
 })
 
-$("#edit, #back").click(function() {
+$("#edit").click(function() {
+    $("#profile").hasClass("show") ? $(this).text("Cancel Edit") : $(this).text("Edit Profile")
     $("#profile").collapse("toggle");
     $("#update").collapse("toggle");
 })
