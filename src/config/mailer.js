@@ -14,7 +14,7 @@ exports.sendErrorEmail = function(err, recepient='alexanderpaul.marinas@gmail.co
         from: "roomstayin.navigation@gmail.com",
         to: recepient,
         subject: `RS Navigation Error: ${err.name}`,
-        text: err.message + '\n\n' + err.stack 
+        text: err.stack
     };
 
     gmail.sendMail(mailOptions, (err, info) => {
@@ -25,7 +25,7 @@ exports.sendErrorEmail = function(err, recepient='alexanderpaul.marinas@gmail.co
 
 exports.sendVerificationEmail = function(user, callback) {
 
-    let url = `${process.env.MODE === 'prod' ? 'https://rsnavigation.com' : `localhost:${process.env.PORT}`}`
+    let url = `${process.env.MODE === 'prod' ? 'https://rsnavigation.com' : `localhost.com:${process.env.PORT}`}`
             + `/auth/verify/${user.account.hashCode}`;
 
     const message = `Congratulations! You have successfully created an RS Navigation ${user.roleString} account and `
@@ -49,12 +49,12 @@ exports.sendVerificationEmail = function(user, callback) {
     });
 }
 
-exports.sendResetPasswordEmail = function(account, callback) {
+exports.sendResetPasswordEmail = function(user, callback) {
 
-    let url = `${process.env.MODE === 'prod' ? 'https://rsnavigation.com' : `localhost:${process.env.PORT}`}`
-            + `/auth/reset/${account._id}/${account.hashCode}`;
+    let url = `${process.env.MODE === 'prod' ? 'https://rsnavigation.com' : `localhost.com:${process.env.PORT}`}`
+            + `/auth/reset/${user.account.hashCode}`;
 
-    const message = `Good day! We have received a password reset request from your ${account.roleString} account.\n\n`
+    const message = `Good day! We have received a password reset request from your ${user.roleString} account.\n\n`
         + `You can click this link to reset your password:\n${url}\n\n`
         + `If you did not send this request, we suggest you secure your account by clicking this link anyway or requesting a new one\n`
         + `at https://rsnavigation.com/auth and select Forgot Password. You may also update your password on your account's profile page\n`
@@ -63,14 +63,13 @@ exports.sendResetPasswordEmail = function(account, callback) {
 
     const mailOptions = {
         from: "roomstayin.navigation@gmail.com",
-        to: account.email,
+        to: user.account.email,
         subject: "RS Navigation - Reset Password",
         text: message
     };
     
     gmail.sendMail(mailOptions, (err, info) => {
-        if (err) { return callback(err); }
-        logger.info(`Reset password email sent to ${account.email}] - ${info.response}`);
-        callback(null);
+        if (!err) { logger.info(`Reset password email sent to [${user.account.email}] - ${info.response}`); }
+        callback(err);
     });
 }
