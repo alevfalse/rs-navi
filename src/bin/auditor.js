@@ -84,5 +84,6 @@ module.exports = function(executor, action, actionType, opts) {
     if (opts.reason) { data.reason = opts.reason; }
 
     const audit = new Audit(data);
-    audit.save(err => err ? logger.error(err) : console.log(audit));
+    console.log(audit);
+    audit.save(err => err ? logger.error(err.stack) : console.log(audit));
 }
