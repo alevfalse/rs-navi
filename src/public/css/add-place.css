@@ -14,10 +14,11 @@ body {
     background-repeat: no-repeat;
     background-size: cover;
     background-attachment: fixed;
+    padding-top: 70px;
 }
 
 #title {
-    margin-top: 300px;
+    margin-top: 230px;
 }
 
 #mapSection {

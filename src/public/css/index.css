@@ -17,10 +17,11 @@ body {
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
+    padding-top: 70px;
 }
 
 #logo {
-    margin-top: 200px;
+    margin-top: 130px;
 }
 
 main {

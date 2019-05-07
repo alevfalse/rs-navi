@@ -22,6 +22,7 @@ body {
 
 main {
     min-height: 100%;
+    opacity: 0;
 }
 
 textarea, textarea:focus {
@@ -47,6 +48,10 @@ textarea, textarea:focus {
 
 .white {
     color: white !important;
+}
+
+.gold {
+    color: gold;
 }
 
 #map {
@@ -114,10 +119,6 @@ textarea, textarea:focus {
     object-fit: cover;
 }
 
-.gold {
-    color: gold;
-}
-
 /* Star rating */
 .rating {
     width: 100%;
@@ -156,6 +157,10 @@ textarea, textarea:focus {
     background-image: url('https://image.flaticon.com/icons/svg/137/137517.svg');
 }
 
+#contact-number-modal {
+    margin-top: 70px;
+}
+
 /* width */
 ::-webkit-scrollbar {
     width: 10px;
@@ -174,10 +179,6 @@ textarea, textarea:focus {
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(241, 241, 241, 0.5); 
-}
-
-#contact-number-modal {
-    margin-top: 70px;
 }
 
 @media (max-width: 575.98px) {
