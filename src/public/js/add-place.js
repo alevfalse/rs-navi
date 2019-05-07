@@ -62,6 +62,7 @@ function resetImageGallery() {
         carouselIndicators.removeChild(carouselIndicators.firstChild);
     }
 }
+
 $("#files").change(function(event) {
 
     resetImageGallery();
@@ -118,24 +119,137 @@ $("#files").change(function(event) {
 // auto select all text in the place search box when clicked
 $("#searchBox").focus(function () {
     $(this).select();
-})
+});
 
-// preview image filenames
-function previewImages() {
-    const files = Array.from($("#file").get(0).files);
-    const text = files.reduce((str, file, index) => {
-        return str + file.name + (index != files.length-1 ? ', ' : '');
-    }, '');
-    $("#labelForFile").text(text).css('height', `auto`);
-}
-
+// Google Map 
+let map;
 let mapStyles;
 
-function loadMapStyles() {
-    $.getJSON("/js/mapStyles2.json", function(data) {
-        mapStyles = data;
-        initMap();
+function getPinAddress(event) {
+    $.ajax({
+        url: 'https://maps.googleapis.com/maps/api/geocode/json',
+        data: {
+            latlng: `${event.latLng.lat()},${event.latLng.lng()}`,
+            key: 'AIzaSyDREAoaQ27rc3JvRN_lyipAak9eT7C3tqQ'
+        },
+        dataType: 'json',
+
+        success: function(res) {
+            if (res.status !== 'OK') {
+                return setTimeout(() => {
+                    getPinAddress(event);
+                }, 1500)
+            }
+
+            // clear the address fields
+            $("#number").val('');
+            $("#street").val('');
+            $("#subdivision").val('');
+            $("#barangay").val('');
+            $("#city").val('');
+            $("#zipCode").val('');
+            $("#province").val('');
+
+            // loop through each components of the address components
+            for (let comp of res.results[0].address_components) {
+                switch (comp.types[0])
+                {
+                    case 'street_number': 
+                        $("#number").val(comp.long_name); break;
+
+                    case 'route': 
+                        $("#street").val(comp.long_name); break;
+
+                    case 'locality': 
+                        $("#city").val(comp.long_name); break;
+
+                    case 'administrative_area_level_2': 
+                        $("#province").val(comp.long_name); break;
+
+                    case 'administrative_area_level_1':
+                        if ($("#province").val().length === 0) { 
+                            $("#province").val(comp.long_name); 
+                        } break;
+
+                    case 'postal_code': 
+                        $("#zipCode").val(comp.long_name); break;
+                }
+            }
+
+            const name   = DOMPurify.sanitize($("#name").val());
+            const price  = DOMPurify.sanitize($("#price").val());
+            const type   = DOMPurify.sanitize($("#placeType").val());
+            const number = DOMPurify.sanitize($("#number").val());
+            const street = DOMPurify.sanitize($("#street").val());
+            const subdv  = DOMPurify.sanitize($("#subdivision").val());
+            const brgy   = DOMPurify.sanitize($("#barangay").val());
+            const city   = DOMPurify.sanitize($("#city").val());
+            const zip    = DOMPurify.sanitize($("#zipCode").val());
+            let   prov   = DOMPurify.sanitize($("#province").val());
+
+            let address = '';
+
+            if (prov.toLowerCase() === 'kalakhang maynila') $("#province").val('Metro Manila'); // translate to english
+
+            if (number) address += number;
+            if (street) address += ' ' + street + ', ';
+            if (subdv)  address += subdv;
+            address += '<br>';
+            if (brgy)   address += 'Brgy. ' + brgy + ', ';
+            if (city)   address += city;
+            address += '<br>';
+            if (zip) address += zip + ' ';
+            if (prov) address += prov;
+
+            const data = {
+                coordinates: event.latLng,
+                name: name,
+                price: price,
+                placeType: type,
+                address: address
+            }
+            
+            customMarker = addMarker(data);
+
+            // if the additional place info fields are not visible, show them now after pinning
+            if (!$("#place-info").hasClass('show')) {
+                $("#place-info").collapse('toggle');
+                $("#map-toggler").text('Pinned');
+            }
+        },
+        error: function(err) {
+            console.error(err.message);
+        }
     });
+}
+
+function addMarker(data) {
+
+    const marker = new google.maps.Marker({
+        position: data.coordinates,
+        map: map,
+        icon: 'https://i.imgur.com/0f9XMvH.png'
+    });
+
+    switch (data.placeType) {
+        case '0': data.placeType = "Boarding House"; break;
+        case '1': data.placeType = "Dormitory";      break;
+        case '2': data.placeType = "Apartment";      break;
+        case '3': data.placeType = "Condominium";    break;
+        default:  data.placeType = "RS Navi Place";
+    }
+
+    const infoWindow = new google.maps.InfoWindow({
+        content: DOMPurify.sanitize(`<h5><strong>${data.name}</strong></h5><p>${data.placeType}</p>`) // sanitize
+    });
+
+    infoWindow.open(map, marker);
+
+    marker.addListener('click', function () {
+        infoWindow.open(map, marker);
+    });
+
+    return marker;
 }
 
 function initMap() {
@@ -153,7 +267,7 @@ function initMap() {
         styles: mapStyles
     }
 
-    const map = new google.maps.Map(document.getElementById('map'), options);
+    map = new google.maps.Map(document.getElementById('map'), options);
     const input = document.getElementById('searchBox');
     const hideMapButton = document.getElementById('hide-map-button');
 
@@ -189,116 +303,11 @@ function initMap() {
         map.panTo(place.geometry.location);
         map.setZoom(19);
     });
+}
 
-
-    function addMarker(data) {
-
-        const marker = new google.maps.Marker({
-            position: data.coordinates,
-            map: map,
-            icon: 'https://i.imgur.com/0f9XMvH.png'
-        });
-
-        switch (data.placeType) {
-            case "0": data.placeType = "Boarding House"; break;
-            case "1": data.placeType = "Dormitory"; break;
-            case "2": data.placeType = "Apartment"; break;
-            case "3": data.placeType = "Condominium"; break;
-            default: data.placeType = "RS Navi Place";
-        }
-
-        const infoWindow = new google.maps.InfoWindow({
-            content: `<h5><strong>${data.name}</strong></h5><p>${data.placeType}</p>` // sanitize
-        });
-
-        infoWindow.open(map, marker);
-        marker.addListener('click', function () {
-            infoWindow.open(map, marker);
-        });
-
-        return marker;
-    }
-
-    function getPinAddress(event) {
-        $.ajax({
-            url: 'https://maps.googleapis.com/maps/api/geocode/json',
-            data: {
-                latlng: `${event.latLng.lat()},${event.latLng.lng()}`,
-                key: 'AIzaSyDREAoaQ27rc3JvRN_lyipAak9eT7C3tqQ'
-            },
-            dataType: 'json',
-
-            success: function(res) {
-                if (res.status !== 'OK') {
-                    return setTimeout(() => {
-                        getPinAddress(event);
-                    }, 1500)
-                }
-
-                // clear the address fields
-                $("#number").val('');
-                $("#street").val('')
-                $("#subdivision").val('');
-                $("#barangay").val('');
-                $("#city").val('');
-                $("#zipCode").val('');
-                $("#province").val('');
-
-                for (let comp of res.results[0].address_components) {
-                    switch (comp.types[0])
-                    {
-                        case 'street_number': $("#number").val(comp.long_name); break;
-                        case 'route': $("#street").val(comp.long_name); break;
-                        case 'locality': $("#city").val(comp.long_name); break;
-                        case 'administrative_area_level_2': $("#province").val(comp.long_name); break;
-                        case 'administrative_area_level_1': {
-                            if ($("#province").val().length === 0) { $("#province").val(comp.long_name); }
-                        } break;
-                        case 'postal_code': $("#zipCode").val(comp.long_name); break;
-                    }
-                }
- 
-                const number = $("#number").val();
-                const street = $("#street").val()
-                const subdv  = $("#subdivision").val();
-                const brgy   = $("#barangay").val();
-                const city   = $("#city").val();
-                const zip    = $("#zipCode").val();
-                let prov     = $("#province").val();
-
-                let address = '';
-
-                if (prov.toLowerCase() === 'kalakhang maynila') $("#province").val('Metro Manila'); // translate to english
-
-                if (number) address += number;
-                if (street) address += ' ' + street + ', ';
-                if (subdv)  address += subdv;
-                address += '<br>';
-                if (brgy)   address += 'Brgy. ' + brgy + ', ';
-                if (city)   address += city;
-                address += '<br>';
-                if (zip) address += zip + ' ';
-                if (prov) address += prov;
-
-                const data = {
-                    coordinates: event.latLng,
-                    name: $("#name").val(),
-                    price: $("#price").val() || 0,
-                    placeType: $("#placeType").val(),
-                    address: address
-                }
-                
-                customMarker = addMarker(data);
-
-                // if the additional place info fields are not visible, show them now after pinning
-                if (!$("#place-info").hasClass('show')) {
-                    $("#place-info").collapse('toggle');
-                    $("#map-toggler").text('Pinned');
-                }
-            },
-            error: function(err) {
-                console.error(err.message);
-            }
-        });
-    }
+function loadMapStyles() {
+    $.getJSON("/js/mapStyles2.json", function(data) {
+        mapStyles = data;
+        initMap();
+    });
 }

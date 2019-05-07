@@ -43,6 +43,7 @@ function initMap() {
         componentRestrictions: { country: 'ph' } 
     });
 
+    // when a search is performed
     autocomplete.addListener('place_changed', function () {
 
         ginfoWindow.close();
@@ -157,11 +158,11 @@ function addMarker(place) {
             for (let element of rows[0].elements) {
                 if (element.status !== 'OK') { return alert('Failed to retrieve distance 2.'); }
 
-                marker.infoWindow.setContent(
-                    `<h5>${place.name}</strong></h5><p>${placeType}</p><p>₱ ${place.price.toLocaleString('en')}</p><p>${address}</p>` +
-                    `<p>Distance: ${element.distance.text} (${element.duration.text} Walk)</p>` +
-                    `<p><a href='/places/${place._id}' target='_blank'>Visit Page<a/>`
-                )
+                const content = DOMPurify.sanitize(`<h5>${place.name}</strong></h5><p>${placeType}</p><p>₱ ${place.price.toLocaleString('en')}</p><p>${address}</p>` +
+                `<p>Distance: ${element.distance.text} (${element.duration.text} Walk)</p>` +
+                `<p><a href='/places/${place._id}' target='_blank'>Visit Page<a/>`);
+
+                marker.infoWindow.setContent(content);
             }
 
             ginfoWindow = marker.infoWindow;
