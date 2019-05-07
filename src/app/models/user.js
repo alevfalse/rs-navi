@@ -85,8 +85,8 @@ UserSchema.virtual('statusString').get(function() {
 UserSchema.virtual('licenseStatusString').get(function() {
     switch(this.license.status)
     {
-        case 0: return  'No License';
-        case 1: return  'Unverified';
+        case 0: return  'None';
+        case 1: return  'Pending';
         case 2: return  'Verified';
         case 3: return  'Revoked';
         default: return 'Unknown';
