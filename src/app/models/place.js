@@ -1,13 +1,12 @@
 const mongoose = require('mongoose');
 const generate = require('../../bin/generator');
 const logger = require('../../config/logger');
-const audit = require('../../bin/auditor');
 const formatDate = require('../../bin/date-formatter');
 
 const Image = require('./image');
 
 const PlaceSchema = new mongoose.Schema({
-    _id: { type: String, default: generate()},
+    _id: { type: String, default: () => generate() },
     status: { type: Number, default: 1 },
     createdAt: { type: Date, default: new Date() },
     updated: { type: Date, default: null },
@@ -25,15 +24,15 @@ const PlaceSchema = new mongoose.Schema({
     },
     price: { type: Number, required: true },
     listType: { type: Number, required: true },
+    floors: { type: Number, default: null },
+    bedrooms: { type: Number, default: null },
+    bathrooms: { type: Number, default: null },
+    area: { type: Number, default: null },
     description: { type: String, required: true },
     coordinates: {
         lat: { type: Number, required: true },
         lng: { type: Number, required: true }
     },
-    floors: { type: Number, default: null },
-    bedrooms: { type: Number, default: null },
-    bathrooms: { type: Number, default: null },
-    area: { type: Number, default: null },
     images: [{ type: String, ref: 'Image', required: true}]
 })
 
@@ -90,23 +89,39 @@ PlaceSchema.virtual('updatedString').get(function() {
     return formatDate(this.updated);
 });
 
+// reviews must be populated to get the number of stars
 PlaceSchema.virtual('stars').get(function() {
-    if (this.reviews.length == 0) { return 0 }
-    
-    let stars = 0;
+    if (!this.reviews || this.reviews.length === 0) { return 0 }
 
+    let stars = 0;
     for (review of this.reviews) {
         stars += review.rating;
     }
-
-    return (stars / this.reviews.length).toFixed(1);
+    return stars / this.reviews.length;
 });
 
-function createImage(file) {
+// populate virtual
+PlaceSchema.virtual('reviews', {
+    ref: 'Review',
+    localField: '_id',
+    foreignField: 'place',
+    options: {
+        match: { 'status': 1}
+    }
+});
+
+PlaceSchema.virtual('reports', {
+    ref: 'Report',
+    localField: '_id',
+    foreignField: 'target'
+});
+
+function createImage(file, id) {
     return new Promise((resolve, reject) => {
+
         const image = new Image({
             filename: file.filename,
-            url: `/places/${this._id}/images/` + file.filename,
+            url: `/places/${id}/images/` + file.filename,
             contentType: file.mimetype
         });
 
@@ -117,48 +132,32 @@ function createImage(file) {
     })
 }
 
-PlaceSchema.addImages = function(files, callback) {
-
-    const oldImages = this.images;
+PlaceSchema.methods.addImages = function(files, callback) {
 
     const promises = [];
     
     for (file of files) {
-        promises.push(createImage(file));
+        promises.push(createImage(file, this._id));
     }
     
-    Promise.all(promises).then(function(images) {
+    Promise.all(promises).then((images) => {
         console.log(images);
         this.images = this.images.concat(images);
-        this.save(err => {
-            callback(err);
-            if (!err) { audit(this.owner._id || this.owner, 12, 2, { target: this._id, targetModel: 1, 
-                changed: { key: 'images', old: oldImages, new: this.images } }); 
-            }
-        })
-    }).catch(logger.error);
+        this.save(callback);
+    }).catch(err => {
+        logger.error(err.stack);
+        callback(err);
+    });
 }
 
 PlaceSchema.methods.removeImage = function(id, callback) {
-    const oldImages = this.images;
-
     this.images.pull(id);
-    this.save(err => {
-        callback(err);
-        if (!err) { audit(this.owner._id || this.owner, 12, 2, { target: this._id, targetModel: 1,
-            changed: { key: 'images', old: oldImages, new: this.images } }); 
-        }
-    })
+    this.save(callback);
 }
 
 PlaceSchema.methods.delete = function(callback) {
     this.status = 0;
-    this.save(err => {
-        callback(err);
-        if (!err) { audit(this.owner._id || this.owner, 13, 3, { target: this._id, targetModel: 1,
-            changed: { key: 'status', old: 1, new: 0 } }); 
-        }
-    })
+    this.save(callback);
 }
 
 
