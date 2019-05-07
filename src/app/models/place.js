@@ -106,7 +106,7 @@ PlaceSchema.virtual('reviews', {
     localField: '_id',
     foreignField: 'place',
     options: {
-        match: { 'status': 1}
+        match: { 'status': 1 }
     }
 });
 
