@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
     <meta name="keywords" content="password, reset">
-    <meta name="description" content="Reset your account's forgotten password.">
+    <meta name="description" content="Reset your account's password.">
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-139123832-1"></script>
@@ -30,24 +30,17 @@
     <title>RS Navi • Reset Password</title>
 </head>
 <body>
-    <!-- Navbar Component -->
-    <% include ./components/navbar.ejs %>
     
-    <% if (locals.message) { 
-        if (message.length > 0) { %>
-        <!-- Alert Message From Server -->
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="alert alert-primary alert-dismissible fade show mt-5" role="alert">
-                    <%= locals.message %>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-     <% } %>
- <% } %>
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
+        <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
+        <button class="navbar-toggler" data-toggle="collapse" data-target="#navLinks" aria-label="Toggle navigation links">
+            <span class="text-white"><i class="fas fa-bars"></i></span>
+        </button>
+    </nav>
+    
+    <!-- Flash Message -->
+    <% include ./components/flash.ejs %>
 
     <main class="container">
 
@@ -62,19 +55,20 @@
         <div id="resetPassword">
             <div class="row justify-content-center text-center mb-3">
                 <div class="col-8">
-                    <h2 class="display-6 text-white" id=>Reset <%= account.roleString %> Password</h2>
+                    <h2 class="display-6 text-white" id=>Reset Password</h2>
                 </div>
             </div>
 
             <form method="POST" action="/auth/reset">
                 <div class="row justify-content-center text-center">
                     <div class="col-8 col-md-6 col-lg-5 col-xl-4 formFields">
-                        <input type="email" class="form-control mb-3" placeholder="Email" name="email" value="<%= account.email %>" disabled>
-                        <input type="password" class="form-control mb-3" placeholder="New Password" name="newPassword" required>
-                        <input type="password" class="form-control mb-3" placeholder="Confirm New Password" name="confirmNewPassword" required>
-                        <input type="text" name="id" value="<%= account._id %>" required hidden>
-                        <input type="text" name="hashCode" value="<%= account.hashCode %>" required hidden>
-                        <button type="submit" class="btn btn-sm btn-primary px-4">Update Password</button>
+                        <input type="email" class="form-control mb-3" placeholder="Email" name="email" value="<%= user.account.email %>" disabled>
+                        <input type="password" class="form-control" placeholder="New Password" name="newPassword" id="np" required>
+                        <div></div>
+                        <input type="password" class="form-control mt-3" placeholder="Confirm New Password" name="confirmNewPassword" id="cp" required>
+                        <div></div>
+                        <input type="text" name="hashCode" value="<%= user.account.hashCode %>" required hidden>
+                        <button type="submit" class="btn btn-sm custom-button mt-3 px-4">Reset</button>
                     </div>
                 </div>
             </form>
@@ -95,6 +89,41 @@
         $(document).ready(() => {
             $('form').attr('autocomplete', 'off');  // disable default autocomplete
             $("main").animate({ opacity: 1 }, 1000) // fade-in
+        });
+
+        $("#np, #cp").keyup(function() {
+            const password = $("#np");
+            const confirm = $("#cp");
+
+            if (password.val().length < 8) {
+                password.removeClass('is-valid').addClass('is-invalid');
+                password.next().addClass('invalid-feedback').text('Must be at least 8 characters');
+
+                confirm.removeClass('is-valid is-invalid');
+                confirm.next().removeClass('invalid-feedback').text('');
+
+            } else if (password.val().length > 24) {
+                password.removeClass('is-valid').addClass('is-invalid');
+                password.next().addClass('invalid-feedback').text('Must not be more than 24 characters');
+
+                confirm.removeClass('is-valid is-invalid');
+                confirm.next().removeClass('invalid-feedback').text('');
+                
+            } else {
+
+                password.removeClass('is-invalid');
+                password.next().removeClass('invalid-feedback').text('');
+                
+                if (confirm.val() !== password.val()) {
+                    password.removeClass('is-valid').addClass('is-invalid');
+                    confirm.removeClass('is-valid').addClass('is-invalid')
+                    confirm.next().addClass('invalid-feedback').text('Passwords do not match');
+                } else {
+                    password.removeClass('is-invalid').addClass('is-valid')
+                    confirm.removeClass('is-invalid').addClass('is-valid')
+                    confirm.next().removeClass('invalid-feedback').text('');
+                }
+            }
         });
     </script>
 </body>
