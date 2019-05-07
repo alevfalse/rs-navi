@@ -1,17 +1,12 @@
 const passport = require('passport')
 const LocalStrategy  = require('passport-local').Strategy;
-const isEmail = require('validator/lib/isEmail');
 const argon = require('argon2');
-const audit = require('../bin/auditor');
+const mailer = require('../config/mailer');
+const sanitize = require('../bin/sanitizer');
+const validators = require('../bin/validators');
 
 // models
 const User = require('../app/models/user');
-
-// mailer
-const mailer = require('../config/mailer');
-
-// additional validation on top of the client-side validation
-const validateSignupForm = require('../bin/validate-signup-form');
 
 // stores the user's id in session to be used during deserialization
 passport.serializeUser((user, done) => {
@@ -22,7 +17,6 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser((id, done) => {
     User.findById(id).populate('image').exec(done);
 });
-
 
 // NOTE: There's no need to call for req.session.save() after every req.flash() in the following code.
 // It will be called on the passport.authenticate()'s callback function.
@@ -35,13 +29,17 @@ passport.use('local-login', new LocalStrategy({
     passReqToCallback: true
 
 }, async function(req, email, password, done) {
+    
+    const formError = validators.validateLoginForm(email, password, req.body.role);
+    if (formError) {
+        req.flash('message', formError);
+        return done(null, false);
+    }
 
-    const roleString = req.body.role;
-
-    if (!email || !password || !roleString) { return done(null, false); }
-
+    email = sanitize(email);
+    password = sanitize(password);
     const role = req.body.role === 'student' ? 0 : 1;
-
+    
     User.findOne({ 'account.email': email, 'account.role': role },
     async (err, user) => {
         if (err) { return done(err, false); }
@@ -52,16 +50,21 @@ passport.use('local-login', new LocalStrategy({
         }
 
         if (user.account.status === 0) {
-            req.flash('message', 'Your email address is still unverified.\n Please check your email for verification link.')
+            req.flash('message', 'Your email address is still unverified.<br>Please check your email for verification link.')
             return done(null, false);
-        } else if (user.account.status === 2) {
-            req.flash('message', `Your account has been locked due to suspicious activities until ${user.account.unlockedAt}.`)
+        }
+        
+        if (user.account.status === 2) {
+            req.flash('message', `Your account has been locked until ${user.account.unlockedAtString}.`)
             return done(null, false);
-        } else if (user.account.status === 4) {
+        }
+        
+        if (user.account.status === 4) {
             req.flash('message', 'Your account has been banned.')
             return done(null, false);
         }
 
+        // User Schema method that sets the hashCode to null and updates lastLoggedIn date
         user.login(err => err ? done(err, false) : done(null, user));
     });
 }));
@@ -75,21 +78,13 @@ passport.use('local-signup', new LocalStrategy({
 
 }, async function(req, email, password, done) {
     
-    if (!isEmail(email, { allow_utf8_local_part: false })) {
-        req.flash('message', 'Invalid email address.');
-        return done(null, false);
-    }
-    
-    const formError = validateSignupForm(req.body);
+    const formError = validators.validateSignupForm(req.body);
     if (formError) {
         req.flash('message', formError.message);
         return done(null, false);
     }
-    
-    const firstName = req.body.firstName;
-    const lastName = req.body.lastName;
-    const contactNumber = req.body.contactNumber;
-    const role = req.body.role === 'student' ? 0 : 1;
+
+    email = sanitize(email);
 
     User.findOne({ 'email': email }, '_id', async (err, account) => {
         if (err) { return done(err, false); }
@@ -99,30 +94,36 @@ passport.use('local-signup', new LocalStrategy({
             return done(null, false);
         }
 
-        const hashedPassword = await argon.hash(password, { timeCost: 50 });
+        const fn = sanitize(req.body.firstName);
+        const ln = sanitize(req.body.lastName);
+        const contact = sanitize(req.body.contactNumber);
+        const role = req.body.role === 'student' ? 0 : 1;
+        const hash = await argon.hash(password, { timeCost: 50 });
 
         const newUser = new User({
-            firstName: firstName,
-            lastName: lastName,
-            contactNumber: contactNumber,
+            firstName: fn,
+            lastName: ln,
+            contactNumber: contact,
             account: {
                 role: role,
                 email: email,
-                password: hashedPassword
+                password: hash
             }
         });
 
-        if (role === 0) { newUser.schoolName = req.body.schoolName; }
-        else { newUser.license = { status: 0, type: null } }
+        if (role === 0) { 
+            newUser.schoolName = sanitize(req.body.schoolName); 
+        } else { 
+            newUser.license = { status: 0, type: null } 
+        }
 
         newUser.save(err => {
             if (err) { return done(err, false); }
 
             mailer.sendVerificationEmail(newUser, (err) => {
                 if (err) { return done(err, false); }
-                req.flash('message', 'Verification email sent.');
+                req.flash(`message', 'Verification email sent to<br>${newUser.account.email}`);
                 done(null, newUser);
-                audit(newUser._id, 0, 0);
             }); 
         });
     });
@@ -137,12 +138,15 @@ passport.use('local-login-admin', new LocalStrategy({
 
 }, function(req, email, password, done) {
 
-    if (!email || !password) {
-        req.flash('message', `Missing required login field(s).`);
+    const formError = validators.validateAdminLoginForm(email, password);
+    if (formError) {
+        req.flash('message', formError);
         return done(null, false);
     }
 
-    User.findOne({ 'account.email': email, 'account.role': 7 }, 'account', async (err, admin) => {
+    email = sanitize(email);
+
+    User.findOne({ 'account.email': email, 'account.role': 7 }, async (err, admin) => {
         if (err) { return done(err, false); }
 
         if (!admin || !await admin.verifyPassword(password)) {
