@@ -1,16 +1,24 @@
 const profileRouter = require('express').Router();
 const fs = require('fs');
 const path = require('path');
+const sanitize = require('../../bin/sanitizer');
 
+// models
 const User = require('../models/user');
 const Place = require('../models/place');
 
-const logger = require('../../config/logger');
-const upload = require('../../config/upload');
+// directories
 const uploadsDirectory = path.join(__dirname, '../../uploads/');
 const publicImagesDirectory = path.join(__dirname, '../../public/images');
 
-// a middleware to check if a user is logged in
+
+
+// =======================================================================================
+// MIDDLEWARES ===========================================================================
+
+const upload = require('../../config/upload');
+
+// check if a user is logged in
 function isAuthenticated(req, res, next) {
 
     if (req.isAuthenticated()) {
@@ -24,33 +32,41 @@ function isAuthenticated(req, res, next) {
     }
 }
 
+
+
+
+// =======================================================================================
+// GET ROUTES ============================================================================
+
 // GET rsnavigation.com/profile 
-profileRouter.get('/', isAuthenticated, (req, res, next) => {
-    logger.info(req.user);
-    res.render('profile',
-    { 'user': req.user, 'message': req.flash('message') },
-    (err, html) => {
-        if (err) { return next(err); }
-        res.send(html);
-    });
+profileRouter.get('/', (req, res, next) => {
+    if (req.isAuthenticated()) {
+        res.redirect(`/profile/${req.user._id}`);
+    } else {
+        res.redirect('/auth');
+    }
 });
 
 // GET rsnavigation.com/profile/:id
 profileRouter.get('/:id', (req, res, next) => {
-
-    // redirect to profile page if the provided is the same as the user
-    if (req.isAuthenticated() && req.user.id === req.params.id) {
-        return res.redirect('/profile');
-    }
-
-    // TODO: Create visited profile page
-    return next();
+    User.findById(req.params.id).populate('image')
+    .populate({
+        path: 'places',
+        populate: {
+            path: 'reviews images'
+        }
+    }).exec((err, user) => {
+        if (err || !user) { return next(err); }
+        res.render('profile', { 'user': req.user, 'visited': user, 'message': req.flash('message') },
+        (err, html) => err ? next(err) : res.send(html));
+    });
 });
 
 // GET rsnavigation.com/profile/:id/image
 profileRouter.get('/:id/image', (req, res, next) => {
 
-    User.findById(req.params.id, 'image', (err, user) => {
+    User.findById(sanitize(req.params.id), 'image').populate('image')
+    .exec((err, user) => {
         if (err || !user || !user.image) { return next(err); }
 
         // check if the image exists in the file system
@@ -65,27 +81,21 @@ profileRouter.get('/:id/image', (req, res, next) => {
     });
 });
 
-// GET rsnavigation.com/profile/:id/places
-profileRouter.get('/:id/places', (req, res, next) => {
-    Place.find({ 'owner': req.params.id, 'status': 1 })
-    .populate('owner')
-    .exec((err, places) => {
-        if (err) { return next(err); }
-        res.render('places', { 'user': req.user, 'places': places, 'message': req.flash('message') }, 
-        (err, html) => err ? next(err) : res.send(html));
-    });
-});
+
+
+// =======================================================================================
+// POST ROUTES ===========================================================================
 
 profileRouter.post('/update', isAuthenticated, async (req, res, next) => {
 
-    const firstName          = req.body.firstName;
-    const lastName           = req.body.lastName;
-    const schoolName         = req.body.schoolName;
-    const contactNumber      = req.body.contactNumber;
-
-    const newPassword        = req.body.newPassword;
-    const confirmNewPassword = req.body.confirmNewPassword;
-    const currentPassword    = req.body.currentPassword;
+    const firstName          = sanitize(req.body.firstName);
+    const lastName           = sanitize(req.body.lastName);
+    const schoolName         = sanitize(req.body.schoolName);
+    const licenseType        = sanitize(req.body.licenseType);
+    const contactNumber      = sanitize(req.body.contactNumber);
+    const newPassword        = sanitize(req.body.newPassword);
+    const confirmNewPassword = sanitize(req.body.confirmNewPassword);
+    const currentPassword    = sanitize(req.body.currentPassword);
 
     if (!firstName && !lastName && !schoolName && !contactNumber 
         && !newPassword && confirmNewPassword)
@@ -99,11 +109,24 @@ profileRouter.post('/update', isAuthenticated, async (req, res, next) => {
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
 
-    if (firstName)     { req.user.firstName     = firstName     };
-    if (lastName)      { req.user.lastName      = lastName      }; 
-    if (contactNumber) { req.user.contactNumber = contactNumber };
+    if (firstName)     { req.user.firstName     = firstName;     }
+    if (lastName)      { req.user.lastName      = lastName;      }
+    if (contactNumber) { req.user.contactNumber = contactNumber; }
 
-    if (schoolName && req.user.account.role === 0) { req.user.schoolName = schoolName };  
+
+    if (req.user.account.role === 0 && schoolName) { 
+        req.user.schoolName = schoolName;
+    } else if (req.user.account.role === 1 && licenseType) {
+        if (licenseType !== '0' && licenseType !== '1' && licenseType !== '2' && licenseType !== '3') {
+            req.flash('message', 'Invalid license type.');
+            return req.session.save(err => err ? next(err) : res.redirect('/profile'));
+        }
+
+        if (licenseType === '0') { req.user.license.status = 0; }
+        else { req.user.license.status = 1; }
+
+        req.user.license.type = licenseType;
+    }
 
     if (newPassword || confirmNewPassword) {
 
@@ -140,7 +163,7 @@ profileRouter.post('/image/update', isAuthenticated, upload.single('image'),
 (err, req, res, next) => {
     req.flash('message', err.message);
     req.session.save(err => err ? next(err) : res.redirect('/profile'));
-},   
+},
 (req, res, next) => {
     if (req.file) {
         req.user.updateImage(req.file, (err) => err ? next(err) : res.redirect('/profile'));
