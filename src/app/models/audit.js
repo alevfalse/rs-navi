@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const generate = require('../../bin/generator');
 
 const AuditSchema = new mongoose.Schema({
-    _id: { type: String, default: generate() },
+    _id: { type: String, default: () => generate() },
     createdAt: { type: Date, default: new Date() },
     executor: { type: String, ref: 'User', required: true },
     action: { type: Number, required: true },
@@ -16,7 +16,11 @@ const AuditSchema = new mongoose.Schema({
         enum: ['User', 'Place', 'Review', 'Report']
     },
     reason: String,
-    changed: String
+    changed: {
+        key: String,
+        old: String,
+        new: String
+    }
 });
 
 /*
