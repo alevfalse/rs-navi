@@ -36,27 +36,14 @@
     <!-- Navbar Component -->
     <% include ./components/navbar.ejs %>
 
-    <% if (locals.message) { 
-        if (message.length > 0) { %>
-            <!-- Alert Message From Server -->
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="alert alert-info alert-dismissible fade show mb-5" role="alert">
-                        <%= locals.message %>
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        <% } %>
-    <% } %>
+    <!-- Flash Message -->
+    <% include ./components/flash.ejs %>
 
-    <main class="container">
-        <div class="row justify-content-center">
+    <main class="container-fluid">
+        <div class="row">
 
             <!-- Place Column -->
-            <div class="col-12 col-md-8 mb-2 mb-md-3 order-0">
+            <div class="col-12 col-md-9 mb-2 mb-md-3">
 
                 <!-- Images -->
                 <div class="row">
@@ -119,15 +106,15 @@
                                                 </div>
                                             <% } else { %>
                                                 <div class="col-12 col-md-3 text-left text-md-right p-0">
-                                                    <button type="button" class="btn btn-sm custom-button" id="report-button">
-                                                        <i class="far fa-flag mr-1 skyblue"></i> Report
+                                                    <button type="button" class="btn red btn-sm custom-button" id="report-button">
+                                                        <i class="far fa-flag mr-1"></i> Report
                                                     </button>
                                                 </div>
                                             <% }
                                         } else { %>
                                             <div class="col-12 col-md-3 text-left text-md-right p-0">
-                                                <button type="button" class="btn btn-sm custom-button" id="report-button">
-                                                    <i class="far fa-flag mr-1 skyblue"></i> Report
+                                                <button type="button" class="btn red btn-sm custom-button" id="report-button">
+                                                    <i class="far fa-flag mr-1"></i> Report
                                                 </button>
                                             </div>
                                         <% } %>
@@ -153,7 +140,7 @@
                                 <div class="container collapse" id="report-form">
                                     <form class="row" action="/places/<%= place._id %>/report" method="POST">
                                         <textarea name="reason" placeholder="Reason" class="mt-1 mb-2" required></textarea>
-                                        <button type="submit" class="btn btn-sm custom-button mr-2"><i class="far fa-flag mr-1"></i> Send Report</button>
+                                        <button type="submit" class="btn red btn-sm custom-button mr-2"><i class="far fa-flag mr-1"></i> Send Report</button>
                                         <button type="button" class="btn grey btn-sm custom-button" id="cancel-report-button">Cancel</button>
                                     </form>
                                 </div>
@@ -247,7 +234,7 @@
                             </div>
 
                             <!-- Submitted Reviews -->
-                            <% if (place.reviews.length > 0) { 
+                            <% if (place.reviews && place.reviews.length > 0) { 
                                 for (review of place.reviews) { %>
                                     <div class="card-body">
 
@@ -287,7 +274,9 @@
                                                     
         
                                                     <% if (user.account.role === 7 || user._id === review.author._id) { %>
-                                                        <button type="button" class="btn btn-sm custom-button" style="color: rgb(248, 45, 45);">Delete</button>
+                                                        <form method="POST" action="/places/<%= place._id %>/reviews/<%= review._id %>?_method=DELETE">
+                                                            <button type="submit" class="btn btn-sm custom-button" style="color: rgb(248, 45, 45);">Delete</button>
+                                                        </form>
                                                     <% } %>
                                                 </div>
                                             </div>
@@ -306,55 +295,49 @@
             </div>
 
             <!-- Placeowner Column -->
-            <div class="col-12 col-md-4 order-1 mb-3">
-                <div class="row sticky-top sticky-offset">
-
-                    <!-- Placeowner Details -->
-                    <div class="col-12 order-1 order-md-0">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="row my-1">
-                                    <div class="col">
-                                        <a href="/profile/<%= place.owner._id %>">
-                                            <img class="card-img-top border border-info" src="<%= place.owner.image ? place.owner.image.url : '/images/blank.jpg' %>" style="width: 5rem; height: 5rem;">
-                                        </a>
-                                    </div>
-                                    <div class="col text-right">
-                                        <a href="/profile/<%= place.owner._id %>" class="btn btn-sm custom-button">
-                                            View Profile
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="row justify-content-between">
-                                    <span class="ml-3">
-                                        <%= place.owner.fullName %>
-                                    </span>
-                                </div>
-                                <div class="row">
-                                    <span class="ml-3">
-                                        <% if (place.owner.account.status === 1)  { %><i class="far fa-check-circle mr-2" id="verified" title="Verified"></i> <% } %>
-                                        <% if (place.owner.license.status === 0)  { %><i class="far fa-id-card mr-2" id="licensed" title="Licensed"></i> <% } %>
-                                        <i class="far fa-handshake mr-2 skyblue" title="Partner"></i>
-                                    </span>
-                                </div>
+            <div class="col-12 col-md-3 mb-3">
+                <div class="card sticky-top sticky-offset">
+                    <div class="card-header">
+                        <div class="row my-1">
+                            <div class="col">
+                                <a href="/profile/<%= place.owner._id %>">
+                                    <img class="card-img-top border border-info" src="<%= place.owner.image ? place.owner.image.url : '/images/blank.jpg' %>" style="width: 5rem; height: 5rem;">
+                                </a>
                             </div>
-                            <div class="card-body">
-
-                                <% if (locals.user) { %>
-                                    <p class="card-text" id="contact-number">
-                                        <i class="fas fa-mobile-alt mx-1 skyblue"></i> <%= place.owner.contactNumber %>
-                                    </p>
-                                <% } else { %>
-                                    <a class="card-text" id="contact-number" title="Show contact number" data-toggle="modal" data-target="#contact-number-modal" style="cursor: pointer;">
-                                        <i class="fas fa-mobile-alt skyblue ml-1 mr-2"></i><%= place.owner.partialContactNumber %>
-                                        <span class="skyblue ml-2">Show</span>
-                                    </a>
-                                <% } %>
-
-                                <p class="card-text mt-2"><i class="far fa-envelope mr-1 skyblue"></i> <%= place.owner.account.email %></p>
-
+                            <div class="col text-right">
+                                <a href="/profile/<%= place.owner._id %>" class="btn btn-sm custom-button">
+                                    View Profile
+                                </a>
                             </div>
                         </div>
+                        <div class="row justify-content-between">
+                            <span class="ml-3">
+                                <%= place.owner.fullName %>
+                            </span>
+                        </div>
+                        <div class="row">
+                            <span class="ml-3">
+                                <% if (place.owner.account.status === 1)  { %> <i class="far fa-check-circle mr-2" id="verified" title="Verified"></i> <% } %>
+                                <% if (place.owner.license.status === 2)  { %> <i class="far fa-id-card mr-2" id="licensed" title="Licensed"></i> <% } %>
+                                <% if (place.owner.partner)               { %> <i class="far fa-handshake mr-2 skyblue" title="Partner"></i>  <% } %>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+
+                        <% if (locals.user) { %>
+                            <p class="card-text" id="contact-number">
+                                <i class="fas fa-mobile-alt mx-1 skyblue"></i> <%= place.owner.contactNumber %>
+                            </p>
+                        <% } else { %>
+                            <a class="card-text" id="contact-number" title="Show contact number" data-toggle="modal" data-target="#contact-number-modal" style="cursor: pointer;">
+                                <i class="fas fa-mobile-alt skyblue ml-1 mr-2"></i><%= place.owner.partialContactNumber %>
+                                <span class="skyblue ml-2">Show</span>
+                            </a>
+                        <% } %>
+
+                        <p class="card-text mt-2"><i class="far fa-envelope mr-1 skyblue"></i> <%= place.owner.account.email %></p>
+
                     </div>
                 </div>
             </div>
