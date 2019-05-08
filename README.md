@@ -2,7 +2,7 @@
 A web application that helps students find a place to live near their school.  
 https://rsnavigation.com
 
-![RS Navi Logo](https://raw.githubusercontent.com/alevfalse/rs-navi/master/src/public/images/rs_navi_logo.png)
+![RS Navi Logo](https://raw.githubusercontent.com/alevfalse/rs-navi/master/src/public/images/logo_with_title.png)
 
 # Development Guide
 1. Clone the repository to your local machine using the command:
