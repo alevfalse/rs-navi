@@ -28,6 +28,10 @@ select option {
     background: #0e1626;
 }
 
+.container-fluid {
+    max-width: 1200px;
+}
+
 .btn.custom-button {
     color: skyblue;
     background: rgb(14, 22, 38, 0.75);
