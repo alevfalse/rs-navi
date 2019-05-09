@@ -6,9 +6,11 @@ const session = require('express-session');
 const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo')(session);
 const logger = require('../../config/logger');
+const sanitize = require('../../bin/sanitizer');
 
 // models
 const User = require('../models/user');
+const Place = require('../models/place');
 const Report = require('../models/report');
 
 // directories
@@ -63,6 +65,7 @@ function isAdmin(req, res, next) {
 }
 
 
+
 // ==========================================================================================================================================
 // GET ======================================================================================================================================
 
@@ -71,17 +74,36 @@ adminRouter.get('/', isAdmin, (req, res, next) => {
 
     // parallel database querying
     Promise.all([
-        User.find({ $or: [{ 'account.role': 0 }, { 'account.role': 1 }] }).exec(),
-        Report.find().populate('author target')
+        // query all placeowners whose license status are unverified
+        User.find({ 'account.role': 1, 'license.status': 1 }).exec(),
+        Report.aggregate([
+            { $match: { status: 0 } },
+            {
+                $group: {
+                    _id: { target: "$target" },
+                    docs: { $push: "$$ROOT" }
+                }
+            }
+        ]).exec()
     ])
-    .then(([users, reports]) => {
-        let students = users.filter(user => user.account.role === 0);
-        let placeowners = users.filter(user => user.account.role === 1);
+    .then(([placeowners, reports]) => {
+        Place.populate(reports, {
+            path: '_id.target',
+            match: { status: 1 },
+            select: 'name'
+        }, (err, reports) => {
+            if (err) { return next(err); }
 
-        res.render('admin/home', 
-        { 'admin': req.user, 'students': students, 'placeowners': placeowners, 
-          'reports': reports, 'message': req.flash('message') },
-        (err, html) => (err) ? next(err) : res.send(html));
+            User.populate(reports, {
+                path: 'docs.author',
+                match: { 'account.status': 1 }
+            }, (err, reports) => {
+                if (err) { return next(err); }
+
+                res.render('admin/home', { 'admin': req.user, 'placeowners': placeowners, 'reports': reports, 'message': req.flash('message') },
+                (err, html) => err ? next(err) : res.send(html));
+            });
+        });
     })
     .catch(next);
 });
@@ -108,15 +130,17 @@ adminRouter.get('/logout', (req, res, next) => {
         req.flash('message', 'Logged out.');
         req.session.save(err => err ? next(err) : res.redirect('/'));
 
-    // redirect to profile page if the account is a regular user
+    // status 403
     } else {
         const err = new Error('Forbidden.');
         err.status = 403; next(err);
     }
 });
 
+
+
 // ==========================================================================================================================================
-// POST =====================================================================================================================================
+// POST ROUTES ==============================================================================================================================
 
 // POST admin.rsnavigation.com/login
 adminRouter.post('/login', (req, res, next) => {
@@ -142,5 +166,44 @@ adminRouter.post('/login', (req, res, next) => {
 
     }) (req, res, next);
 });
+
+adminRouter.post('/prc/:id', isAdmin, (req, res, next) => {
+    const id = sanitize(req.params.id);
+    const valid = sanitize(req.query.valid);
+
+    User.findOne({ '_id': id,  'account.role': 1, 'account.status': 1 }, (err, placeowner) => {
+        if (err || !placeowner) { return next(err); }
+
+        console.log(placeowner);
+
+        if (valid === 'true') { placeowner.license.status = 2; }
+        else { placeowner.license.status = 3; }
+
+        placeowner.save(err => {
+            if (err) { return next(err); }
+            req.flash('message', `${valid === 'true' ? 'Verified' : 'Rejected'} ${placeowner.fullName}'s license.`);
+            req.session.save(err => err ? next(err) : res.redirect('/'));
+        });
+    });
+});
+
+adminRouter.post('/ban/:id', isAdmin, (req, res, next) => {
+    const id = sanitize(req.params.id);
+    const reason = sanitize(req.body.reason);
+
+    console.log(`Reason: ${reason}`);
+
+    User.findOne({ '_id': id, 'account.status': 1 }, 
+    (err, user) => {
+        if (err || !user) { return next(err); }
+
+        user.account.status = 4;
+        user.save(err => {
+            if (err) { return next(err); }
+            req.flash('message', `Banned ${user.fullName}.`);
+            req.session.save(err => err ? next(err) : res.redirect('/'));
+        });
+    });
+})
 
 module.exports = adminRouter;
