@@ -51,7 +51,7 @@ authRouter.get('/', isAuthenticated, (req, res, next) => {
 authRouter.get('/validate/email', (req, res, next) => {
     let email = req.query.q;
 
-    if (!email || !isEmail(email)) { return res.send('2'); }
+    if (typeof email === 'undefined' || !isEmail(email)) { return res.send('2'); }
     
     User.findOne({ 'account.email': sanitize(email) }, '_id', (err, user) => {
         if (err) { logger.error(err.stack); }
@@ -77,11 +77,11 @@ authRouter.get('/verify/:hashCode', (req, res, next) => {
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
 
-    const hashCode = sanitize(req.params.hashCode);
+    const code = sanitize(req.params.hashCode);
 
-    if (!validators.validateHashCode(hashCode)) { return next(); }
+    if (!validators.hashCode(code)) { return next(); }
 
-    User.findOne({ 'account.hashCode': hashCode, 'account.status': 0 }, (err, user) => {
+    User.findOne({ 'account.hashCode': code, 'account.status': 0 }, (err, user) => {
         if (err || !user) { return next(err); }
 
         user.verifyEmail(err => {
@@ -104,9 +104,9 @@ authRouter.get('/reset/:hashCode', (req, res, next) => {
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
 
-    if (!validators.validateHashCode(req.params.hashCode)) { return next(); }
-
     const code = sanitize(req.params.hashCode);
+
+    if (!validators.hashCode(code)) { return next(); }
 
     User.findOne({ 'account.hashCode': code, 'account.status': 1 }, (err, user) => {
         if (err || !user) { return next(err); } 
@@ -145,10 +145,10 @@ authRouter.post('/signup', (req, res, next) => {
 // POST rsnavigation.com/auth/forgot
 authRouter.post('/forgot', (req, res, next) => {
 
-    const email = req.body.email;
-    const role = req.body.role;
+    const email = sanitize(req.body.email);
+    const role = sanitize(req.body.role);
 
-    const formError = validators.validateForgotPasswordForm(email, role);
+    const formError = validators.forgotPassword(email, role);
     if (formError) {
         req.flash('message', formError);
         return req.session.save(err => err ? next(err) : res.redirect('/auth'));
@@ -193,11 +193,11 @@ authRouter.post('/reset', (req, res, next) => {
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
 
-    const hashCode = req.body.hashCode;
-    const newPassword = req.body.newPassword;
-    const confirmNewPassword = req.body.confirmNewPassword;
+    const hashCode = sanitize(req.body.hashCode);
+    const newPassword = sanitize(req.body.newPassword);
+    const confirmNewPassword = sanitize(req.body.confirmNewPassword);
     
-    const formError = validators.validateResetPasswordForm(hashCode, newPassword, confirmNewPassword);
+    const formError = validators.resetPassword(hashCode, newPassword, confirmNewPassword);
     if (formError) {
         req.flash('message', formError);
         return req.session.save(err => err ? next(err) : res.redirect(`/auth/reset/${hashCode}`)) 
