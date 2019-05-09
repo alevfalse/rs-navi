@@ -8,7 +8,7 @@ rootRouter.get('/', (req, res, next) => {
 
 rootRouter.get('/search', (req, res, next) => {
     // TODO: Only send nearby places (same city?)
-    Place.find((err, places) => err ? res.send(null) : res.send(places));
+    Place.find({ 'status': 1 }, (err, places) => err ? res.send(null) : res.send(places));
 });
 
 module.exports = rootRouter;
