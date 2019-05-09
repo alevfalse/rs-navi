@@ -7,7 +7,7 @@ function undef(x) {
 /**
  * @description returns true if the hash code is valid
  */
-exports.validateHashCode = function(hashCode) {
+exports.hashCode = function(hashCode) {
 
     if (undef(hashCode)) {
         return false;
@@ -20,7 +20,7 @@ exports.validateHashCode = function(hashCode) {
     return true;
 }
 
-exports.validateLoginForm = function(email, password, role) {
+exports.login = function(email, password, role) {
 
     if (undef(email) || undef(password) || undef(role)) {
         return 'Missing required signup fields.';
@@ -41,7 +41,7 @@ exports.validateLoginForm = function(email, password, role) {
     return null;
 }
 
-exports.validateSignupForm = function(body) {
+exports.signup = function(body) {
 
     if (undef(body)) { return 'Missing required signup fields.'; }
 
@@ -95,7 +95,7 @@ exports.validateSignupForm = function(body) {
     return null;
 }
 
-exports.validateForgotPasswordForm = function(email, role) {
+exports.forgotPassword = function(email, role) {
 
     if (undef(email) || undef(role) || val.isEmpty(email) || val.isEmpty(role)) {
         return 'Missing required signup fields.';
@@ -112,7 +112,7 @@ exports.validateForgotPasswordForm = function(email, role) {
     return null;
 }
 
-exports.validateResetPasswordForm = function(hashCode, password, confirm) {
+exports.resetPassword = function(hashCode, password, confirm) {
     if (undef(hashCode) || undef(password) || undef(confirm)) {
         return 'Missing required reset password fields.';
     }
@@ -136,7 +136,7 @@ exports.validateResetPasswordForm = function(hashCode, password, confirm) {
     return false;
 }
 
-exports.validateAdminLoginForm = function(email, password) {
+exports.adminLogin = function(email, password) {
 
     if (undef(email) || undef(password) || val.isEmpty(email) || val.isEmpty(password)) {
         return 'Missing required signup fields.';
@@ -149,7 +149,27 @@ exports.validateAdminLoginForm = function(email, password) {
     return null;
 }
 
-exports.validateAddPlaceForm = function(body) {
+exports.addPlace = function(body) {
+    
+}
+
+exports.reportPlace = function(type, comment) {
+
+    if (undef(type) || undef(comment)) {
+        return 'Missing required report fields.';
+    }
+
+    if (type !== '0' && type !== '1' && type !== '2' && type !== '3' && type !== '4' && type !== '5') {
+        return 'Invalid report reason.';
+    }
+
+    if (val.isEmpty(comment)) {
+        return 'Report comment can\'t be empty.';
+    }
+
+    if (comment.length > 500) {
+        return 'Report comment exceeded maximum characters.';
+    }
     
 }
 
