@@ -2,6 +2,7 @@ const placesRouter = require('express').Router();
 const fs = require('fs');
 const path = require('path');
 const sanitize = require('../../bin/sanitizer');
+const validators = require('../../bin/validators');
 
 // models
 const Place = require('../models/place');
@@ -72,7 +73,7 @@ placesRouter.get('/:id', (req, res, next) => {
 
     const id = sanitize(req.params.id);
 
-    Place.findById(id).populate('images')
+    Place.findOne({ '_id': id, 'status': 1 }).populate('images')
     .populate({
         path: 'reviews',
         populate: { 
@@ -224,7 +225,7 @@ placesRouter.post('/add', isPlaceowner, upload.array('images', 10),
 
     newPlace.addImages(req.files, err => {
         if (err) { return next(err); }
-        req.flash('message', `<a href="/places/${newPlace._id}">${newPlace.name}</a> has been added.`);
+        req.flash('message', `<a href="/places/${newPlace._id}" target="_blank">${newPlace.name}</a> has been added.`);
         req.session.save(err => err? next(err) : res.redirect('/places/add'));
     });
 });
@@ -286,55 +287,38 @@ placesRouter.post('/:id/review', isStudent, (req, res, next) => {
 // POST rsnavigation.com/places/:id/report
 placesRouter.post('/:id/report', isAuthenticated, (req, res, next) => {
 
-    const id = req.params.id; // place's id
-    const reason = req.body.reason;
+    const placeId    = sanitize(req.params.id);
+    const type  = sanitize(req.body.type);
+    let comment = sanitize(req.body.comment);
 
-    if (!id || id.length < 10) {
-        req.logout();
-        req.flash('message', 'Bad request.'); // !!!
-        return req.session.save(err => err ? next(err) : res.redirect('/auth'));
+    const formError = validators.reportPlace(type, comment);
+    if (formError) {
+        req.flash('message', formError);
+        return req.session.save(err => err ? next(err) : res.redirect(`/places/${placeId}`));
     }
 
-    if (!reason) {
-        req.flash('message', 'Provide a reason for reporting.');
-        return req.session.save(err => err ? next(err) : res.redirect(`/places/${id}`));
-    }
-
-    if (reason.length > 50) {
-        req.flash('message', 'Report reason must not be more than 50 characters.');
-        return req.session.save(err => err ? next(err) : res.redirect(`/places/${id}`));
-    }
+    comment = comment.trim();
     
-    Place.findOne({ '_id': id, 'owner': { '$ne': req.user._id } })
-    .populate('reports')
-    .exec((err, place) => {
-        if (err || !place) { return next(err); }
+    Report.findOne({ 'author': req.user._id, 'target': placeId }, '_id', (err, report) => {
+        if (err) { return next(err); }
 
-        console.log(place.reports);
-
-        // Check first if the user has already submitted a report on the place
-        if (place.reports.find(report => report.author === req.user._id)) {
+        if (report) {
             req.flash('message', 'You have already submitted a report.');
-            return req.session.save(err => err ? next(err) : res.redirect(`/places/${id}`));
+            return req.session.save(err => err ? next(err) : res.redirect(`/places/${placeId}`));
         }
 
         const newReport = new Report({
-            target: place._id,
-            targetModel: 'Place',
             author: req.user._id,
-            reason: reason
+            target: placeId,
+            type: type,
+            comment: comment
         });
 
         newReport.save(err => {
             if (err) { return next(err); }
-
-            place.reports.push(newReport._id);
-            place.save(err => {
-                if (err) { return next(err );}
-
-                req.flash('message', 'Report submitted.');
-                req.session.save(err => err ? next(err) : res.redirect(`/places/${id}`));
-            });
+            console.log(newReport);
+            req.flash('message', 'Report submitted.');
+            req.session.save(err => err ? next(err) : res.redirect(`/places/${placeId}`));
         });
     });
 });
@@ -342,6 +326,49 @@ placesRouter.post('/:id/report', isAuthenticated, (req, res, next) => {
 // =======================================================================================
 // DELETE ROUTES =========================================================================
 
+
+function resolveReport(report) {
+    return new Promise((resolve, reject) => {
+        report.status = 1;
+        report.save(err => err ? reject(err) : resolve(true));
+    })
+}
+// DELETE rsnavigation.com/places/:id
+placesRouter.delete('/:id', isAuthenticated, (req, res, next) => {
+    const placeId = sanitize(req.params.id);
+
+    Place.findOne({'_id': placeId, 'status': 1 })
+    .populate('reports')
+    .exec((err, place) => {
+        if (err || !place) { return next(err); }
+        console.log(place);
+
+        if (req.user._id === place._id || req.user.account.role === 7) {
+            place.status = 0;
+
+            const promises = [];
+
+            for (report of place.reports) {
+                promises.push(resolveReport(report));
+            }
+
+            Promise.all(promises)
+            .then((results) => {
+                console.log(results);
+                place.save(err => {
+                    if (err) { return next(err); }
+                    req.flash('message', `Deleted ${place.name}.`);
+                    req.session.save(err => err ? next(err) : res.redirect('/'));
+                });
+            }).catch(next)
+            
+        } else {
+            const err = new Error('Forbidden');
+            err.status = 403;
+            next(err);
+        }
+    });
+})
 // DELETE rsnavigation.com/places/:id/images/:filename
 placesRouter.delete('/:id/images/:filename', isPlaceowner, (req, res, next) => {
     
