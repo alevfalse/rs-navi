@@ -17,7 +17,19 @@ body {
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    padding-top: 70px;
+    padding-top: 60px;
+}
+
+.red {
+    color: rgb(248, 45, 45) !important;
+}
+
+.limegreen {
+    color: limegreen !important;
+}
+
+.skyblue {
+    color: skyblue !important;
 }
 
 .btn.custom-button {
@@ -31,16 +43,28 @@ body {
     background: rgb(14, 22, 38, 0);
 }
 
+.table {
+    margin-bottom: 0;
+}
+
 .table.custom-table {
     color: skyblue;
     background: rgb(14, 22, 38, 0.75);
     border: solid 1px rgb(135, 206, 235, 0.25);
 }
 
+.table td {
+    vertical-align: middle;
+}
+
 .card {
     background: rgb(14, 22, 38, 0.5);
     border: 1px solid rgb(144, 144, 144, 0.25);
     color: white;
+}
+
+.card-body {
+    background: rgb(14, 22, 38, 0.5);
 }
 
 #logo {

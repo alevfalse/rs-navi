@@ -123,19 +123,24 @@
 
         <% } %>
             <!-- User Column -->
-            <div class="col-12 col-md-3 mb-3 pl-md-0 order-0 order-md-1">
+
+            <% if (visited.account.role === 1) { %>
+                <div class="col-12 col-md-3 mb-3 pl-md-0 order-0 order-md-1">
+            <% } else { %>
+                <div class="col-12 col-md-4 mt-2">
+            <% } %>
 
                 <!-- User Details -->
                 <div class="card">
                     <div class="card-header py-2">
-                        <div class="row">
+                        <div class="row text-center">
                             <% if (locals.user && user._id === visited._id) { %>
                                 <form method="POST" action="/profile/image/update" enctype="multipart/form-data">
                                     <label class="mb-0" for="profile-image-input">
-                                        <img id="thumbnail" src="<%= visited.image ? visited.image.url : '/images/blank.jpg' %>" alt="photo" data-toggle="tooltip" data-placement="bottom" title="Change Photo"/>
+                                        <img id="thumbnail" class="pointer" src="<%= visited.image ? visited.image.url : '/images/blank.jpg' %>" alt="photo" data-toggle="tooltip" data-placement="bottom" title="Change Photo"/>
                                     </label>
                                     <input id="profile-image-input" type="file" name="image" hidden accept=".jpg, .jpeg, .png"> <br>
-                                    <button type="submit" class="btn custom-button" id="update-image-button">Update Profile Picture</button>
+                                    <button type="submit" class="btn custom-button mt-3" id="update-image-button">Update Profile Picture</button>
                                 </form>
                             <% } else {%>
                                 <img id="thumbnail" src="<%= visited.image ? visited.image.url : '/images/blank.jpg' %>">
@@ -162,29 +167,29 @@
                                     if (user._id === visited._id) { %>
                                         <a href="#" class="btn btn-sm custom-button" id="edit">Edit Profile</a>
                                     <% } else if (user.account.role === 7) { %>
-                                        <form method="POST" action="/profile/<%= visited._id %>?_method=DELETE">
-                                            <button type="submit" class="btn btn-sm red custom-button">Delete User</button>
-                                        </form>
-                                    <% } else { %>
-                                        <button type="button" class="btn btn-sm red custom-button" id="report-button">Report User</button>
+                                        <button type="submit" class="btn btn-sm red custom-button" data-toggle="modal" data-target="#ban-form-modal">
+                                            <i class="fas fa-gavel mr-1"></i>Ban User
+                                        </button>
                                     <% }
-                                } else { %>
-                                    <button type="button" class="btn btn-sm red custom-button" id="report-button">Report User</button>
-                                <% } %>
+                                } %>
                             </div>
                         </div>
                     </div>
                     
                     <div class="collapse show" id="profile">
+                        
                         <% if (visited.account.role === 1 && visited.license.status !== 0) { %>
                             <div class="card-body">
                                 <span>Licensed <%= visited.licenseTypeString %> (<%= visited.licenseStatusString %>)</span>
                             </div>
-                        <% } if (visited.account.role === 0) { %>
+                        <% } 
+                        
+                        if (visited.account.role === 0) { %>
                             <div class="card-body">
                                 <span>Student at <%= visited.schoolName %></span>
                             </div>
                         <% } %>
+
                         <div class="card-body">
 
                             <% if (locals.user) { %>
@@ -192,7 +197,7 @@
                                     <i class="fas fa-mobile-alt mr-2 skyblue"></i> <%= visited.contactNumber %>
                                 </div>
                             <% } else { %>
-                                <a class="card-text" id="contact-number" title="Show contact number" data-toggle="modal" data-target="#contact-number-modal" style="cursor: pointer;">
+                                <a class="card-text pointer" id="contact-number" title="Show contact number" data-toggle="modal" data-target="#contact-number-modal">
                                     <i class="fas fa-mobile-alt skyblue mr-2"></i> <%= visited.partialContactNumber %>
                                     <span class="skyblue ml-2">Show</span>
                                 </a>
@@ -269,13 +274,6 @@
                     </form>
                 </div>
                 <!-- End of Update Profile Form -->
-                <% } else { %>
-                    <div class="container-fluid collapse" id="report-reason">
-                        <form class="row justify-content-end" method="POST" action="/profile/<%= visited._id %>/report">
-                            <textarea class="form-control" placeholder="Reason"></textarea>
-                            <button type="submit" class="btn btn-sm red custom-button mt-2">Send Report</button>
-                        </form>
-                    </div>
                 <% } %>
 
             </div>
@@ -286,7 +284,7 @@
     <!-- Footer Component -->
     <% include ./components/footer.ejs %>
  
-    <!-- Modal -->
+    <!-- Login Required Modal -->
     <div class="modal fade" id="contact-number-modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content" style="background: rgb(14, 22, 38, 0.5);">
@@ -307,7 +305,7 @@
                 </div>
 
                 <div class="modal-body">
-                    <p>You have to be logged in before we can show you the placeowner's contact number to ensure legitimate contact purposes.</p>
+                    <p>You have to be logged in before we can show you the user's contact number to ensure legitimate contact purposes.</p>
                 </div>
 
                 <div class="modal-footer">
@@ -319,6 +317,40 @@
             </div>
         </div>
     </div>
+
+    <!-- Ban Form Modal -->
+    <div class="modal fade" id="ban-form-modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+    
+                    <div class="modal-header">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-8">
+                                    <h2 class="">Ban User</h2>
+                                </div>
+                                <div class="col">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true" class="fa fa-times" style="color: white;"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <form method="POST" action="/ban/<%= visited._id %>" id="report-form">
+                        <div class="modal-body">
+                            <textarea placeholder="Reason" name="reason" class="mt-3" id="ban-reason" required></textarea>
+                        </div>
+    
+                        <div class="modal-footer">
+                            <button type="submit" class="btn red custom-button"><i class="fas fa-gavel mr-1"></i>Ban User</button>
+                        </div>
+                    </form>
+    
+                </div>
+            </div>
+        </div>
     <!-- jQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <!-- Bootstrap JS + Popper.js Bundle -->

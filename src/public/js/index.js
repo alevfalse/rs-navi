@@ -50,6 +50,12 @@ function initMap() {
         directionsRenderer.setMap(null);
         const place = this.getPlace();
 
+        console.log(place);
+
+        if (!place.geometry) { 
+            return alert('Select one from the suggested places.');
+        }
+
         $.ajax({
             url: '/search',
             data: { schoolName: $("#searchField").val() },
@@ -158,9 +164,9 @@ function addMarker(place) {
             for (let element of rows[0].elements) {
                 if (element.status !== 'OK') { return alert('Failed to retrieve distance 2.'); }
 
-                const content = DOMPurify.sanitize(`<h5>${place.name}</strong></h5><p>${placeType}</p><p>₱ ${place.price.toLocaleString('en')}</p><p>${address}</p>` +
+                const content = `<h5>${place.name}</strong></h5><p>${placeType}</p><p>₱ ${place.price.toLocaleString('en')}</p><p>${address}</p>` +
                 `<p>Distance: ${element.distance.text} (${element.duration.text} Walk)</p>` +
-                `<p><a href='/places/${place._id}' target='_blank'>Visit Page<a/>`);
+                `<p><a href='/places/${place._id}' target='_blank'>Visit Page<a/>`;
 
                 marker.infoWindow.setContent(content);
             }

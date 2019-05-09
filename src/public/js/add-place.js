@@ -19,7 +19,7 @@ $("#name, #placeType").change(function() {
 
 $("#map-toggler").click(function() {
     $("#form").collapse("toggle");
-    $("#title").animate({ 'margin-top': '60px'}, 450) // animate the Add A Place title to move to top
+    $("#title").animate({ 'margin-top': '0px'}, 400) // animate the Add A Place title to move to top
     $("#mapSection").animate({ opacity: 1 }, 500).css('display', 'block');
 });
 
@@ -33,7 +33,7 @@ $("#hide-map-button").click(function() {
 
     // if the additional place info fields aren't visible, push the Add A Place back down
     if (!customMarker) {
-        $("#title").animate({ 'margin-top': '300px'}, 450) // animate the Add A Place title to move to top
+        $("#title").animate({ 'margin-top': '300px'}, 400) // animate the Add A Place title to move to top
     }
 });
 

@@ -17,7 +17,7 @@ body {
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    padding-top: 70px;
+    padding-top: 60px;
 }
 
 main {
@@ -95,6 +95,10 @@ select.form-control option {
 
 .form-control:read-only, .form-control:disabled {
     background: none;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.70);
 }
 
 .btn.custom-button {

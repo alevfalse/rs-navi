@@ -102,18 +102,20 @@
                                                 </div>
                                             <% } else if (user.account.role === 7) { %>
                                                 <div class="col-12 col-md-3 text-left text-md-right p-0">
-                                                    <button type="button" class="btn btn-sm custom-button red" id="report-button">Delete</button>
+                                                    <form method="POST" action="/places/<%= place._id %>?_method=DELETE">
+                                                        <button type="submit" class="btn btn-sm custom-button red">Delete</button>
+                                                    </form>
                                                 </div>
                                             <% } else { %>
                                                 <div class="col-12 col-md-3 text-left text-md-right p-0">
-                                                    <button type="button" class="btn red btn-sm custom-button" id="report-button">
+                                                    <button type="button" class="btn red btn-sm custom-button" data-toggle="modal" data-target="#report-form-modal">
                                                         <i class="far fa-flag mr-1"></i> Report
                                                     </button>
                                                 </div>
                                             <% }
                                         } else { %>
                                             <div class="col-12 col-md-3 text-left text-md-right p-0">
-                                                <button type="button" class="btn red btn-sm custom-button" id="report-button">
+                                                <button type="button" class="btn red btn-sm custom-button" data-toggle="modal" data-target="#report-form-modal">
                                                     <i class="far fa-flag mr-1"></i> Report
                                                 </button>
                                             </div>
@@ -136,13 +138,6 @@
                                             </span>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="container collapse" id="report-form">
-                                    <form class="row" action="/places/<%= place._id %>/report" method="POST">
-                                        <textarea name="reason" placeholder="Reason" class="mt-1 mb-2" required></textarea>
-                                        <button type="submit" class="btn red btn-sm custom-button mr-2"><i class="far fa-flag mr-1"></i> Send Report</button>
-                                        <button type="button" class="btn grey btn-sm custom-button" id="cancel-report-button">Cancel</button>
-                                    </form>
                                 </div>
                             </div>
                             <div class="card-body">
@@ -207,7 +202,11 @@
                                 <form method="POST" action="/places/<%= place._id %>/review">
                                     <div class="row">
                                         <div class="col-12">
-                                            <textarea name="comment" placeholder="Comment..." required></textarea>
+                                            <% if (locals.user && user.account.role === 0) { %>
+                                                <textarea name="comment" placeholder="What can you say about <%= place.name %>?" id="review-textarea" required></textarea>
+                                            <% } else { %>
+                                                <textarea name="comment" placeholder="You have to be logged in as student in order to place a review for <%= place.name %>." id="review-textarea" disabled></textarea>
+                                            <% } %>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -227,7 +226,7 @@
                                             </div>
                                         </div>
                                         <div class="col-3 text-right">
-                                            <button type="submit" class="btn btn-sm custom-button mt-2">Submit</button>
+                                            <button type="submit" class="btn btn-sm custom-button mt-2" <%= locals.user && user.account.role === 0 ? '' : 'disabled' %>>Submit</button>
                                         </div>
                                     </div>
                                 </form>
@@ -267,11 +266,6 @@
                                                     <% if (user.account.role === 0 && user._id !== review.author._id) { %>
                                                         <button type="button" class="btn btn-sm custom-button mr-2" style="color: limegreen;">Helpful</button>
                                                     <% } %>
-                                                        
-                                                    <% if (user._id !== review.author._id) { %>
-                                                        <button type="button" class="btn btn-sm custom-button mr-2"><i class="far fa-flag mr-1 skyblue"></i> Report</button>
-                                                    <% } %>
-                                                    
         
                                                     <% if (user.account.role === 7 || user._id === review.author._id) { %>
                                                         <form method="POST" action="/places/<%= place._id %>/reviews/<%= review._id %>?_method=DELETE">
@@ -327,11 +321,11 @@
 
                         <% if (locals.user) { %>
                             <p class="card-text" id="contact-number">
-                                <i class="fas fa-mobile-alt mx-1 skyblue"></i> <%= place.owner.contactNumber %>
+                                <i class="fas fa-mobile-alt mr-2 skyblue"></i> <%= place.owner.contactNumber %>
                             </p>
                         <% } else { %>
                             <a class="card-text" id="contact-number" title="Show contact number" data-toggle="modal" data-target="#contact-number-modal" style="cursor: pointer;">
-                                <i class="fas fa-mobile-alt skyblue ml-1 mr-2"></i><%= place.owner.partialContactNumber %>
+                                <i class="fas fa-mobile-alt skyblue mr-2"></i> <%= place.owner.partialContactNumber %>
                                 <span class="skyblue ml-2">Show</span>
                             </a>
                         <% } %>
@@ -347,10 +341,10 @@
     <!-- Footer Component -->
     <% include ./components/footer.ejs %>
         
-    <!-- Modal -->
+    <!-- Login Required Modal -->
     <div class="modal fade" id="contact-number-modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">
         <div class="modal-dialog" role="document">
-            <div class="modal-content" style="background: rgb(14, 22, 38, 0.5);">
+            <div class="modal-content">
 
                 <div class="modal-header">
                     <div class="container-fluid">
@@ -380,13 +374,86 @@
             </div>
         </div>
     </div>
+
+    <!-- Report Form Modal -->
+    <div class="modal fade" id="report-form-modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-8">
+                                <h2 class="">Report Place</h2>
+                            </div>
+                            <div class="col">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true" class="fa fa-times" style="color: white;"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST" action="/places/<%= place._id %>/report" id="report-form">
+                    <div class="modal-body">
+                        <select class="form-control" name="type" required>
+                            <option value="" disabled hidden selected>Select reason for reporting</option>
+                            <option value="0">Not available anymore</option>
+                            <option value="1">Placeowner not responding</option>
+                            <option value="2">Incorrect information</option>
+                            <option value="3">Duplicate listing</option>
+                            <option value="4">Fake or spam</option>
+                            <option value="5">Other</option>
+                        </select>
+                        
+                        <textarea placeholder="Comment" name="comment" class="mt-3" id="report-comment" required></textarea>
+                        <div class="text-right mt-2" style="font-size: 1rem;"></div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn red custom-button"><i class="fas fa-paper-plane mr-2"></i>Submit Report</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
     <!-- jQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <!-- Boostrap Bundle (Bootstrap JS + Popper.js) -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
 
-    <script src="/js/place-details.js"></script>
     <script>
+        $("main").animate({ opacity: 1 }, 1000) // fade-in
+
+        $("#report-form").submit(function(event) {
+            if ($("#report-comment").val().length > 500) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                alert('Report commment exceeded maximum characters.');
+                return $("#report-comment").focus();
+            }
+        });
+
+        $("#report-comment").keyup(function() {
+
+            const input = $(this);
+            const feedback = input.next();
+            const length = $(this).val().length;
+            const left = 500 - length;
+
+            if (left < 0) {
+                input.addClass('is-invalid');
+                feedback.addClass('invalid-feedback');
+            } else {
+                input.removeClass('is-invalid');
+                feedback.removeClass('invalid-feedback');
+            }
+
+            feedback.text(`${left} characters left`);
+        });
 
         $("#view-map-button").click(function() {
             if (!$("#images").hasClass("show")) {
