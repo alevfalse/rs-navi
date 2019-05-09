@@ -46,10 +46,5 @@ module.exports = function() {
         logger.error(`The RSNAVI_GMAIL_PASSWORD environment variable is not set in your environment file (.env).`);
     }
 
-    if (!process.env.MAPBOX_ACCESS_TOKEN) {
-        valid = false;
-        logger.error(`The MAPBOX_ACCESS_TOKEN environment variable is not set in your environment file (.env).`);
-    }
-
     return valid;
 }
