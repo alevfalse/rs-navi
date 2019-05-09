@@ -30,7 +30,7 @@ passport.use('local-login', new LocalStrategy({
 
 }, async function(req, email, password, done) {
     
-    const formError = validators.validateLoginForm(email, password, req.body.role);
+    const formError = validators.login(email, password, req.body.role);
     if (formError) {
         req.flash('message', formError);
         return done(null, false);
@@ -78,7 +78,7 @@ passport.use('local-signup', new LocalStrategy({
 
 }, async function(req, email, password, done) {
     
-    const formError = validators.validateSignupForm(req.body);
+    const formError = validators.signup(req.body);
     if (formError) {
         req.flash('message', formError.message);
         return done(null, false);
@@ -132,7 +132,7 @@ passport.use('local-signup', new LocalStrategy({
 
             mailer.sendVerificationEmail(newUser, (err) => {
                 if (err) { return done(err, false); }
-                req.flash(`message', 'Verification email sent to<br>${newUser.account.email}`);
+                req.flash('message', `Verification email sent to ${newUser.account.email}`);
                 done(null, newUser);
             }); 
         });
@@ -148,7 +148,7 @@ passport.use('local-login-admin', new LocalStrategy({
 
 }, function(req, email, password, done) {
 
-    const formError = validators.validateAdminLoginForm(email, password);
+    const formError = validators.adminLogin(email, password);
     if (formError) {
         req.flash('message', formError);
         return done(null, false);
