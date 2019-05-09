@@ -43,7 +43,7 @@ license status:
 0 - no license
 1 - unverified
 2 - verified
-3 - revoked
+3 - invalid
 
 license type:
 0 - None
@@ -88,7 +88,7 @@ UserSchema.virtual('licenseStatusString').get(function() {
         case 0: return  'None';
         case 1: return  'Pending';
         case 2: return  'Verified';
-        case 3: return  'Revoked';
+        case 3: return  'Invalid';
         default: return 'Unknown';
     }
 });
@@ -122,7 +122,7 @@ UserSchema.virtual('places', {
 UserSchema.virtual('reports', {
     ref: 'Report',
     localField: '_id',
-    foreignField: 'target'
+    foreignField: 'author'
 });
 
 // ==================================================================
