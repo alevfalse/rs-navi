@@ -20,18 +20,8 @@ const upload = require('../../config/upload');
 
 // check if a user is logged in
 function isAuthenticated(req, res, next) {
-
-    if (req.isAuthenticated()) {
-        if (req.user.account.role === 7) {
-            res.redirect('/');
-        } else {
-            next();
-        }
-    } else {
-        res.redirect('/auth');
-    }
+    req.isAuthenticated() ? next() : res.redirect('/auth');
 }
-
 
 
 
@@ -49,7 +39,7 @@ profileRouter.get('/', (req, res, next) => {
 
 // GET rsnavigation.com/profile/:id
 profileRouter.get('/:id', (req, res, next) => {
-    User.findById(req.params.id).populate('image')
+    User.findOne({ '_id': sanitize(req.params.id), 'account.status': 1 }).populate('image')
     .populate({
         path: 'places',
         populate: {
