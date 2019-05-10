@@ -234,7 +234,7 @@
                                     <button type="button" class="btn input-group-text" onclick="enable(this, 'sn')"><i class="far fa-edit"></i></button>
                                 </div>
                             </div>
-                        <% } else { %>
+                        <% } else if (visited.account.role === 1) { %>
                             <div class="input-group mb-3">
                                 <select class="form-control pl-2" name="licenseType" id="license" title="License type" required disabled>
                                     <option value="" disabled selected hidden><%= visited.licenseTypeString %></option>
