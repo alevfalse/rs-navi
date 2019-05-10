@@ -100,23 +100,22 @@ adminRouter.get('/', isAdmin, (req, res, next) => {
             }, (err, reports) => {
                 if (err) { return next(err); }
 
-                res.render('admin/home', { 'admin': req.user, 'placeowners': placeowners, 'reports': reports, 'message': req.flash('message') },
+                let logs = '';
+
+                if (fs.existsSync(logsDirectory + 'access.log')) {
+                    const lines = fs.readFileSync(logsDirectory + 'access.log').toString().split('\n');
+                    for (let i=lines.length-1; i >= 0; i--) {
+                        logs += lines[i] + '<br>';
+                    }
+                }
+
+                res.render('admin/home', { 'admin': req.user, 'logs': logs, 'reports': reports, 'placeowners': placeowners, 'message': req.flash('message') },
                 (err, html) => err ? next(err) : res.send(html));
             });
         });
     })
     .catch(next);
 });
-
-// GET admin.rsnavigation.com/logs
-adminRouter.get('/logs', isAdmin, (req, res, next) => {
-    if (fs.existsSync(logsDirectory + 'access.log')) {
-        res.sendFile('access.log', { root: logsDirectory});
-        logger.info(`${req.user.fullName} accessed logs.`);
-    } else {
-        return next();
-    }
-})
 
 // GET admin.rsnavigation.com/logout
 adminRouter.get('/logout', (req, res, next) => {
