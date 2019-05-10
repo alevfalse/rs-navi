@@ -48,14 +48,36 @@
     <!-- Flash Message -->
     <% include ../components/flash.ejs %>
 
-    <div class="row justify-content-center my-5 text-white">
+    <div class="row justify-content-center mb-3 text-white">
         <div class="col-10 col-md-8 col-lg-6 text-center">
-            <h2 class="display-4">Admin Control Center</h2>
+            <h1 class="display-4">Admin Control Center</h1>
         </div>
     </div>
 
     <div class="container text-white">
         <div id="accordion">
+
+            <div class="card">
+                <div class="card-header" id="headingOne">
+                    <h5 class="mb-0">
+                        <button class="btn custom-button" data-toggle="collapse" data-target="#collapseZero">Access Logs</button>
+                    </h5>
+                </div>
+    
+                <div class="container collapse" id="collapseZero" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body mb-3" style="max-height: 35rem; overflow-y:auto;">
+                        <% if (locals.logs && logs.length > 0) { %>
+                            Format: <a href="https://www.npmjs.com/package/morgan#common" target="_blank">
+                                :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]
+                            </a><br>
+                            <%- locals.logs %>
+                        <% } else { %>
+                            No access logs to show.
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header" id="headingOne">
                     <h5 class="mb-0">
@@ -109,7 +131,7 @@
                                         for (let i=0; i<placeowners.length; i++) { %>
                                             <tr>
                                                 <td><%= i+1 %></th>
-                                                <td><%= placeowners[i].fullName %></td>
+                                                <td><a href="/profile/<%= placeowners[i]._id %>" target="_blank"><%= placeowners[i].fullName %></a></td>
                                                 <td><%= placeowners[i].licenseTypeString %></td>
                                                 <td>
                                                     <form method="POST" action="/prc/<%= placeowners[i]._id %>?valid=true" style="display: inline;">
@@ -131,6 +153,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
     
