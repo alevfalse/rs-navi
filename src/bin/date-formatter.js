@@ -1,7 +1,8 @@
 /**
  * @param { Date } Date
+ * @param { boolean } ts - return date as UTC string if true
  */
-module.exports = function(Date) {
+module.exports = function(Date, ts=false) {
     
     let month = Date.getMonth();
 
@@ -21,5 +22,6 @@ module.exports = function(Date) {
         case 11: month = 'December'; break;
     }
 
+    if (ts) return Date.toUTCString();
     return `${month} ${Date.getDate()}, ${Date.getFullYear()}`;
 }
