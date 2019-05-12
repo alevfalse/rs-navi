@@ -7,17 +7,20 @@ const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo')(session);
 const logger = require('../../config/logger');
 const sanitize = require('../../bin/sanitizer');
+const audit = require('../../bin/auditor');
+const rateLimiter = require('../../config/rate-limiter');
 
 // models
 const User = require('../models/user');
 const Place = require('../models/place');
 const Report = require('../models/report');
+const Audit = require('../models/audit');
 
 // directories
 const logsDirectory = path.join(__dirname, '../../logs/');
 
 // admin subdomain session and cookie
-const cookieOptions = { maxAge: 1000 * 60 * 60 * 1 }; // max cookie age of 1 hour
+const cookieOptions = { maxAge: 1000 * 60 * 30 }; // max cookie age of 30 minutes
 
 // set cookie's domain to the main domain at production for it to 
 // be accessible by all subdomains e.g. www. and admin.
@@ -86,7 +89,7 @@ adminRouter.get('/', isAdmin, (req, res, next) => {
             }
         ]).exec()
     ])
-    .then(([placeowners, reports]) => {
+    .then(([placeowners, reports, audit]) => {
         Place.populate(reports, {
             path: '_id.target',
             match: { status: 1 },
@@ -100,21 +103,37 @@ adminRouter.get('/', isAdmin, (req, res, next) => {
             }, (err, reports) => {
                 if (err) { return next(err); }
 
-                let logs = '';
-
-                if (fs.existsSync(logsDirectory + 'access.log')) {
-                    const lines = fs.readFileSync(logsDirectory + 'access.log').toString().split('\n');
-                    for (let i=lines.length-1; i >= 0; i--) {
-                        logs += lines[i] + '<br>';
-                    }
-                }
-
-                res.render('admin/home', { 'admin': req.user, 'logs': logs, 'reports': reports, 'placeowners': placeowners, 'message': req.flash('message') },
+                res.render('admin/home', { 'admin': req.user, 'reports': reports, 
+                'placeowners': placeowners, 'audit': audit, 'message': req.flash('message') },
                 (err, html) => err ? next(err) : res.send(html));
             });
         });
     })
     .catch(next);
+});
+
+adminRouter.get('/access', rateLimiter, isAdmin, (req, res, next) => {
+    console.log('Requesting access logs...');
+    let logs = '';
+    if (fs.existsSync(logsDirectory + 'access.log')) {
+        const lines = fs.readFileSync(logsDirectory + 'access.log').toString().split('\n');
+        for (let i=lines.length-1; i >= 0; i--) {
+            logs += lines[i] + '<br>';
+        }
+    }
+    res.send(logs);
+});
+
+adminRouter.get('/audit', rateLimiter, isAdmin, (req, res, next) => {
+    console.log('Requesting audit logs...');
+    Audit.find((err, logs) => {
+        if (err || logs.length === 0) { return res.send(null); }
+        let str = '';
+        for (let i=logs.length-1; i>=0; i--) {
+            str += logs[i].toString() + '<br>';
+        }
+        res.send(str);
+    });
 });
 
 // GET admin.rsnavigation.com/logout
@@ -125,6 +144,7 @@ adminRouter.get('/logout', (req, res, next) => {
 
     // logout the admin if authenticated user's account role is equal to 7
     if (req.user.account.role === 7) {
+        audit.logout(req.user._id);
         req.logout();
         req.flash('message', 'Logged out.');
         req.session.save(err => err ? next(err) : res.redirect('/'));
@@ -134,6 +154,10 @@ adminRouter.get('/logout', (req, res, next) => {
         const err = new Error('Forbidden.');
         err.status = 403; next(err);
     }
+});
+
+adminRouter.get('/auth', (req, res, next) => {
+    res.redirect('/');
 });
 
 
@@ -161,6 +185,7 @@ adminRouter.post('/login', (req, res, next) => {
         req.login(admin, err => {
             if (err) { return next(err); } // status 500
             req.session.save(err => err ? next(err) : res.redirect('/'));
+            audit.login(admin._id);
         });
 
     }) (req, res, next);
@@ -169,6 +194,8 @@ adminRouter.post('/login', (req, res, next) => {
 adminRouter.post('/prc/:id', isAdmin, (req, res, next) => {
     const id = sanitize(req.params.id);
     const valid = sanitize(req.query.valid);
+    
+    if (typeof id === 'undefined') { return next(); }
 
     User.findOne({ '_id': id,  'account.role': 1, 'account.status': 1 }, (err, placeowner) => {
         if (err || !placeowner) { return next(err); }
@@ -180,7 +207,20 @@ adminRouter.post('/prc/:id', isAdmin, (req, res, next) => {
 
         placeowner.save(err => {
             if (err) { return next(err); }
-            req.flash('message', `${valid === 'true' ? 'Verified' : 'Rejected'} ${placeowner.fullName}'s license.`);
+
+            let action;
+
+            if (valid === 'true') {
+                action = 'Verified';
+                audit.validateLicense(req.user._id, 72, 2);
+            } else if (valid === 'false') {
+                action = 'Rejected';
+                audit.validateLicense(req.user._id, 73, 2);
+            } else {
+                return next();
+            }
+
+            req.flash('message', `${action} ${placeowner.fullName}'s license.`);
             req.session.save(err => err ? next(err) : res.redirect('/'));
         });
     });
@@ -201,8 +241,9 @@ adminRouter.post('/ban/:id', isAdmin, (req, res, next) => {
             if (err) { return next(err); }
             req.flash('message', `Banned ${user.fullName}.`);
             req.session.save(err => err ? next(err) : res.redirect('/'));
+            audit.ban(req.user._id, user._id, reason);
         });
     });
-})
+});
 
 module.exports = adminRouter;
