@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const sanitize = require('../../bin/sanitizer');
 const validators = require('../../bin/validators');
+const audit = require('../../bin/auditor');
 
 // models
 const Place = require('../models/place');
@@ -186,7 +187,7 @@ placesRouter.post('/add', isPlaceowner, upload.array('images', 10),
 
     coordinates = coordinates.split(',');
     price = price.replace(/[^\d\.]/g, ''); // delete all non-digit characters
-    description = description.replace(/\n/g, '<br>') // replace all new lines with <br>
+    description = description.trim().replace(/\n/g, '<br>') // replace all new lines with <br>
 
     if (floors) floors = floors.replace(/[^\d]/g, '');
     if (bedrooms) bedrooms = bedrooms.replace(/[^\d]/g, '');
@@ -227,49 +228,50 @@ placesRouter.post('/add', isPlaceowner, upload.array('images', 10),
         if (err) { return next(err); }
         req.flash('message', `<a href="/places/${newPlace._id}" target="_blank">${newPlace.name}</a> has been added.`);
         req.session.save(err => err? next(err) : res.redirect('/places/add'));
+        audit.placeAdd(req.user._id, newPlace._id);
     });
 });
 
 // POST rsnavigation.com/places/:id/review
 placesRouter.post('/:id/review', isStudent, (req, res, next) => {
 
-    const id = req.params.id;
+    const placeId = req.params.id;
     const comment = req.body.comment.replace(/\n/g, '<br>'); // replace all new lines with <br>
     const rating = req.body.rating;
 
-    if (!comment) {
+    if (typeof comment === 'undefined') {
         req.flash('message', 'Please provide a comment.');
-        return req.session.save(err => err ? next(err) : res.redirect(`/places//${id}`));
+        return req.session.save(err => err ? next(err) : res.redirect(`/places//${placeId}`));
     }
 
-    if (!rating) {
+    if (typeof rating === 'undefined') {
         req.flash('message', 'Please provide a rating.');
-        return req.session.save(err => err ? next(err) : res.redirect(`/places/${id}`));
+        return req.session.save(err => err ? next(err) : res.redirect(`/places/${placeId}`));
     }
 
     // TODO: Clientside validation of comment length
     if (comment.length > 1000) {
         req.flash('message', 'Comment must not be more than 1000 characters.');
-        return req.session.save(err => err ? next(err) : res.redirect(`/places/${id}`));
+        return req.session.save(err => err ? next(err) : res.redirect(`/places/${placeId}`));
     }
 
     if (rating !== '1' && rating !== '2' && rating !== '3' && rating !== '4' && rating !== '5') {
         req.flash('message', 'Invalid stars.');
-        return req.session.save(err => err ? next(err) : res.redirect(`/places/${id}`));
+        return req.session.save(err => err ? next(err) : res.redirect(`/places/${placeId}`));
     }
 
     // check if the user has already submitted a review to the place
-    Review.findOne({ 'place': id, 'author': req.user._id, 'status': 1 }, (err, review) => {
+    Review.findOne({ 'place': placeId, 'author': req.user._id, 'status': 1 }, (err, review) => {
         if (err) { return next(); }
 
         // if a review is found
         if (review) {
             req.flash('message', 'You have already submitted a review for this place.');
-            return req.session.save(err => err ? next(err) : res.redirect(`/places/${id}`));
+            return req.session.save(err => err ? next(err) : res.redirect(`/places/${placeId}`));
         }
 
         const newReview = new Review({
-            place: id,
+            place: placeId,
             author: req.user._id,
             rating: rating,
             comment: comment
@@ -279,7 +281,8 @@ placesRouter.post('/:id/review', isStudent, (req, res, next) => {
             if (err) { return next(err); }
             
             req.flash('message', 'Review submitted.');
-            req.session.save(err => err ? next(err) : res.redirect(`/places/${id}`));
+            req.session.save(err => err ? next(err) : res.redirect(`/places/${placeId}`));
+            audit.reviewAdd(req.user._id, placeId);
         });
     });
 });
@@ -287,9 +290,9 @@ placesRouter.post('/:id/review', isStudent, (req, res, next) => {
 // POST rsnavigation.com/places/:id/report
 placesRouter.post('/:id/report', isAuthenticated, (req, res, next) => {
 
-    const placeId    = sanitize(req.params.id);
-    const type  = sanitize(req.body.type);
     let comment = sanitize(req.body.comment);
+    const type  = sanitize(req.body.type);
+    const placeId = sanitize(req.params.id);
 
     const formError = validators.reportPlace(type, comment);
     if (formError) {
@@ -319,6 +322,7 @@ placesRouter.post('/:id/report', isAuthenticated, (req, res, next) => {
             console.log(newReport);
             req.flash('message', 'Report submitted.');
             req.session.save(err => err ? next(err) : res.redirect(`/places/${placeId}`));
+            audit.placeReport(req.user._id, placeId);
         });
     });
 });
@@ -333,45 +337,55 @@ function resolveReport(report) {
         report.save(err => err ? reject(err) : resolve(true));
     })
 }
+
 // DELETE rsnavigation.com/places/:id
 placesRouter.delete('/:id', isAuthenticated, (req, res, next) => {
     const placeId = sanitize(req.params.id);
 
+    // find the place with the given id and is not deleted
+    // then populate the reports submitted for it
     Place.findOne({'_id': placeId, 'status': 1 })
     .populate('reports')
     .exec((err, place) => {
+
+        // if an error occurs or no place was found
         if (err || !place) { return next(err); }
-        console.log(place);
 
-        if (req.user._id === place._id || req.user.account.role === 7) {
-            place.status = 0;
-
-            const promises = [];
-
-            for (report of place.reports) {
-                promises.push(resolveReport(report));
-            }
-
-            Promise.all(promises)
-            .then((results) => {
-                console.log(results);
-                place.save(err => {
-                    if (err) { return next(err); }
-                    req.flash('message', `Deleted ${place.name}.`);
-                    req.session.save(err => err ? next(err) : res.redirect('/'));
-                });
-            }).catch(next)
-            
-        } else {
-            const err = new Error('Forbidden');
+        // if the user doesn't own the palce and not an admin
+        if (req.user._id !== place.owner._id && req.user.account.role !== 7) {
+            const err = new Error('User don\'t have the permission to delete the place.');
             err.status = 403;
-            next(err);
+            return next(err);
         }
+
+        // set the place's status to deleted
+        place.status = 0;
+
+        const promises = [];
+
+        for (report of place.reports) {
+            promises.push(resolveReport(report));
+        }
+
+        Promise.all(promises).then((results) => {
+            place.save(err => {
+                if (err) { return next(err); }
+
+                req.flash('message', `Deleted ${place.name}.`);
+                req.session.save(err => err ? next(err) : res.redirect('/'));
+                audit.placeDelete(req.user._id, place._id);
+            });
+        }).catch(next)
     });
-})
+});
+
 // DELETE rsnavigation.com/places/:id/images/:filename
-placesRouter.delete('/:id/images/:filename', isPlaceowner, (req, res, next) => {
+placesRouter.delete('/:id/images/:filename', isAuthenticated, (req, res, next) => {
     
+    // TODO: Delete image
+    return next();
+
+    /*
     Place.findOne({ '_id': req.params.id, 'owner': req.user._id }, 'images')
     .populate({
         path: 'images',
@@ -390,16 +404,21 @@ placesRouter.delete('/:id/images/:filename', isPlaceowner, (req, res, next) => {
             res.redirect(`/places/${req.params.placeId}/images`);
         });
     });
+    */
 });
 
-// TODO: DELETE review route
 // DELETE rsnavigation.com/places/:placeId/reviews/:reviewId
-placesRouter.delete('/:placeId/reviews/:reviewId', isStudent, (req, res, next) => {
-    Review.findOneAndUpdate({ '_id': req.params.reviewId, 'author': req.user._id }, 
+placesRouter.delete('/:placeId/reviews/:reviewId', isAuthenticated, (req, res, next) => {
+
+    // TODO: reason form for admin
+    Review.findOneAndUpdate({ '_id': req.params.reviewId }, 
     { 'status': 0 }, (err, review) => {
-        if (err || !review) { return next(err); }
+
+        if (err || !review || (review.author !== req.user._id && req.user.account.role !== 7)) { return next(err); }
+
         req.flash('message', 'Review deleted.');
         req.session.save(err => err ? next(err) : res.redirect(`/places/${req.params.placeId}`));
+        audit.reviewDelete(req.user._id, review.place);
     });
 });
 
