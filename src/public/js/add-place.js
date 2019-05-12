@@ -7,6 +7,15 @@ $(document).ready(function() {
     $(function () {
         $('[data-toggle="tooltip"]').tooltip()
     });
+
+    // fade out flash messages after 15 seconds
+    setTimeout(() => {
+        $('.alert').animate({ 'opacity': 0 }, 1000);
+
+        setTimeout(() => {
+            $('.alert').css('display', 'none');
+        }, 1000);
+    }, 15000);
 })
 
 // show the pin on map button after providing name and type
