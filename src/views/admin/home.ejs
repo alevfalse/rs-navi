@@ -57,36 +57,44 @@
     <div class="container text-white">
         <div id="accordion">
 
+            <!-- Audit Logs -->
             <div class="card">
                 <div class="card-header" id="headingOne">
                     <h5 class="mb-0">
-                        <button class="btn custom-button" data-toggle="collapse" data-target="#collapseZero">Access Logs</button>
+                        <button class="btn custom-button" data-toggle="collapse" data-target="#audit" id="audit-logs-button">Audit Logs</button>
                     </h5>
                 </div>
     
-                <div class="container collapse" id="collapseZero" aria-labelledby="headingOne" data-parent="#accordion">
-                    <div class="card-body mb-3" style="max-height: 35rem; overflow-y:auto;">
-                        <% if (locals.logs && logs.length > 0) { %>
-                            Format: <a href="https://www.npmjs.com/package/morgan#common" target="_blank">
-                                :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]
-                            </a><br>
-                            <%- locals.logs %>
-                        <% } else { %>
-                            No access logs to show.
-                        <% } %>
+                <div class="container collapse" id="audit" data-parent="#accordion">
+                    <div class="card-body mb-3" style="max-height: 35rem; overflow-y:auto;" id="audit-logs-data">
                     </div>
                 </div>
             </div>
 
+            <!-- Access Logs -->
             <div class="card">
                 <div class="card-header" id="headingOne">
                     <h5 class="mb-0">
-                        <button class="btn custom-button" data-toggle="collapse" data-target="#collapseOne">Reports</button>
+                        <button class="btn custom-button" data-toggle="collapse" data-target="#logs" id="access-logs-button">Access Logs</button>
                     </h5>
                 </div>
     
-                <div class="container collapse" id="collapseOne" aria-labelledby="headingOne" data-parent="#accordion">
-                    <div class="card-body mb-3">
+                <div class="container collapse" id="logs" data-parent="#accordion">
+                    <div class="card-body mb-3" style="max-height: 35rem; overflow-y:auto;" id="access-logs-data">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports -->
+            <div class="card">
+                <div class="card-header" id="headingOne">
+                    <h5 class="mb-0">
+                        <button class="btn custom-button" data-toggle="collapse" data-target="#reports" id="reports-button">Reports</button>
+                    </h5>
+                </div>
+    
+                <div class="container collapse" id="reports" data-parent="#accordion">
+                    <div class="card-body mb-3" id="reports-data">
                         <% if (locals.reports && reports.length > 0) {
                             for (report of reports) { %>
                                 <a class="skyblue" href="/places/<%= report._id.target._id %>" target="_blank"><%= report._id.target.name %></a>
@@ -106,15 +114,16 @@
                 </div>
             </div>
             
+            <!-- PRC License Verification -->
             <div class="card">
                 <div class="card-header" id="headingTwo">
                     <h5 class="mb-0">
-                        <button class="btn custom-button collapsed" data-toggle="collapse" data-target="#collapseTwo"
+                        <button class="btn custom-button collapsed" data-toggle="collapse" data-target="#prc"
                             aria-expanded="false" aria-controls="collapseTwo">PRC License Verification
                         </button>
                     </h5>
                 </div>
-                <div id="collapseTwo" class="container collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                <div id="prc" class="container collapse" aria-labelledby="headingTwo" data-parent="#accordion">
                     <div class="card-body mb-3">
                         <% if (locals.placeowners && placeowners.length > 0) { %>
                             <table class="table table-borderless custom-table">
@@ -161,5 +170,76 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <!-- Bootstrap JS + Popper.js Bundle -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
+
+    <script>
+        $("#access-logs-button").click(function() {
+            
+            if ($("#logs").hasClass('show')) { return $("#access-logs-data").html(''); }
+
+            $("#access-logs-data").html('<i class="fas fa-spinner fa-spin"></i> Fetching access logs...');
+
+            setTimeout(() => {
+                $.ajax({
+                    url: '/access',
+
+                    success: function(accessLogs) {
+                        if (accessLogs && accessLogs.length > 0) {
+                            let str = 'Format: <a href="https://www.npmjs.com/package/morgan#common" target="_blank">'
+                                + ':remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]</a><br>'
+                                + accessLogs;
+                            $("#access-logs-data").html(str);
+                        } else {
+                            $("#access-logs-data").html('No access logs to show.');
+                        }
+                    }
+                });
+            }, 1250);
+
+        });
+
+        $("#audit-logs-button").click(function() {
+            if ($("#audit").hasClass('show')) { return $("#audit-logs-data").html(''); }
+            
+            $("#audit-logs-data").html('<i class="fas fa-spinner fa-spin"></i> Fetching audit logs...');
+
+            setTimeout(() => {
+                $.ajax({
+                    url: '/audit',
+
+                    success: function(auditLogs) {
+                        if (auditLogs && auditLogs.length > 0) {
+                            $("#audit-logs-data").html(auditLogs);
+                        } else {
+                            $("#audit-logs-data").html('No audit logs to show.');
+                        }
+                    },
+                    error: function(jqXHR, status, err) {
+                        
+                    }
+                });
+            }, 1250);
+            
+        });
+
+        
+        $("#reports-button").click(function() {
+            if ($("#reports-data").hasClass('show')) { return; }
+            
+            $("#reports-data").html('<i class="fas fa-spinner fa-spin"></i> Fetching reports...');
+
+            /*
+            setTimeout(() => {
+                $.ajax({
+                    url: '/reports',
+
+                    success: function(reports) {
+                        // ...
+                    }
+                });
+            }, 2000);
+            */
+        });
+    
+    </script>
 </body>
 </html>
