@@ -28,8 +28,8 @@ exports.sendVerificationEmail = function(user, callback) {
     let url = `${process.env.MODE === 'prod' ? 'https://rsnavigation.com' : `localhost.com:${process.env.PORT}`}`
             + `/auth/verify/${user.account.hashCode}`;
 
-    const message = `Congratulations! You have successfully created an RS Navigation ${user.roleString} account and `
-        + `you are just one step away from acessing it.\n\n`
+    const message = `Welcome to RS Navi, ${user.firstName}! You have successfully created an RS Navigation ${user.roleString} account and `
+        + `you are just one step away from acessing it. Yay!\n\n`
         + `You can click this link to verify that this is indeed your email address:\n${url}\n\n`
         + `If you do not remember signing up to https://rsnavigation.com, calm down. Don't panic.\n`
         + `Just ignore this email and we will handle the rest.\n\n`
