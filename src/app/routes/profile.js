@@ -2,10 +2,10 @@ const profileRouter = require('express').Router();
 const fs = require('fs');
 const path = require('path');
 const sanitize = require('../../bin/sanitizer');
+const audit = require('../../bin/auditor');
 
 // models
 const User = require('../models/user');
-const Place = require('../models/place');
 
 // directories
 const uploadsDirectory = path.join(__dirname, '../../uploads/');
@@ -132,6 +132,7 @@ profileRouter.post('/update', isAuthenticated, async (req, res, next) => {
                 if (err) { return next(err); }
                 req.flash('message', 'Updated profile.');
                 req.session.save(err => err ? next(err) : res.redirect('/profile'));
+                audit.userUpdate(req.user._id);
             });
 
         } else {
@@ -144,6 +145,7 @@ profileRouter.post('/update', isAuthenticated, async (req, res, next) => {
             if (err) { return next(err); }
             req.flash('message', 'Updated profile.');
             req.session.save(err => err ? next(err) : res.redirect('/profile'));
+            audit.userUpdate(req.user._id);
         });
     }
 });
@@ -160,6 +162,7 @@ profileRouter.post('/image/update', isAuthenticated, upload.single('image'),
     } else {
         req.flash('message', 'Invalid image file.');
         req.session.save(err => err ? next(err) : res.redirect('/profile'));
+        audit.userUpdate(req.user._id);
     }
 });
 

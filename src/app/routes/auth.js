@@ -6,24 +6,17 @@ const generate = require('../../bin/generator');
 const sanitize = require('../../bin/sanitizer');
 const isEmail = require('validator/lib/isEmail');
 const validators = require('../../bin/validators');
+const audit = require('../../bin/auditor');
 
 // models
 const User = require('../models/user');
 
 // MIDDLEWARES ===========================================================================
 
-// checks if client is already authenticated
-function isAuthenticated(req, res, next) {
-
-    // redirect to profile/admin page if already logged in
+function stillLoggedIn(req, res, next) {
     if (req.isAuthenticated()) {
-        if (req.user.account.role === 7) {
-            res.redirect('/');
-        } else {
-            res.redirect('/profile')
-        }
-    } else {
-        next();
+        req.flash('message', 'You are still logged in.');
+        return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
 }
 
@@ -36,7 +29,13 @@ authRouter.use((req, res, next) => {
 // GET ROUTES ============================================================================
 
 // GET rsnavigation.com/auth/
-authRouter.get('/', isAuthenticated, (req, res, next) => {
+authRouter.get('/', (req, res, next) => {
+
+    if (req.isAuthenticated()) {
+        req.flash('message', 'You are already logged in.');
+        return req.session.save(err => err ? next(err) : res.redirect('/profile'));
+    }
+
     const options = {
         user: req.user,
         message: req.flash('message'),
@@ -62,6 +61,7 @@ authRouter.get('/validate/email', (req, res, next) => {
 // GET rsnavigation.com/auth/logout
 authRouter.get('/logout', (req, res) => {
     if (req.isAuthenticated()) {
+        audit.logout(req.user._id);
         req.logout();
         req.flash('message', 'Logged out.');
     }
@@ -70,12 +70,7 @@ authRouter.get('/logout', (req, res) => {
 })
 
 // GET rsnavigation.com/verify/<hashCode>
-authRouter.get('/verify/:hashCode', (req, res, next) => {
-
-    if (req.isAuthenticated()) {
-        req.flash('message', 'You are still logged in.');
-        return req.session.save(err => err ? next(err) : res.redirect('/profile'));
-    }
+authRouter.get('/verify/:hashCode', stillLoggedIn, (req, res, next) => {
 
     const code = sanitize(req.params.hashCode);
 
@@ -91,18 +86,14 @@ authRouter.get('/verify/:hashCode', (req, res, next) => {
                 if (err) { return next(err); } 
                 req.flash('message', 'Verified email address.');
                 req.session.save(err => err ? next(err) : res.redirect('/profile'));
+                audit.verifyEmail(user._id);
             });
         });
     });
 });
 
 // GET rsnavigation.com/reset/<role>/<hashCode>
-authRouter.get('/reset/:hashCode', (req, res, next) => {
-
-    if (req.isAuthenticated()) {
-        req.flash('message', 'You are still logged in.');
-        return req.session.save(err => err ? next(err) : res.redirect('/profile'));
-    }
+authRouter.get('/reset/:hashCode', stillLoggedIn, (req, res, next) => {
 
     const code = sanitize(req.params.hashCode);
 
@@ -122,7 +113,8 @@ authRouter.get('/reset/:hashCode', (req, res, next) => {
 // POST ROUTES ============================================================================
 
 // POST rsnavigation.com/auth/login
-authRouter.post('/login', (req, res, next) => {
+authRouter.post('/login', stillLoggedIn, (req, res, next) => {
+
     passport.authenticate('local-login', (err, user) => {
         if (err) { return next(err); }
         if (!user) { return req.session.save(err => err ? next(err) : res.redirect('/auth')); }
@@ -130,20 +122,23 @@ authRouter.post('/login', (req, res, next) => {
         req.login(user, (err) => {
             if (err) { return next(err); } 
             req.session.save(err => err ? next(err) : res.redirect('/profile'));
+            audit.login(user);
         });
     }) (req, res, next);
 });
 
 // POST rsnavigation.com/auth/signup
-authRouter.post('/signup', (req, res, next) => {
+authRouter.post('/signup', stillLoggedIn, (req, res, next) => {
+
     passport.authenticate('local-signup', (err, user) => {
         if (err) { return next(err); }
         req.session.save(err => err ? next(err) : res.redirect('/auth'));
+        if (user) { audit.signup(user._id); }
     }) (req, res, next);
 });
 
 // POST rsnavigation.com/auth/forgot
-authRouter.post('/forgot', (req, res, next) => {
+authRouter.post('/forgot', stillLoggedIn, (req, res, next) => {
 
     const email = sanitize(req.body.email);
     const role = sanitize(req.body.role);
@@ -180,18 +175,14 @@ authRouter.post('/forgot', (req, res, next) => {
 
                 req.flash('message', 'Password reset link has been sent to your email.');
                 req.session.save(err => err ? next(err) : res.redirect('/auth'));
+                audit.forgotPassword(user._id);
             });
         });
     });
 });
 
 // POST rsnavigation.com/auth/reset
-authRouter.post('/reset', (req, res, next) => {
-
-    if (req.isAuthenticated()) {
-        req.flash('message', 'You are still logged in.');
-        return req.session.save(err => err ? next(err) : res.redirect('/profile'));
-    }
+authRouter.post('/reset', stillLoggedIn, (req, res, next) => {
 
     const hashCode = sanitize(req.body.hashCode);
     const newPassword = sanitize(req.body.newPassword);
@@ -212,6 +203,7 @@ authRouter.post('/reset', (req, res, next) => {
 
             req.flash('message', 'Password updated.');
             req.session.save(err => err ? next(err) : res.redirect('/auth'));
+            audit.resetPassword(user._id);
         }, true);
     });
 });
