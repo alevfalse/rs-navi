@@ -1,5 +1,14 @@
 $(document).ready(() => {
     $("main").animate({ opacity: 1 }, 1000) // fade-in
+
+    // fade out flash messages after 15 seconds
+    setTimeout(() => {
+        $('.alert').animate({ 'opacity': 0 }, 1000);
+
+        setTimeout(() => {
+            $('.alert').css('display', 'none');
+        }, 1000);
+    }, 15000);
 });
 
 // TODO: Form validation
@@ -72,15 +81,9 @@ $(function() {
 })
 
 $("#edit").click(function() {
-    $("#profile").hasClass("show") ? $(this).text("Cancel Edit") : $(this).text("Edit Profile")
+    $("#profile").hasClass("show") ? $(this).text("Cancel") : $(this).html('<i class="fas fa-user-edit"></i> Update Profile')
     $("#profile").collapse("toggle");
     $("#update").collapse("toggle");
-});
-
-$("#report-button").click(function() {
-    $("#profile").hasClass("show") ? $(this).text("Cancel Report") : $(this).text("Report User")
-    $("#profile").collapse("toggle");
-    $("#report-reason").collapse("toggle");
 });
 
 $("#subscription, #back2").click(function() {
