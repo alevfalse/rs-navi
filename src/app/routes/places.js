@@ -49,6 +49,19 @@ const RateLimitMongoStore = require('rate-limit-mongo');
 const RateLimit = require('express-rate-limit');
 const dbURI = require('../../config/database');
 
+const addPlaceRateLimiter = RateLimit({
+    store: new RateLimitMongoStore({ 
+        uri: dbURI,
+        collectionName: 'addPlaceHits',
+        expireTimeMs: 24 * 60 * 60 * 1000 // 1 day
+    }),
+    max: 10, // limit each IP to 3 add places submitted per expireTimeMs
+    handler: function(req, res, next) {
+        req.flash('message', 'You have reached the maximum of 10 places you can add for a day.');
+        req.session.save(err => err ? next(err) : res.redirect(`/profile`));
+    }
+});
+
 const submitReviewRateLimiter = RateLimit({
     store: new RateLimitMongoStore({ 
         uri: dbURI,
@@ -71,7 +84,7 @@ const submitReportRateLimiter = RateLimit({
     max: 3, // limit each IP to 3 reports submitted per expireTimeMs
     handler: function(req, res, next) {
         req.flash('message', 'Too many reports submitted.<br>Please try again later.');
-        req.session.save(err => err ? next(err) : res.redirect('/places/${req.params.id}'));
+        req.session.save(err => err ? next(err) : res.redirect(`/places/${req.params.id}`));
     }
 });
 
@@ -151,7 +164,7 @@ placesRouter.get('/:id/images/:filename', (req, res, next) => {
 // POST ROUTES ===========================================================================
 
 // POST rsnavigation.com/places/add
-placesRouter.post('/add', isPlaceowner, upload.array('images', 10),
+placesRouter.post('/add', isPlaceowner, addPlaceRateLimiter, upload.array('images', 10),
 (err, req, res, next) => {
     if (err) {
         req.flash('message', err.message);
