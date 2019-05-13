@@ -203,6 +203,5 @@ textarea::placeholder {
     
     #places {
         max-height: 35rem;
-        overflow-y: auto;
     }
 }

@@ -30,6 +30,10 @@ main {
     opacity: 0;
 }
 
+#places-cards {
+    max-height: 50rem;
+    overflow-y: auto;
+}
 .container-fluid {
     max-width: 1200px;
 }
@@ -173,6 +177,10 @@ main {
         margin-top: 100px;
     }
     
+    #places-cards {
+        max-height: 35rem;
+    }
+
     .display-4 {
         font-size: 1.5rem;
     }
