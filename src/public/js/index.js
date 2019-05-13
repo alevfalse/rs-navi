@@ -173,7 +173,7 @@ function addMarker(place) {
 
                 const content = `<h5>${place.name}</strong></h5><p>${placeType}</p><p>₱ ${place.price.toLocaleString('en')}</p><p>${address}</p>` +
                 `<p>Distance: ${element.distance.text} (${element.duration.text} Walk)</p>` +
-                `<p><a href='/places/${place._id}' target='_blank'>Visit Page<a/>`;
+                `<p><a href='/places/${place._id}' target='_blank' class="skyblue">View Details<a/>`;
 
                 marker.infoWindow.setContent(content);
             }
