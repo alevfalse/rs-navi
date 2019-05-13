@@ -1,8 +1,3 @@
-$(document).ready(() => {
-    $('form').attr('autocomplete', 'off');  // disable default autocomplete
-    $("main").animate({ opacity: 1 }, 1000) // fade-in
-});
-
 let map;
 let mapStyles;
 let searchMarker;
@@ -10,6 +5,13 @@ let directionsService;
 let directionsRenderer;
 let distanceMatrixService;
 let ginfoWindow;
+let places;
+let locality;
+
+$(document).ready(function() {
+    $('form').attr('autocomplete', 'off');  // disable default autocomplete
+    $("main").animate({ opacity: 1 }, 1000) // fade-in
+});
 
 function loadMapStyles() {
     $.getJSON("/js/mapStyles.json", function(data) {
@@ -48,6 +50,7 @@ function initMap() {
 
         ginfoWindow.close();
         directionsRenderer.setMap(null);
+
         const place = this.getPlace();
 
         console.log(place);
@@ -56,20 +59,28 @@ function initMap() {
             return alert('Select one from the suggested places.');
         }
 
+        for (let comp of place.address_components) {
+            if (comp.types[0] === 'locality') { locality = comp.long_name }
+        }
+
         $.ajax({
             url: '/search',
-            data: { schoolName: $("#searchField").val() },
-            success: function(places) {
+            data: { city: locality },
+            success: function(results) {
 
                 if (!map) { return; }
+
+                places = results;
+
+                addCards(places);
 
                 // add a marker for each place given by the server
                 for (let i=0; i<places.length; i++) {
                     addMarker(places[i]);
                 }
 
-                if (!$("#mapSection").hasClass('show')) {
-                    $("#logoSection, #mapSection").collapse("toggle");
+                if (!$("#results").hasClass('show')) {
+                    $("#logoSection, #results").collapse("toggle");
                 }
 
                 if (searchMarker) { searchMarker.setMap(null); }
@@ -176,4 +187,137 @@ function addMarker(place) {
         })
     });
 }
+
+$("#view-map-button").click(function() {
+
+    if ($("#places-cards-section").hasClass('show')) {
+        $(this).text('Hide Map');
+
+        $("#places-cards-section").collapse("toggle");
+
+        setTimeout(() => {
+            $("#mapSection").css('display', 'none');
+            $("#mapSection").css('opacity', '0');
+
+            $("#mapSection").removeClass();
+            $("#mapSection").addClass('col-12 text-center');
+            $("#map").css('height', '700px');
+            
+            $("#mapSection").css('display', 'inline');
+            $("#mapSection").animate({ opacity: 1}, 750);
+        }, 350);
+    } else {
+        $(this).text('View Map');
+
+        $("#places-cards-section").collapse("toggle");
+
+        $("#mapSection").removeClass();
+        $("#mapSection").addClass('col-12 col-md-3 text-center');
+        $("#map").css('height', '300px');
+    }
+});
+
+function addCards(places) {
+    
+    const cards = document.getElementById('places-cards');
+    cards.innerHTML = '';
+
+    if (!places || places.length === 0) {
+        cards.classList.add('justify-content-center');
+        cards.innerHTML = '<h3 class="my-3 text-white">Sorry, we found no available places nearby.</h3>';
+        return;
+    }
+
+    cards.classList.remove('justify-content-center');
+
+    for (let i=0; i<places.length; i++) {
+
+        const column = document.createElement('div');
+        column.classList = 'col-12 col-md-6 mb-2 px-1';
+
+        const card = document.createElement('div');
+        card.classList = 'card h-100';
+
+        const carousel = document.createElement('div');
+        carousel.classList = 'carousel slide';
+        carousel.setAttribute('id', `carousel-${i}`);
+        carousel.setAttribute('data-ride', 'carousel');
+
+        const ol = document.createElement('ol');
+        ol.classList = 'carousel-indicators';
+
+        for (let j=0; j<places[i].images.length; j++) {
+            const li = document.createElement('li');
+            if (j === 0) { li.classList = 'active'; }
+            li.setAttribute('data-target', `#carousel-${i}`)
+            li.setAttribute('data-slide-to', j);
+            
+            ol.appendChild(li);
+        }
+
+        // carousel indicators
+        carousel.appendChild(ol);
+
+        const placeAnchor = document.createElement('a');
+        placeAnchor.setAttribute('href', `/places/${places[i]._id}`);
+
+        const carouselInner = document.createElement('div');
+        carouselInner.classList = 'carousel-inner';
+
+        for (let k=0; k<places[i].images.length; k++) {
+            const carouselItem = document.createElement('div');
+            carouselItem.classList = 'carousel-item';
+            if (k === 0) { carouselItem.classList.add('active'); }
+
+            const cardImage = document.createElement('img');
+            cardImage.setAttribute('src', places[i].images[k].url);
+            cardImage.classList = 'card-img-top';
+            cardImage.setAttribute('alt', 'Missing');
+
+            carouselItem.appendChild(cardImage);
+
+            carouselInner.appendChild(carouselItem);
+        }
+
+        placeAnchor.appendChild(carouselInner);
+
+        // carousel images
+        carousel.appendChild(placeAnchor);
+
+        if (places[i].images.length > 1) {
+            const prevAnchor = document.createElement('a');
+            prevAnchor.classList = 'carousel-control-prev';
+            prevAnchor.setAttribute('href', `#carousel-${i}`);
+            prevAnchor.setAttribute('data-slide', `prev`);
+            prevAnchor.setAttribute('role', `button`);
+
+            const prevIcon = document.createElement('span');
+            prevIcon.classList = 'carousel-control-prev-icon';
+
+            prevAnchor.appendChild(prevIcon);
+
+            const nextAnchor = document.createElement('a');
+            nextAnchor.classList = 'carousel-control-next';
+            nextAnchor.setAttribute('href', `#carousel-${i}`);
+            nextAnchor.setAttribute('data-slide', `next`);
+            nextAnchor.setAttribute('role', `button`);
+
+            const nextIcon = document.createElement('span');
+            nextIcon.classList = 'carousel-control-next-icon';
+
+            nextAnchor.appendChild(nextIcon);
+
+            card.appendChild(prevAnchor);
+            card.appendChild(nextAnchor);
+        }
+
+        card.appendChild(carousel);
+
+        column.appendChild(card);
+        cards.appendChild(column);
+    }
+
+}
+
+
         

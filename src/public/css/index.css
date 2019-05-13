@@ -30,6 +30,10 @@ main {
     opacity: 0;
 }
 
+.container-fluid {
+    max-width: 1200px;
+}
+
 #searchField {
     color: skyblue;
     font-weight: 500;
@@ -51,9 +55,71 @@ main {
     background: rgb(14, 22, 38, 0);
 }
 
+.skyblue {
+    color: skyblue !important;
+}
+
+.red {
+    color: rgb(248, 45, 45) !important;
+}
+
+.grey {
+    color: rgb(177, 177, 177) !important;
+}
+
+.gold {
+    color: gold;
+}
+
+.white {
+    color: white !important;
+}
+
+#verified {
+    color: limegreen;
+    font-size: 1.25rem;
+}
+
+#licensed {
+    color: rgba(255, 255, 0, 0.85);
+    font-size: 1.25rem;
+}
+
+/* Cards */
+
+.card {
+    background: rgb(14, 22, 38, 0.5);
+    border: 2px solid rgba(135, 207, 235, 0.1125);
+    color: white;
+}
+
+.card-header {
+    font-size: 1.35rem;
+    text-shadow: 
+        0px 4px 3px black,
+        0px 8px 13px black,
+        0px 18px 23px black;
+
+    border-bottom: 2px solid rgba(135, 207, 235, 0.125);
+    border-radius: 5%;
+}
+
+.card-img-top {
+    height: 20rem;
+    object-fit: cover;
+}
+
+#contact-number-modal {
+    margin-top: 70px;
+}
+
+.fa-star {
+    color: gold;
+}
+
 /* Google Map */
 #map {
-    height: 800px;
+    height: 300px;
 }
 
 /* Google Place Search Autocomplete */
@@ -105,10 +171,6 @@ main {
 @media (max-width: 600px) {
     #logo {
         margin-top: 100px;
-    }
-
-    #map {
-        height: 600px;
     }
     
     .display-4 {

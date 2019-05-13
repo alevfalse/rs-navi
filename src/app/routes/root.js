@@ -1,5 +1,6 @@
 const rootRouter = require('express').Router();
 const Place = require('../models/place');
+const logger = require('../../config/logger');
 
 rootRouter.get('/', (req, res, next) => {
     res.render('index', { user: req.user, message: req.flash('message') },
@@ -7,8 +8,18 @@ rootRouter.get('/', (req, res, next) => {
 });
 
 rootRouter.get('/search', (req, res, next) => {
-    // TODO: Only send nearby places (same city?)
-    Place.find({ 'status': 1 }, (err, places) => err ? res.send(null) : res.send(places));
+    console.log(req.query);
+
+    let city = req.query.city;
+
+    if (city === 'Kalakhang Maynila') city = 'Metro Manila';
+
+    Place.find({ 'address.city': city, 'status': 1 })
+    .populate('images owner')
+    .exec((err, places) => {
+        if (err) { logger.error(err); return res.send(null); }
+        res.send(places);
+    });
 });
 
 module.exports = rootRouter;
