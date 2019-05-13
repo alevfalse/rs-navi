@@ -122,7 +122,7 @@ adminRouter.get('/reports', isAdmin, (req, res, next) => {
         }
     ]).exec((err, reports) => {
         if (err) { logger.error(err.stack); return res.send(null); }
-        if (reports.length === 0) { return send(null); }
+        if (reports.length === 0) { return res.send(null); }
 
         Place.populate(reports, {
             path: '_id.target',
