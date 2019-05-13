@@ -180,6 +180,8 @@ $("#reports-button").click(function() {
 
                     table.appendChild(tbody);
                     cardBody.appendChild(table);
+                } else {
+                    $("#reports-data").html('No reports to show.');
                 }
             },
             error: function(res) {
