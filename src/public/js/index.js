@@ -53,8 +53,6 @@ function initMap() {
 
         const place = this.getPlace();
 
-        console.log(place);
-
         if (!place.geometry) { 
             return alert('Select one from the suggested places.');
         }
@@ -70,13 +68,11 @@ function initMap() {
 
                 if (!map) { return; }
 
-                places = results;
-
-                addCards(places);
+                addCards(results);
 
                 // add a marker for each place given by the server
-                for (let i=0; i<places.length; i++) {
-                    addMarker(places[i]);
+                for (let i=0; i<results.length; i++) {
+                    addMarker(results[i].place);
                 }
 
                 if (!$("#results").hasClass('show')) {
@@ -217,12 +213,12 @@ $("#view-map-button").click(function() {
     }
 });
 
-function addCards(places) {
+function addCards(results) {
     
     const cards = document.getElementById('places-cards');
     cards.innerHTML = '';
 
-    if (!places || places.length === 0) {
+    if (!results || results.length === 0) {
         cards.classList.add('justify-content-center');
         cards.innerHTML = '<h3 class="my-3 text-white">Sorry, we found no available places nearby.</h3>';
         return;
@@ -230,8 +226,8 @@ function addCards(places) {
 
     cards.classList.remove('justify-content-center');
 
-    for (let i=0; i<places.length; i++) {
-
+    for (let i=0; i<results.length; i++) {
+        
         const column = document.createElement('div');
         column.classList = 'col-12 col-md-6 mb-2 px-1';
 
@@ -246,7 +242,7 @@ function addCards(places) {
         const ol = document.createElement('ol');
         ol.classList = 'carousel-indicators';
 
-        for (let j=0; j<places[i].images.length; j++) {
+        for (let j=0; j<results[i].place.images.length; j++) {
             const li = document.createElement('li');
             if (j === 0) { li.classList = 'active'; }
             li.setAttribute('data-target', `#carousel-${i}`)
@@ -259,18 +255,18 @@ function addCards(places) {
         carousel.appendChild(ol);
 
         const placeAnchor = document.createElement('a');
-        placeAnchor.setAttribute('href', `/places/${places[i]._id}`);
+        placeAnchor.setAttribute('href', `/places/${results[i].place._id}`);
 
         const carouselInner = document.createElement('div');
         carouselInner.classList = 'carousel-inner';
 
-        for (let k=0; k<places[i].images.length; k++) {
+        for (let k=0; k<results[i].place.images.length; k++) {
             const carouselItem = document.createElement('div');
             carouselItem.classList = 'carousel-item';
             if (k === 0) { carouselItem.classList.add('active'); }
 
             const cardImage = document.createElement('img');
-            cardImage.setAttribute('src', places[i].images[k].url);
+            cardImage.setAttribute('src', results[i].place.images[k].url);
             cardImage.classList = 'card-img-top';
             cardImage.setAttribute('alt', 'Missing');
 
@@ -284,7 +280,7 @@ function addCards(places) {
         // carousel images
         carousel.appendChild(placeAnchor);
 
-        if (places[i].images.length > 1) {
+        if (results[i].place.images.length > 1) {
             const prevAnchor = document.createElement('a');
             prevAnchor.classList = 'carousel-control-prev';
             prevAnchor.setAttribute('href', `#carousel-${i}`);
@@ -307,16 +303,99 @@ function addCards(places) {
 
             nextAnchor.appendChild(nextIcon);
 
-            card.appendChild(prevAnchor);
-            card.appendChild(nextAnchor);
+            carousel.appendChild(prevAnchor);
+            carousel.appendChild(nextAnchor);
         }
 
         card.appendChild(carousel);
 
+        const cardBody = document.createElement('div');
+        cardBody.classList = 'card-body d-flex flex-column';
+
+        const cardContainer = document.createElement('div');
+        cardContainer.classList = 'container';
+
+        const cardRow = document.createElement('div');
+        cardRow.classList = 'row justify-content-between';
+
+        const cardTitle = document.createElement('h5');
+        cardTitle.classList = 'card-title text-left';
+        cardTitle.innerText = results[i].place.name;
+
+        cardRow.appendChild(cardTitle);
+
+        if (results[i].score) {
+            const col = document.createElement('div');
+            col.classList = 'col-2 text-right p-0';
+            col.innerHTML = `${results[i].score} <i class="fas fa-star"></i>`;
+
+            cardRow.appendChild(col);
+        }
+        
+        cardContainer.appendChild(cardRow);
+        cardBody.appendChild(cardContainer);
+        
+
+        const price = document.createElement('h6');
+        price.classList = 'card-subtitle skyblue';
+        price.innerText = `₱ ${results[i].place.price.toLocaleString('en')}`;
+
+        cardBody.appendChild(price);
+
+        const listing = document.createElement('h6');
+        listing.classList = 'card-subtitle skyblue mt-2 mb-3';
+
+        let str = '';
+
+        switch(results[i].place.placeType)
+        {
+            case 0: str += 'Boarding House'; break;
+            case 1: str += 'Apartment'; break;
+            case 2: str += 'Apartment'; break;
+            case 3: str += 'Condominium'; break;
+            default: str += 'Unknown Place Type';
+        }
+
+        switch(results[i].place.listType)
+        {
+            case 0: str += ' For Rent/Sale'; break;
+            case 1: str += ' For Rent'; break;
+            case 2: str += ' For Sale'; break;
+            default: str += ' Unknown Listing';
+        }
+
+        listing.innerText = str;
+
+        cardBody.appendChild(listing);
+
+        // address
+        const address = document.createElement('p');
+        address.classList = 'card-text';
+
+        const { number, street, subdivision, barangay, city, zipCode, province } = results[i].place.address;
+
+        address.innerText = `${number} ${street}, ${subdivision ? `${subdivision},` : ''} ` +
+        `${barangay?`Bgy. ${barangay},`:''} ` +
+        `${city}, ${zipCode?`${zipCode}`:''} ${province}`;
+
+        cardBody.appendChild(address);
+
+        const viewDetailsSpan = document.createElement('span');
+        viewDetailsSpan.classList = 'mt-auto';
+
+        const viewDetailsLink = document.createElement('a');
+        viewDetailsLink.setAttribute('href', `/places/${results[i].place._id}`);
+        viewDetailsLink.setAttribute('target', `_blank`);
+        viewDetailsLink.classList = 'card-link';
+        viewDetailsLink.innerText = 'View Details';
+
+        viewDetailsSpan.appendChild(viewDetailsLink);
+
+        cardBody.appendChild(viewDetailsSpan);
+        card.appendChild(cardBody);
         column.appendChild(card);
         cards.appendChild(column);
     }
-
 }
 
 
