@@ -15,7 +15,7 @@ passport.serializeUser((user, done) => {
 
 // fetches user's data from the database in every request using their id that is stored in session
 passport.deserializeUser((id, done) => {
-    User.findOne({ '_id': id, 'status': 1 }).populate('image').exec(done);
+    User.findOne({ '_id': id, 'account.status': 1 }).populate('image').exec(done);
 });
 
 // NOTE: There's no need to call for req.session.save() after every req.flash() in the following code.
