@@ -59,7 +59,7 @@ AuditSchema.methods.toString = function() {
     case 14: return str += `submitted a review for <a href="/places/${this.target._id}" target="_blank">${this.target.name}</a>.`;
     case 15: return str += `deleted a review for <a href="/places/${this.target._id}" target="_blank">${this.target.name}</a>${this.reason ? ` Reason: ${this.reason}` : '.'}`;
 
-    case 20: return str += `reported <a href="/profile/${this.target._id}" target="_blank">${this.target.name || this.target.fullName}</a>.`;
+    case 20: return str += `reported <a href="/place/${this.target._id}" target="_blank">${this.target.name || this.target.fullName}</a>.`;
 
     case 70: return str += `banned <a href="/profile/${this.target._id}" target="_blank">${this.target.fullName}</a>. Reason: ${this.reason}`;
     case 71: return str += `revoked <a href="/profile/${this.target._id}" target="_blank">${this.target.name}</a>'s ban.`;
