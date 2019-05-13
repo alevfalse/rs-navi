@@ -33,14 +33,14 @@
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
-        <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> Admin</a>
+        <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> ADMIN</a>
         <button class="navbar-toggler" data-toggle="collapse" data-target="#navLinks" aria-label="Toggle navigation links">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navLinks">
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item"><a href="/profile" class="nav-link"><%= admin.fullName %></a></li>
-                <li class="nav-item"><a href="/logout" class="nav-link">Logout</a></li>
+                <li class="nav-item"><a href="/profile" class="nav-link"><i class="mr-2 fas fa-user-shield"></i><%= admin.fullName %></a></li>
+                <li class="nav-item"><a href="/logout" class="nav-link"><i class="mr-2 fas fa-sign-out-alt"></i>Logout</a></li>
             </ul>
         </div>
     </nav>
@@ -48,198 +48,129 @@
     <!-- Flash Message -->
     <% include ../components/flash.ejs %>
 
-    <div class="row justify-content-center mb-3 text-white">
-        <div class="col-10 col-md-8 col-lg-6 text-center">
-            <h1 class="display-4">Admin Control Center</h1>
+    <main class="container-fluid">
+        <div class="row justify-content-center mb-3 text-white">
+            <div class="col-10 col-md-8 col-lg-6 text-center">
+                <h1>Admin Control Center</h1>
+            </div>
         </div>
-    </div>
 
-    <div class="container text-white">
-        <div id="accordion">
+        <div class="row">
+            <div class="col-12 px-0 px-md-5" id="accordion">
 
-            <!-- Audit Logs -->
-            <div class="card">
-                <div class="card-header" id="headingOne">
-                    <h5 class="mb-0">
-                        <button class="btn custom-button" data-toggle="collapse" data-target="#audit" id="audit-logs-button">Audit Logs</button>
-                    </h5>
-                </div>
-    
-                <div class="container collapse" id="audit" data-parent="#accordion">
-                    <div class="card-body mb-3" style="max-height: 35rem; overflow-y:auto;" id="audit-logs-data">
+                <!-- Audit Logs -->
+                <div class="card">
+                    <div class="card-header" id="headingOne">
+                        <h5 class="mb-0">
+                            <button class="btn custom-button" data-toggle="collapse" data-target="#audit" id="audit-logs-button">Audit Logs</button>
+                        </h5>
+                    </div>
+        
+                    <div class="container collapse" id="audit" data-parent="#accordion">
+                        <div class="card-body mb-3" style="max-height: 35rem; overflow-y:auto;" id="audit-logs-data">
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Access Logs -->
-            <div class="card">
-                <div class="card-header" id="headingOne">
-                    <h5 class="mb-0">
-                        <button class="btn custom-button" data-toggle="collapse" data-target="#logs" id="access-logs-button">Access Logs</button>
-                    </h5>
-                </div>
-    
-                <div class="container collapse" id="logs" data-parent="#accordion">
-                    <div class="card-body mb-3" style="max-height: 35rem; overflow-y:auto;" id="access-logs-data">
+                <!-- Access Logs -->
+                <div class="card">
+                    <div class="card-header" id="headingOne">
+                        <h5 class="mb-0">
+                            <button class="btn custom-button" data-toggle="collapse" data-target="#logs" id="access-logs-button">Access Logs</button>
+                        </h5>
+                    </div>
+        
+                    <div class="container collapse" id="logs" data-parent="#accordion">
+                        <div class="card-body mb-3" style="max-height: 35rem; overflow-y:auto;" id="access-logs-data">
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Reports -->
-            <div class="card">
-                <div class="card-header" id="headingOne">
-                    <h5 class="mb-0">
-                        <button class="btn custom-button" data-toggle="collapse" data-target="#reports" id="reports-button">Reports</button>
-                    </h5>
-                </div>
-    
-                <div class="container collapse" id="reports" data-parent="#accordion">
-                    <div class="card-body mb-3" id="reports-data">
-                        <% if (locals.reports && reports.length > 0) {
-                            for (report of reports) { %>
-                                <a class="skyblue" href="/places/<%= report._id.target._id %>" target="_blank"><%= report._id.target.name %></a>
-                                <% for (doc of report.docs) { %>
-                                    <p class="mb-0 mr-2">
-                                        <a href="/profile/<%= doc.author._id %>" class="ml-3" target="_blank">
-                                            <%= doc.author.fullName ? doc.author.fullName : 'Removed User' %>
-                                        </a>: <%= doc.comment %> 
-                                    </p> 
-                                <% } %>
-                                <br>
-                            <% }
-                        } else { %>
-                            No reports to show.
-                        <% } %>
+                <!-- Reports -->
+                <div class="card">
+                    <div class="card-header" id="headingOne">
+                        <h5 class="mb-0">
+                            <button class="btn custom-button" data-toggle="collapse" data-target="#reports" id="reports-button">Reports</button>
+                        </h5>
                     </div>
-                </div>
-            </div>
-            
-            <!-- PRC License Verification -->
-            <div class="card">
-                <div class="card-header" id="headingTwo">
-                    <h5 class="mb-0">
-                        <button class="btn custom-button collapsed" data-toggle="collapse" data-target="#prc"
-                            aria-expanded="false" aria-controls="collapseTwo">PRC License Verification
-                        </button>
-                    </h5>
-                </div>
-                <div id="prc" class="container collapse" aria-labelledby="headingTwo" data-parent="#accordion">
-                    <div class="card-body mb-3">
-                        <% if (locals.placeowners && placeowners.length > 0) { %>
-                            <table class="table table-borderless custom-table">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">Name</th>
-                                        <th scope="col">License Type</th>
-                                        <th scope="col"><a class="text-center" href="https://online.prc.gov.ph/verification" target="_blank">PRC Verification Link</a></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% if (locals.placeowners && placeowners.length > 0) { 
-                                        for (let i=0; i<placeowners.length; i++) { %>
-                                            <tr>
-                                                <td><%= i+1 %></th>
-                                                <td><a href="/profile/<%= placeowners[i]._id %>" target="_blank"><%= placeowners[i].fullName %></a></td>
-                                                <td><%= placeowners[i].licenseTypeString %></td>
-                                                <td>
-                                                    <form method="POST" action="/prc/<%= placeowners[i]._id %>?valid=true" style="display: inline;">
-                                                        <button type="submit" class="limegreen btn btn-sm custom-button">Verify</button>
-                                                    </form>
-                                                    
-                                                    <form method="POST" action="/prc/<%= placeowners[i]._id %>?valid=false" style="display: inline;">
-                                                        <button type="submit" class="red btn btn-sm custom-button">Reject</button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        <% } %>
+        
+                    <div class="container collapse" id="reports" data-parent="#accordion">
+                        <div class="card-body mb-3" id="reports-data">
+                            <% if (locals.reports && reports.length > 0) {
+                                for (report of reports) { %>
+                                    <a class="skyblue" href="/places/<%= report._id.target._id %>" target="_blank"><%= report._id.target.name %></a>
+                                    <% for (doc of report.docs) { %>
+                                        <p class="mb-0 mr-2">
+                                            <a href="/profile/<%= doc.author._id %>" class="ml-3" target="_blank">
+                                                <%= doc.author.fullName ? doc.author.fullName : 'Removed User' %>
+                                            </a>: <%= doc.comment %> 
+                                        </p> 
                                     <% } %>
-                                </tbody>
-                            </table>
-                        <% } else { %>
-                            <p>No pending license for verification.</p>
-                        <% } %>
+                                    <br>
+                                <% }
+                            } else { %>
+                                No reports to show.
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PRC License Verification -->
+                <div class="card">
+                    <div class="card-header" id="headingTwo">
+                        <h5 class="mb-0">
+                            <button class="btn custom-button collapsed" data-toggle="collapse" data-target="#prc"
+                                aria-expanded="false" aria-controls="collapseTwo">PRC License Verification
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="prc" class="container collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                        <div class="card-body mb-3">
+                            <% if (locals.placeowners && placeowners.length > 0) { %>
+                                <table class="table table-borderless custom-table text-center">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Name</th>
+                                            <th scope="col">License Type</th>
+                                            <th scope="col"><a class="text-center" href="https://online.prc.gov.ph/verification" target="_blank">PRC</a></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% if (locals.placeowners && placeowners.length > 0) { 
+                                            for (owner of placeowners) { %>
+                                                <tr>
+                                                    <td style="width: 33%;"><a href="/profile/<%= owner._id %>" target="_blank"><%= owner.fullName %></a></td>
+                                                    <td style="width: 33%;"><%= owner.licenseTypeString %></td>
+                                                    <td style="width: 33%;">
+                                                        <form method="POST" action="/prc/<%= owner._id %>?valid=true" style="display: inline;">
+                                                            <button type="submit" class="limegreen btn btn-sm custom-button">Verify</button>
+                                                        </form>
+                                                        
+                                                        <form method="POST" action="/prc/<%= owner._id %>?valid=false" style="display: inline;">
+                                                            <button type="submit" class="red btn btn-sm custom-button">Reject</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            <% } %>
+                                        <% } %>
+                                    </tbody>
+                                </table>
+                            <% } else { %>
+                                No license pending for verification.
+                            <% } %>
+                        </div>
                     </div>
                 </div>
             </div>
-
         </div>
-    </div>
+    </main>
     
     <!-- jQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <!-- Bootstrap JS + Popper.js Bundle -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
 
-    <script>
-        $("#access-logs-button").click(function() {
-            
-            if ($("#logs").hasClass('show')) { return $("#access-logs-data").html(''); }
-
-            $("#access-logs-data").html('<i class="fas fa-spinner fa-spin"></i> Fetching access logs...');
-
-            setTimeout(() => {
-                $.ajax({
-                    url: '/access',
-
-                    success: function(accessLogs) {
-                        if (accessLogs && accessLogs.length > 0) {
-                            let str = 'Format: <a href="https://www.npmjs.com/package/morgan#common" target="_blank">'
-                                + ':remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]</a><br>'
-                                + accessLogs;
-                            $("#access-logs-data").html(str);
-                        } else {
-                            $("#access-logs-data").html('No access logs to show.');
-                        }
-                    }
-                });
-            }, 1250);
-
-        });
-
-        $("#audit-logs-button").click(function() {
-            if ($("#audit").hasClass('show')) { return $("#audit-logs-data").html(''); }
-            
-            $("#audit-logs-data").html('<i class="fas fa-spinner fa-spin"></i> Fetching audit logs...');
-
-            setTimeout(() => {
-                $.ajax({
-                    url: '/audit',
-
-                    success: function(auditLogs) {
-                        if (auditLogs && auditLogs.length > 0) {
-                            $("#audit-logs-data").html(auditLogs);
-                        } else {
-                            $("#audit-logs-data").html('No audit logs to show.');
-                        }
-                    },
-                    error: function(jqXHR, status, err) {
-                        
-                    }
-                });
-            }, 1250);
-            
-        });
-
-        
-        $("#reports-button").click(function() {
-            if ($("#reports-data").hasClass('show')) { return; }
-            
-            $("#reports-data").html('<i class="fas fa-spinner fa-spin"></i> Fetching reports...');
-
-            /*
-            setTimeout(() => {
-                $.ajax({
-                    url: '/reports',
-
-                    success: function(reports) {
-                        // ...
-                    }
-                });
-            }, 2000);
-            */
-        });
-    
-    </script>
+    <!-- Custom Script -->
+    <script src="/js/admin.js"></script>
 </body>
 </html>

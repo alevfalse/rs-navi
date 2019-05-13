@@ -11,8 +11,6 @@ const User = require('../models/user');
 const uploadsDirectory = path.join(__dirname, '../../uploads/');
 const publicImagesDirectory = path.join(__dirname, '../../public/images');
 
-
-
 // =======================================================================================
 // MIDDLEWARES ===========================================================================
 
@@ -87,17 +85,16 @@ profileRouter.post('/update', isAuthenticated, async (req, res, next) => {
     const confirmNewPassword = sanitize(req.body.confirmNewPassword);
     const currentPassword    = sanitize(req.body.currentPassword);
 
-    if (!firstName && !lastName && !schoolName && !contactNumber 
-        && !newPassword && confirmNewPassword)
-    {
-        req.flash('message', 'No profile data updated.');
-        return req.session.save(err => err ? next(err) : res.redirect('/profile'));
-    }
-
     if (!await req.user.verifyPassword(currentPassword)) {
         req.flash('message', 'Incorrect password.');
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
     }
+
+    const oldFirstName = req.user.firstName;
+    const oldLastName = req.user.lastName;
+    const oldContactNumber = req.user.contactNumber;
+    const oldSchoolName = req.user.schoolName;
+    const oldLicenseType = req.user.licenseTypeString;
 
     if (firstName)     { req.user.firstName     = firstName;     }
     if (lastName)      { req.user.lastName      = lastName;      }
@@ -132,7 +129,45 @@ profileRouter.post('/update', isAuthenticated, async (req, res, next) => {
                 if (err) { return next(err); }
                 req.flash('message', 'Updated profile.');
                 req.session.save(err => err ? next(err) : res.redirect('/profile'));
-                audit.userUpdate(req.user._id);
+
+                audit.userProfileUpdate(req.user._id, req.ip, { key: 'password' });
+
+                if (firstName) { audit.userProfileUpdate(req.user._id, req.ip, {
+                        key: 'First Name',
+                        old: oldFirstName,
+                        new: req.user.firstName
+                    }); 
+                }
+
+                if (lastName) { 
+                    audit.userProfileUpdate(req.user._id, req.ip, {
+                        key: 'Last Name',
+                        old: oldLastName,
+                        new: req.user.lastName
+                    }); 
+                }
+                
+                if (contactNumber) { 
+                    audit.userProfileUpdate(req.user._id, req.ip, {
+                        key: 'Contact Number',
+                        old: oldContactNumber,
+                        new: req.user.contactNumber
+                    }); 
+                }
+
+                if (req.user.account.role === 0 && schoolName) { 
+                    audit.userProfileUpdate(req.user._id, req.ip, { 
+                        key: 'School Name',
+                        old: oldSchoolName,
+                        new: req.user.schoolName
+                    });
+                } else if (req.user.account.role === 1 && licenseType) {
+                    audit.userProfileUpdate(req.user._id, req.ip, {
+                        key: 'License Type',
+                        old: oldLicenseType,
+                        new: req.user.licenseTypeString
+                    });
+                }
             });
 
         } else {
@@ -145,7 +180,44 @@ profileRouter.post('/update', isAuthenticated, async (req, res, next) => {
             if (err) { return next(err); }
             req.flash('message', 'Updated profile.');
             req.session.save(err => err ? next(err) : res.redirect('/profile'));
-            audit.userUpdate(req.user._id);
+            
+            if (firstName) { 
+                audit.userProfileUpdate(req.user._id, req.ip, {
+                    key: 'First Name',
+                    old: oldFirstName,
+                    new: req.user.firstName
+                });
+            }
+
+            if (lastName) { 
+                audit.userProfileUpdate(req.user._id, req.ip, {
+                    key: 'Last Name',
+                    old: oldLastName,
+                    new: req.user.lastName
+                }); 
+            }
+            
+            if (contactNumber) { 
+                audit.userProfileUpdate(req.user._id, req.ip, {
+                    key: 'Contact Number',
+                    old: oldContactNumber,
+                    new: req.user.contactNumber
+                }); 
+            }
+
+            if (req.user.account.role === 0 && schoolName) {
+                audit.userProfileUpdate(req.user._id, req.ip, {
+                    key: 'School Name',
+                    old: oldSchoolName,
+                    new: req.user.schoolName
+                });
+            } else if (req.user.account.role === 1 && licenseType) {
+                audit.userProfileUpdate(req.user._id, req.ip, {
+                    key: 'License Type',
+                    old: oldLicenseType,
+                    new: req.user.licenseTypeString
+                });
+            }
         });
     }
 });
@@ -158,11 +230,17 @@ profileRouter.post('/image/update', isAuthenticated, upload.single('image'),
 },
 (req, res, next) => {
     if (req.file) {
-        req.user.updateImage(req.file, (err) => err ? next(err) : res.redirect('/profile'));
+        const oldImage = req.user.image ? req.user.image.filename : 'No Image';
+        req.user.updateImage(req.file, (err) => {
+            if (err) { return next(err); }
+            res.redirect('/profile');
+            audit.userProfileUpdate(req.user._id, req.ip, {
+                key: 'Profile Image'
+            });
+        });
     } else {
         req.flash('message', 'Invalid image file.');
         req.session.save(err => err ? next(err) : res.redirect('/profile'));
-        audit.userUpdate(req.user._id);
     }
 });
 

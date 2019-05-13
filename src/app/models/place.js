@@ -7,8 +7,8 @@ const Image = require('./image');
 
 const PlaceSchema = new mongoose.Schema({
     _id: { type: String, default: () => generate() },
+    createdAt: { type: Date, default: () => new Date() },
     status: { type: Number, default: 1 },
-    createdAt: { type: Date, default: new Date() },
     updated: { type: Date, default: null },
     owner: { type: String, ref: 'User', required: true },
     name: { type: String, required: true },

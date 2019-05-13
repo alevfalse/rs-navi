@@ -8,7 +8,7 @@ const MongoStore = require('connect-mongo')(session);
 const logger = require('../../config/logger');
 const sanitize = require('../../bin/sanitizer');
 const audit = require('../../bin/auditor');
-const rateLimiter = require('../../config/rate-limiter');
+const formatDate = require('../../bin/date-formatter');
 
 // models
 const User = require('../models/user');
@@ -78,7 +78,7 @@ adminRouter.get('/', isAdmin, (req, res, next) => {
     // parallel database querying
     Promise.all([
         // query all placeowners whose license status are unverified
-        User.find({ 'account.role': 1, 'license.status': 1 }).exec(),
+        User.find({ 'license.status': 1, 'account.role': 1, 'account.status': 1 }).exec(),
         Report.aggregate([
             { $match: { status: 0 } },
             {
@@ -112,7 +112,7 @@ adminRouter.get('/', isAdmin, (req, res, next) => {
     .catch(next);
 });
 
-adminRouter.get('/access', rateLimiter, isAdmin, (req, res, next) => {
+adminRouter.get('/access', isAdmin, (req, res, next) => {
     console.log('Requesting access logs...');
     let logs = '';
     if (fs.existsSync(logsDirectory + 'access.log')) {
@@ -124,15 +124,22 @@ adminRouter.get('/access', rateLimiter, isAdmin, (req, res, next) => {
     res.send(logs);
 });
 
-adminRouter.get('/audit', rateLimiter, isAdmin, (req, res, next) => {
+adminRouter.get('/audit', isAdmin, (req, res, next) => {
     console.log('Requesting audit logs...');
-    Audit.find((err, logs) => {
-        if (err || logs.length === 0) { return res.send(null); }
-        let str = '';
-        for (let i=logs.length-1; i>=0; i--) {
-            str += logs[i].toString() + '<br>';
+    Audit.find((err, auditLogs) => {
+        if (err || auditLogs.length === 0) { return res.send(null); }
+
+        let arr = [];
+
+        for (let i=auditLogs.length-1; i>=0; i--) {
+            arr.push({
+                date: formatDate(auditLogs[i].createdAt, true),
+                text: auditLogs[i].toString(),
+                ip: auditLogs[i].ip || 'Unknown'
+            });
         }
-        res.send(str);
+
+        res.send(arr);
     });
 });
 
@@ -144,7 +151,7 @@ adminRouter.get('/logout', (req, res, next) => {
 
     // logout the admin if authenticated user's account role is equal to 7
     if (req.user.account.role === 7) {
-        audit.logout(req.user._id);
+        audit.userLogout(req.user._id, req.ip);
         req.logout();
         req.flash('message', 'Logged out.');
         req.session.save(err => err ? next(err) : res.redirect('/'));
@@ -185,7 +192,7 @@ adminRouter.post('/login', (req, res, next) => {
         req.login(admin, err => {
             if (err) { return next(err); } // status 500
             req.session.save(err => err ? next(err) : res.redirect('/'));
-            audit.login(admin._id);
+            audit.userLogin(admin._id, req.ip);
         });
 
     }) (req, res, next);
@@ -212,10 +219,10 @@ adminRouter.post('/prc/:id', isAdmin, (req, res, next) => {
 
             if (valid === 'true') {
                 action = 'Verified';
-                audit.validateLicense(req.user._id, 72, 2);
+                audit.validateLicense(req.user._id, req.ip, placeowner._id, true);
             } else if (valid === 'false') {
                 action = 'Rejected';
-                audit.validateLicense(req.user._id, 73, 2);
+                audit.validateLicense(req.user._id, req.ip, false);
             } else {
                 return next();
             }
@@ -241,7 +248,7 @@ adminRouter.post('/ban/:id', isAdmin, (req, res, next) => {
             if (err) { return next(err); }
             req.flash('message', `Banned ${user.fullName}.`);
             req.session.save(err => err ? next(err) : res.redirect('/'));
-            audit.ban(req.user._id, user._id, reason);
+            audit.ban(req.user._id, req.ip, user._id, reason);
         });
     });
 });

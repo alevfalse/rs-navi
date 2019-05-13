@@ -228,7 +228,7 @@ placesRouter.post('/add', isPlaceowner, upload.array('images', 10),
         if (err) { return next(err); }
         req.flash('message', `<a href="/places/${newPlace._id}" target="_blank">${newPlace.name}</a> has been added.`);
         req.session.save(err => err? next(err) : res.redirect('/places/add'));
-        audit.placeAdd(req.user._id, newPlace._id);
+        audit.placeAdd(req.user._id, req.ip, newPlace._id);
     });
 });
 
@@ -282,7 +282,7 @@ placesRouter.post('/:id/review', isStudent, (req, res, next) => {
             
             req.flash('message', 'Review submitted.');
             req.session.save(err => err ? next(err) : res.redirect(`/places/${placeId}`));
-            audit.reviewAdd(req.user._id, placeId);
+            audit.reviewAdd(req.user._id, req.ip, placeId);
         });
     });
 });
@@ -322,7 +322,7 @@ placesRouter.post('/:id/report', isAuthenticated, (req, res, next) => {
             console.log(newReport);
             req.flash('message', 'Report submitted.');
             req.session.save(err => err ? next(err) : res.redirect(`/places/${placeId}`));
-            audit.placeReport(req.user._id, placeId);
+            audit.placeReport(req.user._id, req.ip, placeId);
         });
     });
 });
@@ -373,7 +373,7 @@ placesRouter.delete('/:id', isAuthenticated, (req, res, next) => {
 
                 req.flash('message', `Deleted ${place.name}.`);
                 req.session.save(err => err ? next(err) : res.redirect('/'));
-                audit.placeDelete(req.user._id, place._id);
+                audit.placeDelete(req.user._id, req.ip, place._id);
             });
         }).catch(next)
     });
@@ -418,7 +418,7 @@ placesRouter.delete('/:placeId/reviews/:reviewId', isAuthenticated, (req, res, n
 
         req.flash('message', 'Review deleted.');
         req.session.save(err => err ? next(err) : res.redirect(`/places/${req.params.placeId}`));
-        audit.reviewDelete(req.user._id, review.place);
+        audit.reviewDelete(req.user._id, req.ip, review.place);
     });
 });
 

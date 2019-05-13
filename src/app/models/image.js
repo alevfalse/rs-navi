@@ -5,8 +5,8 @@ const logger = require('../../config/logger');
 // model for emails subscribed in our mailing list
 const ImageSchema = new mongoose.Schema({
     _id: { type: String, default: () => generate() },
+    createdAt: { type: Date, default: () => new Date() },
     status: { type: Number, default: 1 },
-    createdAt: { type: Date, default: new Date() },
     filename: { type: String, required: true, index: true },
     url: { type: String, required: true },
     contentType: { type: String, required: true }

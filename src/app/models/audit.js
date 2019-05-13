@@ -4,7 +4,7 @@ const formatDate = require('../../bin/date-formatter');
 
 const AuditSchema = new mongoose.Schema({
     _id: { type: String, default: () => generate() },
-    createdAt: { type: Date, default: new Date() },
+    createdAt: { type: Date, default: () => new Date() },
     executor: { type: String, ref: 'User', required: true, autopopulate: true },
     action: { type: Number, required: true },
     actionType: { type: Number, default: 4 },
@@ -22,14 +22,21 @@ const AuditSchema = new mongoose.Schema({
         key: String,
         old: String,
         new: String
-    }
+    },
+    ip: { type: String, required: true }
 });
 
 AuditSchema.plugin(require('mongoose-autopopulate'));
 
 AuditSchema.methods.toString = function() {
-    let str = `${formatDate(this.createdAt, true)} | <a href="/profile/${this.executor._id}"`
-        + ` target="_blank">${this.executor.fullName}</a> `;
+
+    let str;
+
+    if (this.executor) {
+        str = `<a href="/profile/${this.executor._id}" target="_blank">${this.executor.fullName}</a> `;
+    } else {
+        str = `<span class="gray">Unknown User</span> `;
+    }
 
     // actions list at src/bin/auditor.js
     switch(this.action)
@@ -41,17 +48,18 @@ AuditSchema.methods.toString = function() {
     case 4: return str += 'logged in.';
     case 5: return str += 'logged out.';
 
-    case 6: return str += `updated their profile.`
-        + `Changed <b>${this.changed.key}</b>${this.changed.old ? ` from ${this.changed.old} to ${this.changed.new}.` : '.'}`;
+    case 6: return str += `updated their ${this.changed.key}`
+        + `${this.changed.old ? ` from ${this.changed.old}` : ''}`
+        + `${this.changed.new ? ` to ${this.changed.new}` : ''}.`;
 
     case 11: return str += `added the place <a href="/places/${this.target._id}" target="_blank">${this.target.name}</a>.`;
     case 12: return str += `updated the place <a href="/places/${this.target._id}" target="_blank">${this.target.name}</a>.`
         + `Changed <b>${this.changed.key}</b>${this.changed.old ? ` from ${this.changed.old} to ${this.changed.new}.` : '.'}`;
-    case 13: return str += `deleted the place <a href="/places/${this.target._id}" target="_blank">${this.target.name}</a>.${this.reason ? ` Reason: ${this.reason}` : ''}`;
+    case 13: return str += `deleted the place <a href="/places/${this.target._id}" target="_blank">${this.target.name}</a>${this.reason ? ` Reason: ${this.reason}` : '.'}`;
     case 14: return str += `submitted a review for <a href="/places/${this.target._id}" target="_blank">${this.target.name}</a>.`;
+    case 15: return str += `deleted a review for <a href="/places/${this.target._id}" target="_blank">${this.target.name}</a>${this.reason ? ` Reason: ${this.reason}` : '.'}`;
 
-    case 20: return str += `reported <a href="/profile/${this.target._id}" target="_blank">${this.target.fullName}</a>.`;
-    case 21: return str += `reported <a href="/places/${this.target._id}" target="_blank">${this.target.name}</a>.`
+    case 20: return str += `reported <a href="/profile/${this.target._id}" target="_blank">${this.target.name || this.target.fullName}</a>.`;
 
     case 70: return str += `banned <a href="/profile/${this.target._id}" target="_blank">${this.target.fullName}</a>. Reason: ${this.reason}`;
     case 71: return str += `revoked <a href="/profile/${this.target._id}" target="_blank">${this.target.name}</a>'s ban.`;

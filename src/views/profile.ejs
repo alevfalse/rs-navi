@@ -151,15 +151,16 @@
                             <div class="row mt-3 text-left">
                                 <span><%= visited.fullName %></span>
                                 <span class="ml-2">
-                                    <% if (visited.account.status === 1) { %>
-                                        <i class="far fa-check-circle mr-2" id="verified" title="Verified"></i>
-                                    <% }
-                                    if (visited.account.role === 1 && visited.license.status === 2) { %>
-                                        <i class="far fa-id-card mr-2" id="licensed" title="Licensed"></i> 
-                                    <% }
-                                    if (visited.partner) { %>
-                                        <i class="far fa-handshake mr-2 skyblue" title="Partner"></i>
-                                    <% } %>
+                                    <% if (visited.account.role === 7) { %>
+                                        <i class="mr-2 gold fas fa-user-shield" title="Admin"></i>
+                                    <% } else {
+                                        if (visited.account.status === 1) { %>
+                                            <i class="far fa-check-circle mr-2" id="verified" title="Verified"></i>
+                                        <% }
+                                        if (visited.partner) { %>
+                                            <i class="far fa-handshake mr-2 skyblue" title="Partner"></i>
+                                        <% }
+                                    } %>
                                 </span>
                             </div>
                             <div class="row mt-3 mb-1">
@@ -177,20 +178,23 @@
                     </div>
                     
                     <div class="collapse show" id="profile">
-                        
-                        <% if (visited.account.role === 1 && visited.license.status !== 0) { %>
-                            <div class="card-body">
-                                <span>Licensed <%= visited.licenseTypeString %> (<%= visited.licenseStatusString %>)</span>
-                            </div>
-                        <% } 
-                        
-                        if (visited.account.role === 0) { %>
-                            <div class="card-body">
-                                <span>Student at <%= visited.schoolName %></span>
-                            </div>
-                        <% } %>
-
                         <div class="card-body">
+
+                            <% if (visited.account.role === 1) {
+                                if (visited.license.status === 2) { %>
+                                    <div class="card-text mb-3">
+                                        <span><i class="far fa-id-card mr-2" id="licensed" title="Licensed"></i>Licensed <%= visited.licenseTypeString %></span>
+                                    </div>
+                                <% } else if (locals.user && (user._id === visited._id || user.account.role === 7)) { %>
+                                    <div class="card-text mb-3">
+                                        <span><%= visited.licenseTypeString %> (<%= visited.licenseStatusString %>)</span>
+                                    </div>
+                                <% }
+                            } else if (visited.account.role === 0) { %>
+                                <div class="card-text mb-3">
+                                    <span>Student at <%= visited.schoolName %></span>
+                                </div>
+                            <% } %>
 
                             <% if (locals.user) { %>
                                 <div class="card-text" id="contact-number">

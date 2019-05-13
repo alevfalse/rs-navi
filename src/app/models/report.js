@@ -3,7 +3,7 @@ const generate = require('../../bin/generator');
 
 const ReportSchema = new mongoose.Schema({
     _id: { type: String, default: () => generate() },
-    createdAt: { type: Date, default: new Date() },
+    createdAt: { type: Date, default: () => new Date() },
     status: { type: Number, default: 0 },
     author: { type: String, ref: 'User', required: true },
     target: { type: String, ref: 'Place', required: true },

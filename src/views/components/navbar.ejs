@@ -2,7 +2,11 @@
 
 <nav class="navbar navbar-dark navbar-expand-md fixed-top" id="mainNavbar">
 
-    <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
+    <% if (locals.user && user.account.role === 7) { %>
+        <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> ADMIN</a>
+    <% } else { %>
+        <a href="/" class="navbar-brand"><span class="font-weight-bold">ROOM STAY-IN</span> NAVIGATION</a>
+    <% } %>
 
     <button class="navbar-toggler" data-toggle="collapse" data-target="#navLinks" aria-label="Toggle navigation links">
         <span class="text-white"><i class="fas fa-bars"></i></span>
@@ -10,22 +14,21 @@
 
     <div class="collapse navbar-collapse" id="navLinks">
         <ul class="navbar-nav ml-auto">
-            <% if (locals.user) { %>
-                <li class="nav-item"><a href="/profile" class="nav-link"><i class="mr-2 fas fa-user<%= user.account.role === 0 ? '-graduate' : ''%>"></i><%= user.firstName %>
-                </a></li>
-                <% if (user.account.role === 1) { %>
-                    <li class="nav-item"><a href="/places/add" class="nav-link"><i class="mr-2 fas fa-home"></i>Add A Place</a></li>
-                <% } %>
-                
-                <% if (user.account.role === 7) { %>
-                    <li class="nav-item"><a href="/logout" class="nav-link"><i class="mr-2 fas fa-sign-out-alt"></i>Logout</a></li>
-                <% } else { %>
+            <% if (locals.user) {
+                if (user.account.role === 0) { %>
+                    <li class="nav-item"><a href="/profile/<%=user._id%>" class="nav-link"><i class="mr-2 fas fa-user-graduate"></i><%= user.firstName %></a></li>
                     <li class="nav-item"><a href="/auth/logout" class="nav-link"><i class="mr-2 fas fa-sign-out-alt"></i>Logout</a></li>
-                <% } %>
-                
-            <% } else { %>
-            <li class="nav-item"><a href="/auth" class="nav-link">Login <i class="fas fa-user"></i></a></li>
-            <li class="nav-item"><a href="/auth?placeowner=1" class="nav-link">Add A Place <i class="fas fa-home"></i></a></li>
+                <% } else if (user.account.role === 1) { %>
+                    <li class="nav-item"><a href="/profile/<%=user._id%>" class="nav-link"><i class="mr-2 fas fa-user"></i><%= user.firstName %></a></li>
+                    <li class="nav-item"><a href="/places/add" class="nav-link"><i class="mr-2 fas fa-home"></i>Add A Place</a></li>
+                    <li class="nav-item"><a href="/auth/logout" class="nav-link"><i class="mr-2 fas fa-sign-out-alt"></i>Logout</a></li>
+                <% } else if (user.account.role === 7) { %>
+                    <li class="nav-item"><a href="/profile/<%=user._id%>" class="nav-link"><i class="mr-2 fas fa-user-shield"></i><%= user.fullName %></a></li>
+                    <li class="nav-item"><a href="/logout" class="nav-link"><i class="mr-2 fas fa-sign-out-alt"></i>Logout</a></li>
+                <% }
+            } else { %>
+                <li class="nav-item"><a href="/auth" class="nav-link"><i class="mr-2 fas fa-user"></i>Login</a></li>
+                <li class="nav-item"><a href="/auth?placeowner=1" class="nav-link"><i class="mr-2 fas fa-home"></i>Add A Place</a></li>
             <% } %>
         </ul>
     </div>

@@ -7,7 +7,7 @@ const Image = require('./image');
 
 const UserSchema = new mongoose.Schema({
     _id: { type: String, default: () => generate() },
-    createdAt:  { type: Date, default: new Date() },
+    createdAt:  { type: Date, default: () => new Date() },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     image: { type: String, ref: 'Image', default: null },
@@ -15,7 +15,7 @@ const UserSchema = new mongoose.Schema({
         role: { type: Number, required: true },
         email: { type: String, required: true, index: true },
         password: { type: String, required: true },
-        hashCode: { type: String, default: generate() },
+        hashCode: { type: String, default: () => generate() },
         lastLoggedIn: { type: Date, default: null },
         status:   { type: Number, default: 0, required: true },
         unlockedAt: { type: Date, default: null }

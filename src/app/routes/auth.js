@@ -8,6 +8,37 @@ const isEmail = require('validator/lib/isEmail');
 const validators = require('../../bin/validators');
 const audit = require('../../bin/auditor');
 
+// rate limiter
+const RateLimitMongoStore = require('rate-limit-mongo');
+const RateLimit = require('express-rate-limit');
+const dbURI = require('../../config/database');
+
+const forgotPasswordRateLimit = RateLimit({
+    store: new RateLimitMongoStore({ 
+        uri: dbURI,
+        collectionName: 'forgotPasswordHits',
+        expireTimeMs: 60 * 60 * 1000 // 1 hour
+    }),
+    max: 3, // limit each IP to 3 forgot password requests per expireTimeMs
+    handler: function(req, res, next) {
+        req.flash('message', 'Too many forgot password requests.<br>Please try again later.');
+        req.session.save(err => err ? next(err) : res.redirect('/auth'));
+    }
+});
+
+const signupRateLimit = RateLimit({
+    store: new RateLimitMongoStore({ 
+        uri: dbURI,
+        collectionName: 'signupHits',
+        expireTimeMs: 60 * 60 * 1000 // 1 hour
+    }),
+    max: 2, // limit each IP to 2 signups per expireTimeMs
+    handler: function(req, res, next) {
+        req.flash('message', 'Too many accounts created.<br>Please try again later.');
+        req.session.save(err => err ? next(err) : res.redirect('/auth'));
+    }
+});
+
 // models
 const User = require('../models/user');
 
@@ -17,6 +48,8 @@ function stillLoggedIn(req, res, next) {
     if (req.isAuthenticated()) {
         req.flash('message', 'You are still logged in.');
         return req.session.save(err => err ? next(err) : res.redirect('/profile'));
+    } else {
+        next();
     }
 }
 
@@ -61,7 +94,7 @@ authRouter.get('/validate/email', (req, res, next) => {
 // GET rsnavigation.com/auth/logout
 authRouter.get('/logout', (req, res) => {
     if (req.isAuthenticated()) {
-        audit.logout(req.user._id);
+        audit.userLogout(req.user._id, req.ip);
         req.logout();
         req.flash('message', 'Logged out.');
     }
@@ -72,9 +105,9 @@ authRouter.get('/logout', (req, res) => {
 // GET rsnavigation.com/verify/<hashCode>
 authRouter.get('/verify/:hashCode', stillLoggedIn, (req, res, next) => {
 
+    if (!validators.hashCode(req.params.hashCode)) { return next(); }
+    
     const code = sanitize(req.params.hashCode);
-
-    if (!validators.hashCode(code)) { return next(); }
 
     User.findOne({ 'account.hashCode': code, 'account.status': 0 }, (err, user) => {
         if (err || !user) { return next(err); }
@@ -86,7 +119,7 @@ authRouter.get('/verify/:hashCode', stillLoggedIn, (req, res, next) => {
                 if (err) { return next(err); } 
                 req.flash('message', 'Verified email address.');
                 req.session.save(err => err ? next(err) : res.redirect('/profile'));
-                audit.verifyEmail(user._id);
+                audit.verifyEmail(user._id, req.ip);
             });
         });
     });
@@ -95,10 +128,8 @@ authRouter.get('/verify/:hashCode', stillLoggedIn, (req, res, next) => {
 // GET rsnavigation.com/reset/<role>/<hashCode>
 authRouter.get('/reset/:hashCode', stillLoggedIn, (req, res, next) => {
 
+    if (!validators.hashCode(req.params.hashCode)) { return next(); }
     const code = sanitize(req.params.hashCode);
-
-    if (!validators.hashCode(code)) { return next(); }
-
     User.findOne({ 'account.hashCode': code, 'account.status': 1 }, (err, user) => {
         if (err || !user) { return next(err); } 
 
@@ -122,32 +153,32 @@ authRouter.post('/login', stillLoggedIn, (req, res, next) => {
         req.login(user, (err) => {
             if (err) { return next(err); } 
             req.session.save(err => err ? next(err) : res.redirect('/profile'));
-            audit.login(user);
+            audit.userLogin(user._id, req.ip);
         });
     }) (req, res, next);
 });
 
 // POST rsnavigation.com/auth/signup
-authRouter.post('/signup', stillLoggedIn, (req, res, next) => {
+authRouter.post('/signup', stillLoggedIn, signupRateLimit, (req, res, next) => {
 
     passport.authenticate('local-signup', (err, user) => {
         if (err) { return next(err); }
         req.session.save(err => err ? next(err) : res.redirect('/auth'));
-        if (user) { audit.signup(user._id); }
+        if (user) { audit.signup(user._id, req.ip); }
     }) (req, res, next);
 });
 
 // POST rsnavigation.com/auth/forgot
-authRouter.post('/forgot', stillLoggedIn, (req, res, next) => {
+authRouter.post('/forgot', stillLoggedIn, forgotPasswordRateLimit, (req, res, next) => {
 
-    const email = sanitize(req.body.email);
-    const role = sanitize(req.body.role);
-
-    const formError = validators.forgotPassword(email, role);
+    const formError = validators.forgotPassword(req.body.email, req.body.role);
     if (formError) {
         req.flash('message', formError);
         return req.session.save(err => err ? next(err) : res.redirect('/auth'));
     }
+
+    const email = sanitize(req.body.email);
+    const role = sanitize(req.body.role);
 
     User.findOne({ 'account.email': sanitize(email), 'account.role': role === 'student' ? 0 : 1 }, 
     (err, user) => {
@@ -175,7 +206,7 @@ authRouter.post('/forgot', stillLoggedIn, (req, res, next) => {
 
                 req.flash('message', 'Password reset link has been sent to your email.');
                 req.session.save(err => err ? next(err) : res.redirect('/auth'));
-                audit.forgotPassword(user._id);
+                audit.forgotPassword(user._id, req.ip);
             });
         });
     });
@@ -183,16 +214,15 @@ authRouter.post('/forgot', stillLoggedIn, (req, res, next) => {
 
 // POST rsnavigation.com/auth/reset
 authRouter.post('/reset', stillLoggedIn, (req, res, next) => {
-
-    const hashCode = sanitize(req.body.hashCode);
-    const newPassword = sanitize(req.body.newPassword);
-    const confirmNewPassword = sanitize(req.body.confirmNewPassword);
     
-    const formError = validators.resetPassword(hashCode, newPassword, confirmNewPassword);
+    const formError = validators.resetPassword(req.body.hashCode, req.body.newPassword, req.body.confirmNewPassword);
     if (formError) {
         req.flash('message', formError);
         return req.session.save(err => err ? next(err) : res.redirect(`/auth/reset/${hashCode}`)) 
     }
+
+    const hashCode = sanitize(req.body.hashCode);
+    const newPassword = sanitize(req.body.newPassword);
     
     User.findOne({ 'account.hashCode': hashCode, 'account.status': 1 },
     async (err, user) => {
@@ -203,7 +233,7 @@ authRouter.post('/reset', stillLoggedIn, (req, res, next) => {
 
             req.flash('message', 'Password updated.');
             req.session.save(err => err ? next(err) : res.redirect('/auth'));
-            audit.resetPassword(user._id);
+            audit.resetPassword(user._id, req.ip);
         }, true);
     });
 });

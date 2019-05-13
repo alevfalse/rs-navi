@@ -34,14 +34,15 @@ function undef(x) {
     3 - Reset Password  
     4 - User Log In  
     5 - User Log Out  
-    6 - User Update (Self)  
+    6 - User Profile Update  
+
     11 - Place Add  
     12 - Place Update  
     13 - Place Delete  
     14 - Add Review  
     15 - Delete Review  
-    20 - Report User  
-    21 - Report Place  
+
+    20 - Report   
     --- Admin Only Actions ---  
     70 - Ban User  
     71 - Revoke User Ban  
@@ -59,7 +60,7 @@ function undef(x) {
 
  * @param { AuditOptions } opts - Available properties: target, targetModel, changed, reason
  */
-function audit(executorId, action, actionType=4, opts) {
+function audit(executorId, ip, action, actionType=4, opts) {
 
     console.log(`Audit: ${executorId} - ${action} - ${actionType}`);
 
@@ -67,17 +68,22 @@ function audit(executorId, action, actionType=4, opts) {
         return logger.error('Missing required parameter(s) on function audit call.');
     }
 
+    if (undef(ip)) {
+        return logger.error('Missing IP Address on Audit.');
+    }
+
     const data = {
         executor: executorId,
         action: action,
-        actionType: actionType
+        actionType: actionType,
+        ip: ip
     }
 
     if (!undef(opts)) {
         
         if (!undef(opts.target)) { 
 
-            if (undef(targetModel)) { return logger.error('Audit target provided but no target model given.'); }
+            if (undef(opts.targetModel)) { return logger.error('Audit target provided but no target model given.'); }
 
             data.target = opts.target;
 
@@ -99,177 +105,173 @@ function audit(executorId, action, actionType=4, opts) {
     audit.save(err => err ? logger.error(err.stack) : console.log(audit));
 }
 
-exports.signup = function(userId) {
+exports.signup = function(userId, ip) {
     if (undef(userId)) { return logger.error('Audit:Signup - User ID is undefined.'); }
-    audit(userId, 0, 0);
+    audit(userId, ip, 0, 0);
 }
 
-exports.verifyEmail = function(userId) {
-    if (undef(userId)) { return logger.error('Audit:Verify Email - User is undefined.'); }
-    audit(userId, 1, 2, {
+exports.verifyEmail = function(userId, ip) {
+    if (undef(userId)) { return logger.error('Audit:Verify Email - User ID is undefined.'); }
+    audit(userId, ip, 1, 2);
+}
+
+exports.forgotPassword = function(userId, ip) {
+    if (undef(userId)) { return logger.error('Audit:Forgot Password - User ID is undefined.'); }
+    audit(userId, ip, 2);
+}
+
+exports.resetPassword = function(userId, ip) {
+    if (undef(userId)) { return logger.error('Audit:Reset Password - User ID is undefined.'); }
+    audit(userId, ip, 3, 2);
+}
+
+exports.userLogin = function(userId, ip) {
+    if (undef(userId)) { return logger.error('Audit:User Login - User ID is undefined.'); }
+    audit(userId, ip, 4, 1);
+}
+
+exports.userLogout = function(userId, ip) {
+    if (undef(userId)) { return logger.error('Audit:User Logout - User ID is undefined.'); }
+    audit(userId, ip, 5, 4);
+}
+
+exports.userProfileUpdate = function(userId, ip, changed = { key: null, old: null, new: null }) {
+    if (undef(userId)) { return logger.error('Audit:User Profile Update - User ID is undefined.'); }
+    audit(userId, ip, 6, 2, {
         changed: {
-            key: 'account.status',
-            old: 0,
-            new: 1
+            key: changed.key,
+            old: changed.old,
+            new: changed.new
         }
     });
 }
 
-exports.forgotPassword = function(userId) {
-    if (undef(userId)) { return logger.error('Audit:Forgot Password - User is undefined.'); }
-    audit(userId, 2);
-}
-
-exports.resetPassword = function(userId) {
-    if (undef(userId)) { return logger.error('Audit:Forgot Password - User is undefined.'); }
-    audit(userId, 3, 2, { 
-        changed: {
-            key: 'account.password',
-            old: '<secret>',
-            new: '<secret>'
-        }
-    });
-}
-
-exports.login = function(userId) {
-    if (undef(userId)) { return logger.error('Audit:Login - User ID is undefined.'); }
-    audit(userId, 4, 1);
-}
-
-exports.logout = function(userId) {
-    if (undef(userId)) { return logger.error('Audit:Logout - User ID is undefined.'); }
-    audit(userId, 5, 1);
-}
-
-exports.userUpdate = function(userId) {
-    if (undef(userId)) { return logger.error('Audit:User Update - User ID is undefined.'); }
-    audit(userId, 6, 2);
-}
-
-exports.userUpdateImage = function(userId, oldImage, newImage) {
-    if (undef(userId)) { return logger.error('Audit:User Update Image - User ID is undefined.'); }
-    if (undef(oldImage)) { return logger.error('Audit:User Update Image - Old Image is undefined.'); }
-    if (undef(newImage)) { return logger.error('Audit:User Update Image - New Image is undefined.'); }
-    audit(userId, 6, 2, {
-        changed: {
-            key: 'image',
-            old: oldImage,
-            new: newImage
-        }
-    })
-}
-
-exports.placeAdd = function(userId, placeId) {
+exports.placeAdd = function(userId, ip, placeId,) {
     if (undef(userId)) { return logger.error('Audit:Place Add - User ID is undefined.'); }
     if (undef(placeId)) { return logger.error('Audit:Place Add - Place ID is undefined.'); }
 
-    audit(userId, 11,0, {
+    audit(userId, ip, 11,0, {
         target: placeId, 
-        targetModel: 'Place'
+        targetModel: 1
     });
 }
 
-exports.placeUpdate = function(userId, placeId) {
+exports.placeUpdate = function(userId, ip, placeId, ip) {
     if (undef(userId)) { return logger.error('Audit:Place Update - User ID is undefined.'); }
     if (undef(placeId)) { return logger.error('Audit:Place Update - Place ID is undefined.'); }
 
-    audit(userId, 12, 2, {
+    audit(userId, ip, 12, 2, {
         target: placeId, 
-        targetModel: 'Place'
+        targetModel: 1
     });
 }
 
-exports.placeDelete = function(userId, placeId, reason=null) {
+exports.placeDelete = function(userId, ip, placeId, reason=null) {
     if (undef(userId)) { return logger.error('Audit:Place Delete - User ID is undefined.'); }
     if (undef(placeId)) { return logger.error('Audit:Place Delete - Place ID is undefined.'); }
 
-    audit(userId, 13, 3, {
+    audit(userId, ip, 13, 3, {
         target: placeId, 
-        targetModel: 'Place',
+        targetModel: 1,
         reason: reason
     });
 }
 
-exports.reviewAdd = function(userId, placeId) {
+exports.reviewAdd = function(userId, ip, placeId) {
     if (undef(userId)) { return logger.error('Audit:Review Add - User ID is undefined.'); }
     if (undef(placeId)) { return logger.error('Audit:Review Add - Place ID is undefined.'); }
 
-    audit(userId, 14, 0, {
+    audit(userId, ip, 14, 0, {
         target: placeId, 
-        targetModel: 'Place'
+        targetModel: 1
     });
 }
 
-exports.reviewDelete = function(userId, placeId, reason=null) {
-    if (undef(userId)) { return logger.error('Audit:Review Delete - User ID is undefined.'); }
+exports.reviewDelete = function(userId, ip, placeId, reason=null) {
+    if (undef(userId))  { return logger.error('Audit:Review Delete - User ID is undefined.'); }
     if (undef(placeId)) { return logger.error('Audit:Review Delete - Place ID is undefined.'); }
 
-    audit(userId, 15, 3, {
+    audit(userId, ip, 15, 3, {
         target: placeId, 
-        targetModel: 'Place',
+        targetModel: 1,
         reason: reason
     });
 }
 
-exports.userReport = function(userId, reporteUserdId) {
-    if (undef(userId)) { return logger.error('Audit:User Report - User ID is undefined.'); }
+/**
+ * @param { Number } targetModel - the model to use when populating the reported entity  
+0 - User  
+1 - Place  
+ */
+exports.report = function(userId, ip, reportedId, targetModel) {
+    if (undef(userId))     { return logger.error('Audit:Report - User ID is undefined.'); }
+    if (undef(reportedId)) { return logger.error('Audit:Report - Reported ID is undefined.'); }
+    if (targetModel !== 0 && targetModel !== 1) { return logger.error('Audit:Report - Invalid Target Model.'); }
+
+    audit(userId, ip, 20, 0, {
+        target: reportedId,
+        targetModel: targetModel
+    });
+}
+exports.userReport = function(userId, ip, reporteUserdId) {
+    if (undef(userId))         { return logger.error('Audit:User Report - User ID is undefined.'); }
     if (undef(reporteUserdId)) { return logger.error('Audit:User Report - Reported User ID is undefined.'); }
-    audit(userId, 20, 0, {
+    audit(userId, ip, 20, 0, {
         target: reporteUserdId,
         targetModel: 0
     });
 }
 
-exports.placeReport = function(userId, reportedPlaceId) {
-    if (undef(userId)) { return logger.error('Audit:Place Report - User ID is undefined.'); }
+exports.placeReport = function(userId, ip, reportedPlaceId) {
+    if (undef(userId))          { return logger.error('Audit:Place Report - User ID is undefined.'); }
     if (undef(reportedPlaceId)) { return logger.error('Audit:Place Report - Reported Place ID is undefined.'); }
-    audit(userId, 21, 0, {
+    audit(userId, ip, 20, 0, {
         target: reportedPlaceId,
         targetModel: 1
     });
 }
 
-exports.ban = function(adminId, bannedUserId, reason) {
+exports.ban = function(adminId, ip, bannedUserId, reason) {
     if (undef(adminId)) { return logger.error('Audit:Ban - Admin ID is undefined.'); }
     if (undef(bannedUserId)) { return logger.error('Audit:Ban - Banned User ID is undefined.'); }
     if (undef(reason)) { return logger.error('Audit:Ban - Reason is undefined.'); }
 
-    audit(adminId, 70, 2, { 
+    audit(adminId, ip, 70, 2, { 
         target: bannedUserId, 
         targetModel: 0,
         reason: reason
     });
 }
 
-exports.banRevoke = function(adminId, bannedUserId, reason) {
+exports.banRevoke = function(adminId, ip, bannedUserId, reason) {
     if (undef(adminId)) { return logger.error('Audit:Ban - Admin ID is undefined.'); }
     if (undef(bannedUserId)) { return logger.error('Audit:Ban - Banned User ID is undefined.'); }
     if (undef(reason)) { return logger.error('Audit:Ban - Reason is undefined.'); }
 
-    audit(adminId, 71, 2, { 
+    audit(adminId, ip, 71, 2, { 
         target: bannedUserId, 
         targetModel: 0,
         reason: reason
     });
 }
 
-exports.validateLicense = function(adminId, placeownerId, valid) {
+exports.validateLicense = function(adminId, ip, placeownerId, valid) {
     if (undef(adminId)) { return logger.error('Audit:Validate License - Admin ID is undefined.'); }
     if (undef(placeownerId)) { return logger.error('Audit:Validate License - Placeowner ID is undefined.'); }
     if (undef(valid)) { return logger.error('Audit:Validate License - Valid is undefined.'); }
 
-    audit(adminId, valid ? 72 : 73, 2, { 
+    audit(adminId, ip, valid ? 72 : 73, 2, { 
         target: placeownerId, 
         targetModel: 0
     });
 }
 
-exports.accessLogsFetch = function(adminId) {
+exports.accessLogsFetch = function(adminId, ip) {
     if (undef(adminId)) { return logger.error('Audit:Access Logs Fetch - Admin ID is undefined.'); }
-    audit(adminId, 77, 1);
+    audit(adminId, ip, 77, 1);
 }
 
-exports.auditLogsFetch = function(adminId) {
+exports.auditLogsFetch = function(adminId, ip) {
     if (undef(adminId)) { return logger.error('Audit:Audit Logs Fetch - Admin ID is undefined.'); }
-    audit(adminId, 78, 1);
+    audit(adminId, ip, 78, 1);
 }
