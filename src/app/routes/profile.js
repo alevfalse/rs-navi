@@ -21,7 +21,23 @@ function isAuthenticated(req, res, next) {
     req.isAuthenticated() ? next() : res.redirect('/auth');
 }
 
+// rate limiters
+const RateLimitMongoStore = require('rate-limit-mongo');
+const RateLimit = require('express-rate-limit');
+const dbURI = require('../../config/database');
 
+const updateProfileRateLimiter = RateLimit({
+    store: new RateLimitMongoStore({ 
+        uri: dbURI,
+        collectionName: 'updateProfileHits',
+        expireTimeMs: 5 * 60 * 1000 // 5 minutes
+    }),
+    max: 5, // limit each IP to 5 reviews submitted per expireTimeMs
+    handler: function(req, res, next) {
+        req.flash('message', 'Too many update profile requests.<br>Please try again later.');
+        req.session.save(err => err ? next(err) : res.redirect(`/profile`));
+    }
+});
 
 // =======================================================================================
 // GET ROUTES ============================================================================
@@ -74,7 +90,7 @@ profileRouter.get('/:id/image', (req, res, next) => {
 // =======================================================================================
 // POST ROUTES ===========================================================================
 
-profileRouter.post('/update', isAuthenticated, async (req, res, next) => {
+profileRouter.post('/update', isAuthenticated, updateProfileRateLimiter, async (req, res, next) => {
 
     const firstName          = sanitize(req.body.firstName);
     const lastName           = sanitize(req.body.lastName);
@@ -223,7 +239,7 @@ profileRouter.post('/update', isAuthenticated, async (req, res, next) => {
 });
 
 // POST rsnavigation.com/profile/image/update
-profileRouter.post('/image/update', isAuthenticated, upload.single('image'),
+profileRouter.post('/image/update', isAuthenticated, updateProfileRateLimiter, upload.single('image'),
 (err, req, res, next) => {
     req.flash('message', err.message);
     req.session.save(err => err ? next(err) : res.redirect('/profile'));

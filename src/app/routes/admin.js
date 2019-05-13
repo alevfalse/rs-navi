@@ -9,6 +9,7 @@ const logger = require('../../config/logger');
 const sanitize = require('../../bin/sanitizer');
 const audit = require('../../bin/auditor');
 const formatDate = require('../../bin/date-formatter');
+const mailer = require('../../config/mailer');
 
 // models
 const User = require('../models/user');
@@ -74,42 +75,8 @@ function isAdmin(req, res, next) {
 
 // GET admin.rsnavigation.com/
 adminRouter.get('/', isAdmin, (req, res, next) => {
-
-    // parallel database querying
-    Promise.all([
-        // query all placeowners whose license status are unverified
-        User.find({ 'license.status': 1, 'account.role': 1, 'account.status': 1 }).exec(),
-        Report.aggregate([
-            { $match: { status: 0 } },
-            {
-                $group: {
-                    _id: { target: "$target" },
-                    docs: { $push: "$$ROOT" }
-                }
-            }
-        ]).exec()
-    ])
-    .then(([placeowners, reports, audit]) => {
-        Place.populate(reports, {
-            path: '_id.target',
-            match: { status: 1 },
-            select: 'name'
-        }, (err, reports) => {
-            if (err) { return next(err); }
-
-            User.populate(reports, {
-                path: 'docs.author',
-                match: { 'account.status': 1 }
-            }, (err, reports) => {
-                if (err) { return next(err); }
-
-                res.render('admin/home', { 'admin': req.user, 'reports': reports, 
-                'placeowners': placeowners, 'audit': audit, 'message': req.flash('message') },
-                (err, html) => err ? next(err) : res.send(html));
-            });
-        });
-    })
-    .catch(next);
+    res.render('admin/home', { 'admin': req.user, 'message': req.flash('message') },
+    (err, html) => err ? next(err) : res.send(html));
 });
 
 adminRouter.get('/access', isAdmin, (req, res, next) => {
@@ -136,6 +103,101 @@ adminRouter.get('/audit', isAdmin, (req, res, next) => {
                 date: formatDate(auditLogs[i].createdAt, true),
                 text: auditLogs[i].toString(),
                 ip: auditLogs[i].ip || 'Unknown'
+            });
+        }
+
+        res.send(arr);
+    });
+});
+
+adminRouter.get('/reports', isAdmin, (req, res, next) => {
+
+    Report.aggregate([
+        { $match: { status: 0 } },
+        {
+            $group: {
+                _id: { target: "$target" },
+                docs: { $push: "$$ROOT" }
+            }
+        }
+    ]).exec((err, reports) => {
+        if (err) { logger.error(err.stack); return res.send(null); }
+        if (reports.length === 0) { return send(null); }
+
+        Place.populate(reports, {
+            path: '_id.target',
+            match: { status: 1 },
+            select: 'name'
+        }, (err, reports) => {
+            if (err) { logger.error(err.stack); return res.send(null); }
+
+            User.populate(reports, {
+                path: 'docs.author',
+                match: { 'account.status': 1 },
+                select: 'firstName lastName'
+            }, (err, results) => {
+                if (err) { logger.error(err.stack); return res.send(null); }
+
+                console.log(results[0].docs[0]);
+
+                const places = [];
+
+                for (let result of results) {
+
+                    const reports = [];
+
+                    for (doc of result.docs) {
+
+                        let typeString;
+
+                        switch(doc.type)
+                        {
+                            case 0: typeString = 'Not available'; break;
+                            case 1: typeString = 'Placeowner not responding'; break;
+                            case 2: typeString = 'Incorrect information'; break;
+                            case 3: typeString = 'Duplicate listing'; break;
+                            case 4: typeString = 'Fake or spam'; break;
+                            case 5: typeString = 'Other'; break;
+                            default: typeString = 'Unknown';
+                        }
+                        
+                        reports.push({
+                            author: {
+                                id: doc.author._id,
+                                name: `${doc.author.firstName} ${doc.author.lastName}`
+                            },
+                            type: typeString,
+                            comment: doc.comment
+                        });
+                    }
+
+                    places.push({
+                        id: result._id.target._id,
+                        name: result._id.target.name,
+                        reports: reports
+                    });
+                }
+
+                console.log(places[0].reports[0]);
+                res.send(places);
+            });
+        });
+    });
+});
+
+adminRouter.get('/prc', isAdmin, (req, res, next) => {
+    console.log('Requesting pending license...');
+    User.find({ 'license.status': 1, 'account.role': 1, 'account.status': 1 },
+    (err, placeowners) => {
+        if (err) { return next(err); }
+        
+        const arr = [];
+
+        for (owner of placeowners) {
+            arr.push({
+                id: owner._id,
+                name: owner.fullName,
+                license: owner.licenseTypeString
             });
         }
 
@@ -219,10 +281,20 @@ adminRouter.post('/prc/:id', isAdmin, (req, res, next) => {
 
             if (valid === 'true') {
                 action = 'Verified';
+
+                // audit license verification
                 audit.validateLicense(req.user._id, req.ip, placeowner._id, true);
+                // send an email to the placeowner
+                mailer.sendVerifiedLicenseEmail(placeowner, (err) => { if (err) logger.error(err.stack); });
+
             } else if (valid === 'false') {
                 action = 'Rejected';
+
+                // audit license rejection
                 audit.validateLicense(req.user._id, req.ip, false);
+                // send an email to the placeowner
+                mailer.sendRejectedLicenseEmail(placeowner, (err) => { if (err) logger.error(err.stack); });
+
             } else {
                 return next();
             }

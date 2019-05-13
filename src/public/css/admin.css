@@ -78,7 +78,7 @@ body {
 }
 
 .table.custom-table {
-    color: skyblue;
+    color: white;
     background: rgb(14, 22, 38, 0.75);
     border: solid 1px rgb(135, 206, 235, 0.25);
 }
@@ -106,6 +106,28 @@ th {
     margin-top: 200px;
 }
 
+/* Scrollbaar */
+
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: rgb(14, 22, 38, 0.9);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #f1f1f1; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(241, 241, 241, 0.5); 
+}
+
 @media (max-width: 800px) {
     #mainNavbar {
         background:rgb(14, 22, 38, 0.8);
@@ -115,6 +137,10 @@ th {
 @media (max-width: 600px) {
     #mainNavbar .navbar-brand, #mainNavbar .nav-link {
         font-size: 1.0rem;
+    }
+
+    h1 {
+        font-size: 1.75rem;
     }
 }
 

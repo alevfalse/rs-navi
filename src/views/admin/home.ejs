@@ -51,7 +51,7 @@
     <main class="container-fluid">
         <div class="row justify-content-center mb-3 text-white">
             <div class="col-10 col-md-8 col-lg-6 text-center">
-                <h1>Admin Control Center</h1>
+                <h1 class="mt-3">Admin Control Center</h1>
             </div>
         </div>
 
@@ -96,21 +96,6 @@
         
                     <div class="container collapse" id="reports" data-parent="#accordion">
                         <div class="card-body mb-3" id="reports-data">
-                            <% if (locals.reports && reports.length > 0) {
-                                for (report of reports) { %>
-                                    <a class="skyblue" href="/places/<%= report._id.target._id %>" target="_blank"><%= report._id.target.name %></a>
-                                    <% for (doc of report.docs) { %>
-                                        <p class="mb-0 mr-2">
-                                            <a href="/profile/<%= doc.author._id %>" class="ml-3" target="_blank">
-                                                <%= doc.author.fullName ? doc.author.fullName : 'Removed User' %>
-                                            </a>: <%= doc.comment %> 
-                                        </p> 
-                                    <% } %>
-                                    <br>
-                                <% }
-                            } else { %>
-                                No reports to show.
-                            <% } %>
                         </div>
                     </div>
                 </div>
@@ -119,45 +104,11 @@
                 <div class="card">
                     <div class="card-header" id="headingTwo">
                         <h5 class="mb-0">
-                            <button class="btn custom-button collapsed" data-toggle="collapse" data-target="#prc"
-                                aria-expanded="false" aria-controls="collapseTwo">PRC License Verification
-                            </button>
+                            <button class="btn custom-button collapsed" data-toggle="collapse" data-target="#prc" id="prc-button">PRC License Verification</button>
                         </h5>
                     </div>
                     <div id="prc" class="container collapse" aria-labelledby="headingTwo" data-parent="#accordion">
-                        <div class="card-body mb-3">
-                            <% if (locals.placeowners && placeowners.length > 0) { %>
-                                <table class="table table-borderless custom-table text-center">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">Name</th>
-                                            <th scope="col">License Type</th>
-                                            <th scope="col"><a class="text-center" href="https://online.prc.gov.ph/verification" target="_blank">PRC</a></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <% if (locals.placeowners && placeowners.length > 0) { 
-                                            for (owner of placeowners) { %>
-                                                <tr>
-                                                    <td style="width: 33%;"><a href="/profile/<%= owner._id %>" target="_blank"><%= owner.fullName %></a></td>
-                                                    <td style="width: 33%;"><%= owner.licenseTypeString %></td>
-                                                    <td style="width: 33%;">
-                                                        <form method="POST" action="/prc/<%= owner._id %>?valid=true" style="display: inline;">
-                                                            <button type="submit" class="limegreen btn btn-sm custom-button">Verify</button>
-                                                        </form>
-                                                        
-                                                        <form method="POST" action="/prc/<%= owner._id %>?valid=false" style="display: inline;">
-                                                            <button type="submit" class="red btn btn-sm custom-button">Reject</button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-                                            <% } %>
-                                        <% } %>
-                                    </tbody>
-                                </table>
-                            <% } else { %>
-                                No license pending for verification.
-                            <% } %>
+                        <div class="card-body mb-3" id="prc-data">
                         </div>
                     </div>
                 </div>

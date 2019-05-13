@@ -43,7 +43,7 @@ button.btn:focus {
 }
 
 select.form-control:invalid {
-    color: gray;
+    color: rgba(255, 255, 255, 0.70);
 }
 
 select.form-control option {
@@ -109,6 +109,28 @@ select.form-control option {
 
 .btn.custom-button:hover {
     background: rgb(14, 22, 38, 0);
+}
+
+/* Scrollbar */ 
+
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: rgb(14, 22, 38, 0.9);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #f1f1f1; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(241, 241, 241, 0.5); 
 }
 
 @media (max-width: 600px) {

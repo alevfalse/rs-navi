@@ -43,7 +43,7 @@
             <!-- Visited Placeowner's Places Column -->
             <div class="col-12 col-md-9 mb-3 order-1 order-md-0">
                 <div class="card">
-                    <h1 class="display-4 text-center text-white my-2"><%= visited.fullName %>'s Places</h1>
+                    <h1 class="text-center text-white my-2"><%= visited.fullName %>'s Places</h1>
                 </div>
                 <div class="row mx-0" id="places">
                     <% if (visited.places && visited.places.length > 0) {
@@ -111,9 +111,9 @@
                     } else { %>
                         <div class="container-fluid mt-3">
                             <div class="row justify-content-center text-center">
-                                <h4 class="text-white">
+                                <h5 class="text-white">
                                     No places to show<%- locals.user && user._id === visited._id ? '. <a class="skyblue" href="/places/add">Add some.</a>' : '' %>
-                                </h4>
+                                </h5>
                             </div>
                         </div>
                     <% } %>
@@ -135,7 +135,7 @@
                     <div class="container-fluid card-header py-2">
                         <div class="row justify-content-center text-center">
                             <% if (locals.user && user._id === visited._id) { %>
-                                <form method="POST" class="text-center" action="/profile/image/update" enctype="multipart/form-data">
+                                <form method="POST" action="/profile/image/update" enctype="multipart/form-data">
                                     <label class="mb-0" for="profile-image-input">
                                         <img id="thumbnail" class="pointer" src="<%= visited.image ? visited.image.url : '/images/blank.jpg' %>" alt="photo" data-toggle="tooltip" data-placement="bottom" title="Change Photo"/>
                                     </label>

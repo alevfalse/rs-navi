@@ -73,3 +73,47 @@ exports.sendResetPasswordEmail = function(user, callback) {
         callback(err);
     });
 }
+
+exports.sendVerifiedLicenseEmail = function(user, callback) {
+    const message = `Congratulations, ${user.firstName}!\n\n`
+        + `Your ${user.licenseTypeString} license has been verified. `
+        + `A 'Licensed' badge will now appear on your profile.\n`
+        + `Do note, however, that updating your license type will set it to pending once again `
+        + `to be verified by our admins.\n`
+        + `If you have any further concerns, feel free to reply to this email.\n\n`
+        + `Thank you for using RS Navi.\n- RS Navi Team`;
+
+    const mailOptions = {
+        from: "roomstayin.navigation@gmail.com",
+        to: user.account.email,
+        subject: `RS Navigation - ${user.licenseTypeString} License`,
+        text: message
+    };  
+    
+    gmail.sendMail(mailOptions, (err, info) => {
+        if (!err) { logger.info(`Verified license email sent to [${user.account.email}] - ${info.response}`); }
+        callback(err);
+    });
+}
+
+exports.sendRejectedLicenseEmail = function(user, callback) {
+    const message = `Good day, ${user.firstName}.\n\n`
+        + `We are emailing you to inform that after thorough of your ${user.licenseTypeString} license `
+        + `at https://online.prc.gov.ph/verification, it has been rejected.`
+        + `Please make sure that the information you have provided are accurate. `
+        + `You may submit another one for verification by updating your license type on your profile.\n`
+        + `If you have any further concerns, feel free to reply to this email.\n\n`
+        + `Thank you for using RS Navi.\n- RS Navi Team`
+
+    const mailOptions = {
+        from: "roomstayin.navigation@gmail.com",
+        to: user.account.email,
+        subject: `RS Navigation - ${user.licenseTypeString} License`,
+        text: message
+    };  
+    
+    gmail.sendMail(mailOptions, (err, info) => {
+        if (!err) { logger.info(`Rejected license email sent to [${user.account.email}] - ${info.response}`); }
+        callback(err);
+    });
+}

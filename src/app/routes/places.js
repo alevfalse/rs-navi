@@ -44,24 +44,39 @@ function isPlaceowner(req, res, next) {
     }
 }
 
+// rate limiters
+const RateLimitMongoStore = require('rate-limit-mongo');
+const RateLimit = require('express-rate-limit');
+const dbURI = require('../../config/database');
 
+const submitReviewRateLimiter = RateLimit({
+    store: new RateLimitMongoStore({ 
+        uri: dbURI,
+        collectionName: 'submitReviewHits',
+        expireTimeMs: 24 * 60 * 60 * 1000 // 1 day
+    }),
+    max: 3, // limit each IP to 3 reviews submitted per expireTimeMs
+    handler: function(req, res, next) {
+        req.flash('message', 'Too many reviews submitted.<br>Please try again later.');
+        req.session.save(err => err ? next(err) : res.redirect(`/places/${req.params.id}`));
+    }
+});
+
+const submitReportRateLimiter = RateLimit({
+    store: new RateLimitMongoStore({ 
+        uri: dbURI,
+        collectionName: 'submitReportHits',
+        expireTimeMs: 24 * 60 * 60 * 1000 // 1 day
+    }),
+    max: 3, // limit each IP to 3 reports submitted per expireTimeMs
+    handler: function(req, res, next) {
+        req.flash('message', 'Too many reports submitted.<br>Please try again later.');
+        req.session.save(err => err ? next(err) : res.redirect('/places/${req.params.id}'));
+    }
+});
 
 // =======================================================================================
 // GET ROUTES ============================================================================
-
-// GET rsnavigation.com/places
-placesRouter.get('/', (req, res, next) => {
-
-    return next(); // removed
-
-    Place.find({ 'status': 1 })
-    .populate('owner images reviews')
-    .exec((err, places) => {
-        if (err) { return next(err); }
-        res.render('places', { 'user': req.user, 'places': places, 'message': req.flash('message') }, 
-        (err, html) => err ? next(err) : res.send(html));
-    });
-});
 
 // GET rsnavigation.com/places/add
 placesRouter.get('/add', isPlaceowner, (req, res, next) => {
@@ -233,7 +248,7 @@ placesRouter.post('/add', isPlaceowner, upload.array('images', 10),
 });
 
 // POST rsnavigation.com/places/:id/review
-placesRouter.post('/:id/review', isStudent, (req, res, next) => {
+placesRouter.post('/:id/review', isStudent, submitReviewRateLimiter, (req, res, next) => {
 
     const placeId = req.params.id;
     const comment = req.body.comment.replace(/\n/g, '<br>'); // replace all new lines with <br>
@@ -288,7 +303,7 @@ placesRouter.post('/:id/review', isStudent, (req, res, next) => {
 });
 
 // POST rsnavigation.com/places/:id/report
-placesRouter.post('/:id/report', isAuthenticated, (req, res, next) => {
+placesRouter.post('/:id/report', isAuthenticated, submitReportRateLimiter, (req, res, next) => {
 
     let comment = sanitize(req.body.comment);
     const type  = sanitize(req.body.type);

@@ -8,37 +8,6 @@ const isEmail = require('validator/lib/isEmail');
 const validators = require('../../bin/validators');
 const audit = require('../../bin/auditor');
 
-// rate limiter
-const RateLimitMongoStore = require('rate-limit-mongo');
-const RateLimit = require('express-rate-limit');
-const dbURI = require('../../config/database');
-
-const forgotPasswordRateLimit = RateLimit({
-    store: new RateLimitMongoStore({ 
-        uri: dbURI,
-        collectionName: 'forgotPasswordHits',
-        expireTimeMs: 60 * 60 * 1000 // 1 hour
-    }),
-    max: 3, // limit each IP to 3 forgot password requests per expireTimeMs
-    handler: function(req, res, next) {
-        req.flash('message', 'Too many forgot password requests.<br>Please try again later.');
-        req.session.save(err => err ? next(err) : res.redirect('/auth'));
-    }
-});
-
-const signupRateLimit = RateLimit({
-    store: new RateLimitMongoStore({ 
-        uri: dbURI,
-        collectionName: 'signupHits',
-        expireTimeMs: 60 * 60 * 1000 // 1 hour
-    }),
-    max: 2, // limit each IP to 2 signups per expireTimeMs
-    handler: function(req, res, next) {
-        req.flash('message', 'Too many accounts created.<br>Please try again later.');
-        req.session.save(err => err ? next(err) : res.redirect('/auth'));
-    }
-});
-
 // models
 const User = require('../models/user');
 
@@ -52,6 +21,37 @@ function stillLoggedIn(req, res, next) {
         next();
     }
 }
+
+// rate limiters
+const RateLimitMongoStore = require('rate-limit-mongo');
+const RateLimit = require('express-rate-limit');
+const dbURI = require('../../config/database');
+
+const forgotPasswordRateLimiter = RateLimit({
+    store: new RateLimitMongoStore({ 
+        uri: dbURI,
+        collectionName: 'forgotPasswordHits',
+        expireTimeMs: 60 * 60 * 1000 // 1 hour
+    }),
+    max: 3, // limit each IP to 3 forgot password requests per expireTimeMs
+    handler: function(req, res, next) {
+        req.flash('message', 'Too many forgot password requests.<br>Please try again later.');
+        req.session.save(err => err ? next(err) : res.redirect('/auth'));
+    }
+});
+
+const signupRateLimiter = RateLimit({
+    store: new RateLimitMongoStore({ 
+        uri: dbURI,
+        collectionName: 'signupHits',
+        expireTimeMs: 60 * 60 * 1000 // 1 hour
+    }),
+    max: 2, // limit each IP to 2 signups per expireTimeMs
+    handler: function(req, res, next) {
+        req.flash('message', 'Too many accounts created.<br>Please try again later.');
+        req.session.save(err => err ? next(err) : res.redirect('/auth'));
+    }
+});
 
 // prevent admin users from accessting this route
 authRouter.use((req, res, next) => {
@@ -159,7 +159,7 @@ authRouter.post('/login', stillLoggedIn, (req, res, next) => {
 });
 
 // POST rsnavigation.com/auth/signup
-authRouter.post('/signup', stillLoggedIn, signupRateLimit, (req, res, next) => {
+authRouter.post('/signup', stillLoggedIn, signupRateLimiter, (req, res, next) => {
 
     passport.authenticate('local-signup', (err, user) => {
         if (err) { return next(err); }
@@ -169,7 +169,7 @@ authRouter.post('/signup', stillLoggedIn, signupRateLimit, (req, res, next) => {
 });
 
 // POST rsnavigation.com/auth/forgot
-authRouter.post('/forgot', stillLoggedIn, forgotPasswordRateLimit, (req, res, next) => {
+authRouter.post('/forgot', stillLoggedIn, forgotPasswordRateLimiter, (req, res, next) => {
 
     const formError = validators.forgotPassword(req.body.email, req.body.role);
     if (formError) {

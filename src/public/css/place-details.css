@@ -210,7 +210,7 @@ select.form-control option {
     background: rgba(241, 241, 241, 0.5); 
 }
 
-@media (max-width: 575.98px) {
+@media (max-width: 600px) {
 
     .card-img-top {
         height: 15rem;
