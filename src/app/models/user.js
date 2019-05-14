@@ -49,7 +49,7 @@ license type:
 0 - None
 1 - Real Estate Appraiser
 2 - Real Estate Broker
-3 - Real Estate Accountant
+3 - Real Estate Consultant
 */
 
 // ==================================================================
@@ -85,7 +85,7 @@ UserSchema.virtual('statusString').get(function() {
 UserSchema.virtual('licenseStatusString').get(function() {
     switch(this.license.status)
     {
-        case 0: return  'None';
+        case 0: return  '';
         case 1: return  'Pending';
         case 2: return  'Verified';
         case 3: return  'Invalid';
@@ -99,7 +99,7 @@ UserSchema.virtual('licenseTypeString').get(function() {
         case 0: return  'No License';
         case 1: return  'Real Estate Appraiser';
         case 2: return  'Real Estate Broker';
-        case 3: return  'Real Estate Accountant';
+        case 3: return  'Real Estate Consultant';
         default: return 'Unknown';
     }
 });
