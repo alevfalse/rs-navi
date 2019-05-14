@@ -318,9 +318,15 @@ adminRouter.post('/ban/:id', isAdmin, (req, res, next) => {
         user.account.status = 4;
         user.save(err => {
             if (err) { return next(err); }
-            req.flash('message', `Banned ${user.fullName}.`);
-            req.session.save(err => err ? next(err) : res.redirect('/'));
-            audit.ban(req.user._id, req.ip, user._id, reason);
+
+            Place.findOneAndUpdate({ 'owner': user._id }, { 'status': 0 },
+            (err, res) => {
+                if (err) { return next(err); }
+
+                req.flash('message', `Banned ${user.fullName} and deleted their listed places.`);
+                req.session.save(err => err ? next(err) : res.redirect('/'));
+                audit.ban(req.user._id, req.ip, user._id, reason);
+            });
         });
     });
 });
