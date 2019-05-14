@@ -1,6 +1,7 @@
 const rootRouter = require('express').Router();
 const Place = require('../models/place');
 const logger = require('../../config/logger');
+const sanitize = require('../../bin/sanitizer');
 
 rootRouter.get('/', (req, res, next) => {
     res.render('index', { user: req.user, message: req.flash('message') },
@@ -8,16 +9,15 @@ rootRouter.get('/', (req, res, next) => {
 });
 
 rootRouter.get('/search', (req, res, next) => {
-    console.log(req.query);
-
-    let city = req.query.city;
-
-    if (city === 'Kalakhang Maynila') city = 'Metro Manila';
-
-    Place.find({ 'address.city': city, 'status': 1 })
+    
+    Place.find({ 'address.city': sanitize(req.query.city), 'status': 1 })
     .populate('reviews images')
     .exec((err, results) => {
-        if (err) { logger.error(err); return res.send(null); }
+        
+        if (err) { 
+            logger.error(err); 
+            return res.send(null); 
+        }
 
         let response = [];
 
@@ -28,7 +28,6 @@ rootRouter.get('/search', (req, res, next) => {
             });
         }
 
-        console.log(response);
         res.send(response);
     });
 });
