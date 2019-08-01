@@ -205,6 +205,45 @@ adminRouter.get('/prc', isAdmin, (req, res, next) => {
     });
 });
 
+adminRouter.get('/deleted/users', isAdmin, (req, res, next) => {
+    console.log('Requesting deleted users...');
+    User.find({ '$or': [{ 'account.status': 3 }, { 'account.status': 4 }] },
+    (err, users) => {
+        if (err) { return next(err); }
+        console.log(users.length);
+        res.json(users);
+    });
+});
+
+adminRouter.get('/deleted/places', isAdmin, (req, res, next) => {
+    console.log('Requesting deleted users...');
+    Place.find({ 'status': 0 }, (err, places) => {
+        if (err) { return next(err); }
+        console.log(places.length);
+        res.json(places);
+    });
+});
+
+adminRouter.get('/deleted/places', isAdmin, (req, res, next) => {
+    console.log('Requesting pending license...');
+    User.find({ 'license.status': 1, 'account.role': 1, 'account.status': 1 },
+    (err, placeowners) => {
+        if (err) { return next(err); }
+        
+        const arr = [];
+
+        for (owner of placeowners) {
+            arr.push({
+                id: owner._id,
+                name: owner.fullName,
+                license: owner.licenseTypeString
+            });
+        }
+
+        res.send(arr);
+    });
+});
+
 // GET admin.rsnavigation.com/logout
 adminRouter.get('/logout', (req, res, next) => {
 
@@ -233,6 +272,8 @@ adminRouter.get('/auth', (req, res, next) => {
 
 // ==========================================================================================================================================
 // POST ROUTES ==============================================================================================================================
+
+// TODO: Add restore banned placeowners and their places
 
 // POST admin.rsnavigation.com/login
 adminRouter.post('/login', (req, res, next) => {
@@ -319,10 +360,40 @@ adminRouter.post('/ban/:id', isAdmin, (req, res, next) => {
         user.save(err => {
             if (err) { return next(err); }
 
-            Place.findOneAndUpdate({ 'owner': user._id }, { 'status': 0 },
-            (err, res) => {
+            Place.updateMany({ 'owner': user._id }, { 'status': 0 },
+            (err, result) => {
                 if (err) { return next(err); }
 
+                console.log(result);
+                
+                req.flash('message', `Banned ${user.fullName} and deleted their listed places.`);
+                req.session.save(err => err ? next(err) : res.redirect('/'));
+                audit.ban(req.user._id, req.ip, user._id, reason);
+            });
+        });
+    });
+});
+
+adminRouter.post('/restore/user/:id', isAdmin, (req, res, next) => {
+    const id = sanitize(req.params.id);
+    const reason = sanitize(req.body.reason);
+
+    console.log(`Reason: ${reason}`);
+
+    User.findOneAndUpdate({ '_id': id },  { 'account.status': 1 },
+    (err, user) => {
+        if (err || !user) { return next(err); }
+
+        user.account.status = 4;
+        user.save(err => {
+            if (err) { return next(err); }
+
+            Place.updateMany({ 'owner': user._id }, { 'status': 1 },
+            (err, result) => {
+                if (err) { return next(err); }
+
+                console.log(result);
+                
                 req.flash('message', `Banned ${user.fullName} and deleted their listed places.`);
                 req.session.save(err => err ? next(err) : res.redirect('/'));
                 audit.ban(req.user._id, req.ip, user._id, reason);

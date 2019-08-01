@@ -45,7 +45,7 @@ PlaceSchema.on('index', (err) => {
 /* status:      /* types:
 0 - deleted     0: boarding house
 1 - visible     1: dormitory
-2 - removed     2: apartment
+                2: apartment
                 3: condominium
 
 0 - Rent/Sell
