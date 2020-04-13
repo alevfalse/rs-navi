@@ -2,6 +2,7 @@
 	"name": "rs-navi",
 	"version": "1.11.0",
 	"description": "A web application that helps students find a place to live near their school.",
+	"private": true,
 	"main": "src/server.js",
 	"scripts": {
 		"start": "node src/server.js",
@@ -9,14 +10,14 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/alevfalse/rs-navi.git"
+		"url": "git+https://github.com/alevosia/rs-navi.git"
 	},
 	"author": "Bathtub Coding",
 	"license": "ISC",
 	"bugs": {
-		"url": "https://github.com/alevfalse/rs-navi/issues"
+		"url": "https://github.com/alevosia/rs-navi/issues"
 	},
-	"homepage": "https://github.com/alevfalse/rs-navi#readme",
+	"homepage": "https://github.com/alevosia/rs-navi#readme",
 	"dependencies": {
 		"argon2": "^0.26.2",
 		"body-parser": "^1.19.0",
