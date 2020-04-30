@@ -90,6 +90,7 @@ PlaceSchema.virtual('updatedString').get(function() {
 });
 
 // reviews must be populated to get the number of stars
+// TODO: Use Array.reduce()
 PlaceSchema.virtual('stars').get(function() {
     if (!this.reviews || this.reviews.length === 0) { return 0 }
 
